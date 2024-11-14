@@ -4,6 +4,7 @@ import inspect
 import json
 import logging
 import os
+import time
 
 from pydantic import ValidationError
 
@@ -24,13 +25,14 @@ class Manager:
     def _get_test_name(self):
         """Retrieve the name of the current test function."""
         frame = inspect.currentframe().f_back.f_back
+        # If request fixture is an argument to the test function, use that to get the test
+        # function name (with the parameters).
+        # This gives the test name in the format: test_name[param1-param2-...] from pytest.
         request = frame.f_locals.get("request")
         if request:
             return request.node.name
-        raise ValueError(
-            """pytest request fixture has to be an argument to the pytest test function 
-            where the invariant_runner.Manager is used."""
-        )
+        # Fallback to just the test function name.
+        return inspect.stack()[2].function
 
     def _load_config(self):
         """Load the configuration from the environment variable."""
@@ -44,9 +46,8 @@ class Manager:
                     f"""The {INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR} environment variable is
                     not a valid configuration."""
                 ) from e
-        raise ValueError(
-            f"The {INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR} environment variable is not set."
-        )
+        # If no config is provided, the tests have not been invoked with the Invariant test runner.
+        return None
 
     def _get_test_result(self):
         """Run the test and return the test result."""
@@ -83,12 +84,10 @@ class Manager:
         """Enter the context manager and setup configuration."""
         self.config = self._load_config()  # pylint: disable=attribute-defined-outside-init
         self.test_name = self._get_test_name()  # pylint: disable=attribute-defined-outside-init
-        logger.info("Running test via Invariant test runner: %s", self.test_name)
-
         # Fetch the assertions and evaluate them.
         # Store the result in some state and write it to the file as part of __exit__.
 
-        if self.config.push:
+        if self.config and self.config.push:
             # Push the test results to the Invariant server.
             pass
 
@@ -97,7 +96,10 @@ class Manager:
     def __exit__(self, exc_type, exc_value, traceback) -> bool:
         """Exit the context manager, handling any exceptions that occurred."""
         # Save test result to the output directory.
-        file_path = utils.get_test_results_file_path(self.config)
+        dataset_name_for_output_file = (
+            self.config.dataset_name if self.config else int(time.time())
+        )
+        file_path = utils.get_test_results_file_path(dataset_name_for_output_file)
         with open(file_path, "a", encoding="utf-8") as file:
             json.dump(self._get_test_result().model_dump(), file)
             file.write("\n")

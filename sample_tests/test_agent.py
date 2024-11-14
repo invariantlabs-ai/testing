@@ -4,7 +4,7 @@ import pytest
 from invariant_runner.manager import Manager
 
 
-def test_agent_response(request):
+def test_agent_response():
     """Test agent response."""
     with Manager() as _:
         assert True

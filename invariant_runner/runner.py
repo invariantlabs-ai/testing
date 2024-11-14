@@ -72,8 +72,8 @@ def create_config(args: argparse.Namespace) -> Config:
 def print_test_summary(conf: Config) -> None:
     """Print a summary of the test results."""
 
-    print(f"{BOLD}Test summary{END}")
-    file_path = utils.get_test_results_file_path(conf)
+    print(f"{BOLD}Invariant Test summary{END}")
+    file_path = utils.get_test_results_file_path(conf.dataset_name)
     print(f"Test result saved to: {file_path}")
     print(f"{BOLD}------------{END}")
 
@@ -105,7 +105,7 @@ if __name__ == "__main__":
         logger.error("Configuration error: %s", e)
         sys.exit(1)
 
-    test_results_file_path = utils.get_test_results_file_path(config)
+    test_results_file_path = utils.get_test_results_file_path(config.dataset_name)
     if os.path.exists(test_results_file_path):
         os.remove(test_results_file_path)
 
