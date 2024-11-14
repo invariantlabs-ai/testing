@@ -1,10 +1,10 @@
 """This script is used to run tests using Invariant."""
 
 import argparse
+import logging
 import os
 import sys
 import time
-import logging
 
 import pytest
 
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 # ANSI escape code for bold text
 BOLD = "\033[1m"
 END = "\033[0m"
+
 
 def parse_args() -> tuple[argparse.Namespace, list[str]]:
     """Parse command-line arguments for the Invariant Runner."""
@@ -66,6 +67,14 @@ def create_config(args: argparse.Namespace) -> Config:
     )
 
 
+def print_test_summary() -> None:
+    """Print a summary of the test results."""
+    print(f"{BOLD}Test summary{END}")
+    print(f"{BOLD}------------{END}")
+
+    print(f"{BOLD}------------{END}")
+
+
 if __name__ == "__main__":
     try:
         # Parse command-line arguments and create configuration
@@ -78,3 +87,4 @@ if __name__ == "__main__":
 
     # Run pytest with remaining arguments
     pytest.main(pytest_args)
+    print_test_summary()
