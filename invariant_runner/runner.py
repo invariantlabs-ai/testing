@@ -1,6 +1,7 @@
 """This script is used to run tests using Invariant."""
 
 import argparse
+import json
 import logging
 import os
 import sys
@@ -8,6 +9,7 @@ import time
 
 import pytest
 
+from invariant_runner import utils
 from invariant_runner.config import Config
 from invariant_runner.constants import (
     INVARIANT_AP_KEY_ENV_VAR,
@@ -67,11 +69,29 @@ def create_config(args: argparse.Namespace) -> Config:
     )
 
 
-def print_test_summary() -> None:
+def print_test_summary(conf: Config) -> None:
     """Print a summary of the test results."""
+
     print(f"{BOLD}Test summary{END}")
+    file_path = utils.get_test_results_file_path(conf)
+    print(f"Test result saved to: {file_path}")
     print(f"{BOLD}------------{END}")
 
+    passed_count = 0
+    tests = 0
+    with open(file_path, "r", encoding="utf-8") as file:
+        for line in file:
+            test_result = json.loads(line.strip())
+            tests += 1
+            if test_result.get("passed"):
+                passed_count += 1
+            print(
+                f"{tests}. {test_result.get('name')}: {'PASSED' if test_result.get('passed') else 'FAILED'}"
+            )
+    print("\n")
+    print(f"{BOLD}Total tests: {END}{tests}")
+    print(f"{BOLD}Passed: {END}: {passed_count}")
+    print(f"{BOLD}Failed: {END}: {tests - passed_count}")
     print(f"{BOLD}------------{END}")
 
 
@@ -85,6 +105,10 @@ if __name__ == "__main__":
         logger.error("Configuration error: %s", e)
         sys.exit(1)
 
+    test_results_file_path = utils.get_test_results_file_path(config)
+    if os.path.exists(test_results_file_path):
+        os.remove(test_results_file_path)
+
     # Run pytest with remaining arguments
     pytest.main(pytest_args)
-    print_test_summary()
+    print_test_summary(config)
