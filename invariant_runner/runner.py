@@ -8,6 +8,11 @@ import time
 import pytest
 
 from invariant_runner.config import Config
+from invariant_runner.constants import (
+    INVARIANT_AP_KEY_ENV_VAR,
+    INVARIANT_RUNNER_TEST_RESULTS_DIR,
+    INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR,
+)
 
 # ANSI escape code for bold text
 BOLD = "\033[1m"
@@ -27,7 +32,7 @@ def parse_args() -> tuple[argparse.Namespace, list[str]]:
         "--push",
         action="store_true",
         help="""Flag to indicate whether to push data to the invariant server. If set to true,
-        INVARIANT_API_KEY environment variable must be set. Visit 
+        {INVARIANT_AP_KEY_ENV_VAR} environment variable must be set. Visit
         {BOLD}https://explorer.invariantlabs.ai/docs/{END} to see steps to generate
         an API key.""",
     )
@@ -43,14 +48,17 @@ def create_config(args: argparse.Namespace) -> Config:
     Returns:
         Config: Config instance with dataset name, push status, and API key.
     """
-    api_key = os.getenv("INVARIANT_API_KEY")
+    api_key = os.getenv(INVARIANT_AP_KEY_ENV_VAR)
 
     dataset_name = args.dataset_name or f"dataset_{int(time.time())}"
+
+    os.makedirs(INVARIANT_RUNNER_TEST_RESULTS_DIR, exist_ok=True)
 
     return Config(
         dataset_name=dataset_name,
         push=args.push,
         api_key=api_key,
+        result_output_dir=INVARIANT_RUNNER_TEST_RESULTS_DIR,
     )
 
 
@@ -59,6 +67,7 @@ if __name__ == "__main__":
         # Parse command-line arguments and create configuration
         invariant_runner_args, pytest_args = parse_args()
         config = create_config(invariant_runner_args)
+        os.environ[INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR] = config.model_dump_json()
     except ValueError as e:
         print("Configuration error:", e)
         sys.exit(1)
