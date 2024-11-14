@@ -112,3 +112,5 @@ if __name__ == "__main__":
     # Run pytest with remaining arguments
     pytest.main(pytest_args)
     print_test_summary(config)
+
+    # Update dataset level metadata to include the total passed and failed counts.
