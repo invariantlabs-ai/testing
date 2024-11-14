@@ -75,6 +75,7 @@ def test_main_execution_with_pytest_args():
         assert config.dataset_name == "test_dataset"
         assert config.push is True
         assert config.api_key == "env_api_key"
+        assert config.result_output_dir == "/tmp/invariant_test_runner"
 
         # Simulate calling pytest with remaining arguments
         pytest.main(pytest_args)

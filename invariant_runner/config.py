@@ -11,6 +11,7 @@ class Config(BaseModel):
     dataset_name: Optional[str]
     push: bool = False
     api_key: Optional[str]
+    result_output_dir: str
 
     @field_validator("api_key")
     @classmethod
