@@ -4,8 +4,7 @@ import pytest
 from invariant_runner.manager import Manager
 
 
-@pytest.mark.skip(reason="skipping")
-def test_agent_response():
+def test_agent_response(request):
     """Test agent response."""
     with Manager() as _:
         assert True
