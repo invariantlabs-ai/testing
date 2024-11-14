@@ -4,6 +4,7 @@ import argparse
 import os
 import sys
 import time
+import logging
 
 import pytest
 
@@ -14,10 +15,13 @@ from invariant_runner.constants import (
     INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR,
 )
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # ANSI escape code for bold text
 BOLD = "\033[1m"
 END = "\033[0m"
-
 
 def parse_args() -> tuple[argparse.Namespace, list[str]]:
     """Parse command-line arguments for the Invariant Runner."""
@@ -69,7 +73,7 @@ if __name__ == "__main__":
         config = create_config(invariant_runner_args)
         os.environ[INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR] = config.model_dump_json()
     except ValueError as e:
-        print("Configuration error:", e)
+        logger.error("Configuration error: %s", e)
         sys.exit(1)
 
     # Run pytest with remaining arguments
