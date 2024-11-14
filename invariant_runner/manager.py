@@ -85,21 +85,23 @@ class Manager:
         self.test_name = self._get_test_name()  # pylint: disable=attribute-defined-outside-init
         logger.info("Running test via Invariant test runner: %s", self.test_name)
 
-        # Run the test and collect the results per assertion.
+        # Fetch the assertions and evaluate them.
+        # Store the result in some state and write it to the file as part of __exit__.
 
         if self.config.push:
             # Push the test results to the Invariant server.
             pass
 
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> bool:
+        """Exit the context manager, handling any exceptions that occurred."""
         # Save test result to the output directory.
         file_path = utils.get_test_results_file_path(self.config)
         with open(file_path, "a", encoding="utf-8") as file:
             json.dump(self._get_test_result().model_dump(), file)
             file.write("\n")
-        return self
 
-    def __exit__(self, exc_type, exc_value, traceback) -> bool:
-        """Exit the context manager, handling any exceptions that occurred."""
         # Handle exceptions via exc_value, if needed
         # Returning False allows exceptions to propagate; returning True suppresses them
         return True
