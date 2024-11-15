@@ -1,6 +1,6 @@
 """Defines the Assertion class for test results."""
 
-from typing import Literal
+from typing import List, Literal
 
 from pydantic import BaseModel
 
@@ -8,6 +8,6 @@ from pydantic import BaseModel
 class Assertion(BaseModel):
     """Describes an assertion in a test."""
 
-    type: Literal["SOFT", "HARD"]
-    content: str
     passed: bool
+    type: Literal["SOFT", "HARD"]
+    addresses: List[str]

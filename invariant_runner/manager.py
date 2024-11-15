@@ -5,22 +5,33 @@ import json
 import logging
 import os
 import time
+from contextvars import ContextVar
 
 from pydantic import ValidationError
 
 from invariant_runner import utils
 from invariant_runner.config import Config
 from invariant_runner.constants import INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR
-from invariant_runner.test_result.assertion import Assertion
-from invariant_runner.test_result.result import TestResult
+from invariant_runner.custom_types.result import TestResult
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+INVARIANT_CONTEXT = ContextVar("invariant_context", default=[])
+
 
 class Manager:
     """Context manager class to run tests with Invariant."""
+
+    def __init__(self, trace):
+        self.trace = trace
+        self.assertions = []
+
+    @staticmethod
+    def current():
+        """Return the current context."""
+        return INVARIANT_CONTEXT.get()[-1]
 
     def _get_test_name(self):
         """Retrieve the name of the current test function."""
@@ -50,38 +61,21 @@ class Manager:
         return None
 
     def _get_test_result(self):
-        """Run the test and return the test result."""
-        # Contains random assertions for demonstration purposes.
-        assertions = [
-            Assertion(
-                type="HARD",
-                passed=True,
-                content="assert len(xyz) == 3",
-            ),
-            Assertion(
-                type="SOFT",
-                passed=False,
-                content="assert len(abc) <= 1",
-            ),
-        ]
+        """Generate the test result."""
         passed = all(
             assertion.passed if assertion.type == "HARD" else True
-            for assertion in assertions
+            for assertion in self.assertions
         )
         return TestResult(
             name=self.test_name,
             passed=passed,
-            trace=[
-                {
-                    "role": "user",
-                    "content": "What are the top 5 best-selling products in 2022",
-                }
-            ],
-            assertions=assertions,
+            trace=self.trace,
+            assertions=self.assertions,
         )
 
     def __enter__(self) -> "Manager":
         """Enter the context manager and setup configuration."""
+        INVARIANT_CONTEXT.get().append(self)
         self.config = self._load_config()  # pylint: disable=attribute-defined-outside-init
         self.test_name = self._get_test_name()  # pylint: disable=attribute-defined-outside-init
         # Fetch the assertions and evaluate them.
@@ -106,4 +100,5 @@ class Manager:
 
         # Handle exceptions via exc_value, if needed
         # Returning False allows exceptions to propagate; returning True suppresses them
+        INVARIANT_CONTEXT.get().pop()
         return True
