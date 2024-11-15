@@ -1,28 +1,28 @@
 """Defines the expect functions."""
 
-from typing import Literal
-
-from invariant_runner.custom_types.assertion import Assertion
-from invariant_runner.custom_types.invariant_value import InvariantValue
-from invariant_runner.manager import Manager
+from typing import Any
 
 
-def assert_equals(
-    expected_value: InvariantValue,
-    actual_value: InvariantValue,
-    assertion_type: Literal["SOFT", "HARD"] = "HARD",
-):
-    """Expect the invariant value to be equal to the given value."""
-    ctx = Manager.current()
-    comparison_result = actual_value.equals(expected_value)
-    assertion = Assertion(
-        passed=comparison_result.value,
-        type=assertion_type,
-        addresses=comparison_result.addresses,
-    )
-    ctx.assertions.append(assertion)
+class Matcher:
+    """Base class for all matchers."""
+
+    def matches(self, actual_value: Any) -> bool:
+        raise NotImplementedError("Subclasses should implement this method.")
 
 
-def expect_equals(expected_value: InvariantValue, actual_value: InvariantValue):
-    """Expect the invariant value to be equal to the given value. This is a soft assertion."""
-    assert_equals(expected_value, actual_value, "SOFT")
+class HasSubstring(Matcher):
+    """Matcher for checking if a string contains a substring."""
+
+    def __init__(self, substring: str):
+        self.substring = substring
+
+    def matches(self, actual_value: Any) -> bool:
+        if not isinstance(actual_value, str):
+            raise TypeError("HasSubstring matcher only works with strings.")
+        return self.substring in actual_value
+
+    def __str__(self):
+        return f"HasSubstring({self.substring})"
+
+    def __repr__(self):
+        return str(self)

@@ -12,7 +12,7 @@ from pydantic import ValidationError
 from invariant_runner import utils
 from invariant_runner.config import Config
 from invariant_runner.constants import INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR
-from invariant_runner.custom_types.result import TestResult
+from custom_types.test_result import TestResult
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

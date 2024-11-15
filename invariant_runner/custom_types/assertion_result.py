@@ -5,7 +5,7 @@ from typing import List, Literal
 from pydantic import BaseModel
 
 
-class Assertion(BaseModel):
+class AssertionResult(BaseModel):
     """Describes an assertion in a test."""
 
     passed: bool

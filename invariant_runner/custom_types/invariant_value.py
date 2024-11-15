@@ -10,9 +10,14 @@ class InvariantValue:
         self.value = value
         self.addresses = addresses
 
-    def equals(self, value: Any):
+    def equals(self, value: Any) -> "InvariantValue":
         """Check if the value is equal to the given value."""
         cmp_result = self.value == value
+        return InvariantValue(cmp_result, self.addresses)
+
+    def matches(self, matcher: "Matcher") -> "InvariantValue":
+        """Check if the value matches the given matcher."""
+        cmp_result = matcher.matches(self.value)
         return InvariantValue(cmp_result, self.addresses)
 
     def __str__(self):
