@@ -7,7 +7,7 @@ from invariant_runner.custom_types.invariant_value import InvariantValue
 from invariant_runner.manager import Manager
 
 
-def expect_equals(
+def assert_equals(
     expected_value: InvariantValue,
     actual_value: InvariantValue,
     assertion_type: Literal["SOFT", "HARD"] = "HARD",
@@ -23,6 +23,6 @@ def expect_equals(
     ctx.assertions.append(assertion)
 
 
-def accept_equals(expected_value: InvariantValue, actual_value: InvariantValue):
+def expect_equals(expected_value: InvariantValue, actual_value: InvariantValue):
     """Expect the invariant value to be equal to the given value. This is a soft assertion."""
-    expect_equals(expected_value, actual_value, "SOFT")
+    assert_equals(expected_value, actual_value, "SOFT")
