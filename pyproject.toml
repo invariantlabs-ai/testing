@@ -10,6 +10,9 @@ packages = [{ include = "invariant_runner" }]
 python = ">= 3.10"
 pydantic = "^2.9.2"
 requests = "^2.32.3"
+nltk = "^3.9.1"
+pytest = "^8.3.3"
+openai = "^1.54.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.3.3"
