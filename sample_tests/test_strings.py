@@ -3,6 +3,7 @@ import pytest
 from invariant_runner.scorers.strings import *
 from invariant_runner.scorers.base import approx
 from invariant_runner.scorers.utils.llm import LLM_Classifier, LLM_Detector, DetectionPair
+from invariant_runner.scorers.utils.ocr import OCR_Detector
 
 
 def test_levenshtein():
@@ -66,5 +67,16 @@ def test_vision_classifier():
     llm_clf = LLM_Classifier(model="gpt-4o", prompt="How many cats are in the image?", options=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], vision=True)
     res = llm_clf.classify_vision(base64_image)
     assert res == "3"
+
+@pytest.mark.skipif(not OCR_Detector.check_tesseract_installed(), reason="May not have tesseract installed")
+def test_ocr_detector():
+    # Load test image
+    with open("sample_tests/assets/inv_labs.png", "rb") as image_file:
+        base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+    
+    # Test case-insensitive detection
+    ocr = OCR_Detector()
+    assert ocr.contains(base64_image, "agents") == True
+    assert ocr.contains(base64_image, "making", bbox={'x1': 50, 'y1': 10, 'x2': 120, 'y2': 40}) == True
 
 
