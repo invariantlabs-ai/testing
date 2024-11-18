@@ -10,6 +10,11 @@ class InvariantValue:
         self.value = value
         self.addresses = addresses
 
+        if type(self.value) is str:
+            for i,a in enumerate(self.addresses):
+                if not ":" in a:
+                    self.addresses[i] = a + ":0-" + str(len(self.value))
+
     def equals(self, value: Any) -> "InvariantValue":
         """Check if the value is equal to the given value."""
         cmp_result = self.value == value

@@ -264,6 +264,21 @@ files = [
 ]
 
 [[package]]
+name = "invariant-sdk"
+version = "0.0.2"
+description = "SDK for Invariant APIs"
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "invariant_sdk-0.0.2-py3-none-any.whl", hash = "sha256:44f064137d431abe5e696fd26929622c1cc6e420bb54a1757388306ee6ade4bd"},
+    {file = "invariant_sdk-0.0.2.tar.gz", hash = "sha256:ca1533d2621633ec95b5caa6d672efa4cd6c48f188004559a33ce33ca5a36dac"},
+]
+
+[package.dependencies]
+pydantic = ">=2.9.2,<3.0.0"
+requests = ">=2.32.3,<3.0.0"
+
+[[package]]
 name = "packaging"
 version = "24.2"
 description = "Core utilities for Python packages"
@@ -516,4 +531,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">= 3.10"
-content-hash = "65cce2d445d58b0a5c573c9982abd9c779269971119d1ae7e73295d07cdced6d"
+content-hash = "a963264308da7d968c0fe1dc66a05dcf6718602155e81c6d1119f461a7ed5d78"

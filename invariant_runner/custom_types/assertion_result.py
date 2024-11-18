@@ -11,3 +11,4 @@ class AssertionResult(BaseModel):
     passed: bool
     type: Literal["SOFT", "HARD"]
     addresses: List[str]
+    message: str | None = None
