@@ -15,6 +15,7 @@ pytest = "^8.3.3"
 openai = "^1.54.4"
 Pillow = "^10.0.0"
 beautifulsoup4 = "^4.12.3"
+invariant-sdk = "^0.0.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.3.3"

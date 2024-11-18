@@ -5,22 +5,34 @@ import json
 import logging
 import os
 import time
+from contextvars import ContextVar
 
 from pydantic import ValidationError
 
 from invariant_runner import utils
 from invariant_runner.config import Config
 from invariant_runner.constants import INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR
-from invariant_runner.test_result.assertion import Assertion
-from invariant_runner.test_result.result import TestResult
+from invariant_runner.custom_types.test_result import TestResult, AssertionResult
+from invariant_sdk.client import Client as InvariantClient
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+INVARIANT_CONTEXT = ContextVar("invariant_context", default=[])
+
 
 class Manager:
     """Context manager class to run tests with Invariant."""
+
+    def __init__(self, trace):
+        self.trace = trace
+        self.assertions: list[AssertionResult] = []
+
+    @staticmethod
+    def current():
+        """Return the current context."""
+        return INVARIANT_CONTEXT.get()[-1]
 
     def _get_test_name(self):
         """Retrieve the name of the current test function."""
@@ -50,46 +62,25 @@ class Manager:
         return None
 
     def _get_test_result(self):
-        """Run the test and return the test result."""
-        # Contains random assertions for demonstration purposes.
-        assertions = [
-            Assertion(
-                type="HARD",
-                passed=True,
-                content="assert len(xyz) == 3",
-            ),
-            Assertion(
-                type="SOFT",
-                passed=False,
-                content="assert len(abc) <= 1",
-            ),
-        ]
+        """Generate the test result."""
         passed = all(
             assertion.passed if assertion.type == "HARD" else True
-            for assertion in assertions
+            for assertion in self.assertions
         )
         return TestResult(
             name=self.test_name,
             passed=passed,
-            trace=[
-                {
-                    "role": "user",
-                    "content": "What are the top 5 best-selling products in 2022",
-                }
-            ],
-            assertions=assertions,
+            trace=self.trace,
+            assertions=self.assertions,
         )
 
     def __enter__(self) -> "Manager":
         """Enter the context manager and setup configuration."""
+        INVARIANT_CONTEXT.get().append(self)
         self.config = self._load_config()  # pylint: disable=attribute-defined-outside-init
         self.test_name = self._get_test_name()  # pylint: disable=attribute-defined-outside-init
         # Fetch the assertions and evaluate them.
         # Store the result in some state and write it to the file as part of __exit__.
-
-        if self.config and self.config.push:
-            # Push the test results to the Invariant server.
-            pass
 
         return self
 
@@ -100,10 +91,68 @@ class Manager:
             self.config.dataset_name if self.config else int(time.time())
         )
         file_path = utils.get_test_results_file_path(dataset_name_for_output_file)
+        
+        # if there is a config, and push is enabled, push the test results to Explorer
+        if self.config is not None and self.config.push:
+            self.push()
+
+        # make sure path exists
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        
         with open(file_path, "a", encoding="utf-8") as file:
             json.dump(self._get_test_result().model_dump(), file)
             file.write("\n")
 
         # Handle exceptions via exc_value, if needed
         # Returning False allows exceptions to propagate; returning True suppresses them
+        INVARIANT_CONTEXT.get().pop()
         return True
+
+
+    def push(self):
+        """Push the test results to Explorer."""
+        client = InvariantClient()
+        
+        # annotations have the following structure:
+        # {content: str, address: str, extra_metadata: {source: str, test: str, line: int}}
+        annotations = []
+        for assertion in self.assertions:
+            assertion_id = id(assertion)
+
+            for address in assertion.addresses:
+                source = "test-assertion" if assertion.type == "HARD" else "test-expectation"
+                if assertion.passed:
+                    source += "-passed"
+
+                annotations.append({
+                    "address": "messages." + address,
+                    "content": assertion.message or str(assertion),
+                    "extra_metadata": {
+                        "source": source,
+                        "test": "<not supported yet>",
+                        "passed": assertion.passed,
+                        "line": 0,
+                        # ID of the assertion (if an assertion results in multiple annotations)
+                        "assertion_id": assertion_id
+                    }
+                })
+
+        test_result = self._get_test_result()
+        metadata = {
+            "name": test_result.name,
+            "invariant.num-failures": len([a for a in self.assertions if a.type == "HARD" and not a.passed]),
+            "invariant.num-warnings": len([a for a in self.assertions if a.type == "SOFT" and not a.passed]),
+        }
+
+        result = client.create_request_and_push_trace(
+            messages=[self.trace.trace], 
+            annotations=[annotations],
+            metadata=[metadata],
+            dataset="my-project-20241114-09-53-00",
+            # for pros, set verify to False
+            request_kwargs={"verify": False}
+        )
+
+        print(result, flush=True)
+
+
