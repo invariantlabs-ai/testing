@@ -10,7 +10,7 @@ class Matcher:
         raise NotImplementedError("Subclasses should implement this method.")
 
 
-class HasSubstring(Matcher):
+class has_substring(Matcher):
     """Matcher for checking if a string contains a substring."""
 
     def __init__(self, substring: str):
@@ -18,11 +18,11 @@ class HasSubstring(Matcher):
 
     def matches(self, actual_value: Any) -> bool:
         if not isinstance(actual_value, str):
-            raise TypeError("HasSubstring matcher only works with strings.")
+            raise TypeError("has_substring matcher only works with strings.")
         return self.substring in actual_value
 
     def __str__(self):
-        return f"HasSubstring({self.substring})"
+        return f"has_substring({self.substring})"
 
     def __repr__(self):
         return str(self)
