@@ -44,9 +44,9 @@ def match_keyword_filter(
         value = value.value
 
     # compare by value or use a lambda function
-    if isinstance(kwvalue, str) or isinstance(kwvalue, int):
+    if isinstance(kwvalue, (str, int)):
         return kwvalue == value
-    elif callable(kwvalue):
+    if callable(kwvalue):
         return kwvalue(value)
     raise ValueError(
         f"Cannot filter '{kwname}' with '{kwvalue}' (only str/int comparison or lambda functions are supported)"
@@ -62,9 +62,9 @@ class Trace(BaseModel):
         self, selector: int | None = None, **filterkwargs
     ) -> List[InvariantDict]:
         """Return the messages in the trace."""
-        if type(selector) is int:
+        if isinstance(selector, int):
             return InvariantDict(self.trace[selector], f"{selector}")
-        elif len(filterkwargs) > 0:
+        if len(filterkwargs) > 0:
             return InvariantList.from_values(
                 [
                     InvariantDict(message, [f"{i}"])
@@ -75,23 +75,19 @@ class Trace(BaseModel):
                     )
                 ]
             )
-        else:
-            return InvariantList.from_values(
-                [
-                    InvariantDict(message, [f"{i}"])
-                    for i, message in enumerate(self.trace)
-                ]
-            )
+        return InvariantList.from_values(
+            [InvariantDict(message, [f"{i}"]) for i, message in enumerate(self.trace)]
+        )
 
     def tool_calls(
         self, selector: int | None = None, **filterkwargs
     ) -> List[InvariantDict]:
         """Return the tool calls in the trace."""
-        if type(selector) is int:
+        if isinstance(selector, int):
             for i, (tc_address, tc) in enumerate(iterate_tool_calls(self.trace)):
                 if i == selector:
                     return InvariantDict(tc, tc_address)
-        elif len(filterkwargs) > 0:
+        if len(filterkwargs) > 0:
             return InvariantList.from_values(
                 [
                     InvariantDict(tc, [tc_address])
@@ -104,10 +100,6 @@ class Trace(BaseModel):
                     )
                 ]
             )
-        else:
-            return InvariantList.from_values(
-                [
-                    InvariantDict(tc, [f"{i}"])
-                    for i, tc in iterate_tool_calls(self.trace)
-                ]
-            )
+        return InvariantList.from_values(
+            [InvariantDict(tc, [f"{i}"]) for i, tc in iterate_tool_calls(self.trace)]
+        )
