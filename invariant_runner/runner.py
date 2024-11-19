@@ -10,9 +10,9 @@ import time
 import pytest
 from invariant_sdk.client import Client as InvariantClient
 
-from invariant_runner import utils
-from invariant_runner.config import Config
-from invariant_runner.constants import (
+import utils
+from config import Config
+from constants import (
     INVARIANT_AP_KEY_ENV_VAR,
     INVARIANT_RUNNER_TEST_RESULTS_DIR,
     INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR,

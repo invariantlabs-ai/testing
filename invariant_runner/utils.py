@@ -2,7 +2,7 @@
 
 import os
 
-from invariant_runner.constants import INVARIANT_RUNNER_TEST_RESULTS_DIR
+from constants import INVARIANT_RUNNER_TEST_RESULTS_DIR
 
 
 def get_test_results_file_path(dataset_name: str) -> str:
