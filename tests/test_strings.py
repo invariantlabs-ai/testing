@@ -47,7 +47,6 @@ def test_llm():
     res = llm_clf.classify(text="Heute ist ein schöner Tag")
     assert res == "de"
 
-
 def test_llm_detector():
     text = """I like apples and carrots, but I don't like bananas.\nThe only thing better than apples are potatoes and pears."""
     llm_detector = LLM_Detector(model="gpt-4o", predicate_rule="fruits")
