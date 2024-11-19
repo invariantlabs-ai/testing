@@ -1,6 +1,8 @@
 """InvariantDict class definition"""
 
+from invariant_runner.custom_types.invariant_number import InvariantNumber
 from invariant_runner.custom_types.invariant_value import InvariantValue
+
 
 class InvariantList:
     """InvariantList class definition"""
@@ -11,17 +13,22 @@ class InvariantList:
 
     @classmethod
     def from_values(cls, values: list[InvariantValue]):
-        return cls([value.value for value in values], [value.address for value in values])
+        return cls(
+            [value.value for value in values], [value.address for value in values]
+        )
 
     def __getitem__(self, key: int):
         return InvariantValue.of(self.value[key], self.addresses[key])
 
     def __len__(self):
-        raise NotImplementedError("InvariantList does not support len(). Please use .len() instead.")
-    
-    def len(self) -> InvariantValue:
-        return InvariantValue.of(len(self.value), self.addresses)
-    
+        raise NotImplementedError(
+            "InvariantList does not support len(). Please use .len() instead."
+        )
+
+    def len(self) -> InvariantNumber:
+        """Return the length of the list."""
+        return InvariantNumber(len(self.value), self.addresses)
+
     def __iter__(self):
         for i in range(len(self.value)):
             yield self[i]
