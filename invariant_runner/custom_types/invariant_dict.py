@@ -11,7 +11,7 @@ class InvariantDict:
         self.address = address
 
     def __getitem__(self, key):
-        return InvariantValue(self.value[key], [f"{self.address}.{key}"])
+        return InvariantValue(self.value[key], [f"{a}.{key}" for a in self.address])
 
     def __str__(self):
         return str(self.value) + " at " + str(self.address)

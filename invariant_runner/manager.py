@@ -7,13 +7,13 @@ import os
 import time
 from contextvars import ContextVar
 
+from invariant_sdk.client import Client as InvariantClient
 from pydantic import ValidationError
 
 from invariant_runner import utils
 from invariant_runner.config import Config
 from invariant_runner.constants import INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR
-from invariant_runner.custom_types.test_result import TestResult, AssertionResult
-from invariant_sdk.client import Client as InvariantClient
+from invariant_runner.custom_types.test_result import AssertionResult, TestResult
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -91,14 +91,14 @@ class Manager:
             self.config.dataset_name if self.config else int(time.time())
         )
         file_path = utils.get_test_results_file_path(dataset_name_for_output_file)
-        
+
         # if there is a config, and push is enabled, push the test results to Explorer
         if self.config is not None and self.config.push:
             self.push()
 
         # make sure path exists
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        
+
         with open(file_path, "a", encoding="utf-8") as file:
             json.dump(self._get_test_result().model_dump(), file)
             file.write("\n")
@@ -108,11 +108,10 @@ class Manager:
         INVARIANT_CONTEXT.get().pop()
         return True
 
-
     def push(self):
         """Push the test results to Explorer."""
         client = InvariantClient()
-        
+
         # annotations have the following structure:
         # {content: str, address: str, extra_metadata: {source: str, test: str, line: int}}
         annotations = []
@@ -120,39 +119,45 @@ class Manager:
             assertion_id = id(assertion)
 
             for address in assertion.addresses:
-                source = "test-assertion" if assertion.type == "HARD" else "test-expectation"
+                source = (
+                    "test-assertion" if assertion.type == "HARD" else "test-expectation"
+                )
                 if assertion.passed:
                     source += "-passed"
 
-                annotations.append({
-                    "address": "messages." + address,
-                    "content": assertion.message or str(assertion),
-                    "extra_metadata": {
-                        "source": source,
-                        "test": "<not supported yet>",
-                        "passed": assertion.passed,
-                        "line": 0,
-                        # ID of the assertion (if an assertion results in multiple annotations)
-                        "assertion_id": assertion_id
+                annotations.append(
+                    {
+                        "address": "messages." + address,
+                        "content": assertion.message or str(assertion),
+                        "extra_metadata": {
+                            "source": source,
+                            "test": "<not supported yet>",
+                            "passed": assertion.passed,
+                            "line": 0,
+                            # ID of the assertion (if an assertion results in multiple annotations)
+                            "assertion_id": assertion_id,
+                        },
                     }
-                })
+                )
 
         test_result = self._get_test_result()
         metadata = {
             "name": test_result.name,
-            "invariant.num-failures": len([a for a in self.assertions if a.type == "HARD" and not a.passed]),
-            "invariant.num-warnings": len([a for a in self.assertions if a.type == "SOFT" and not a.passed]),
+            "invariant.num-failures": len(
+                [a for a in self.assertions if a.type == "HARD" and not a.passed]
+            ),
+            "invariant.num-warnings": len(
+                [a for a in self.assertions if a.type == "SOFT" and not a.passed]
+            ),
         }
 
         result = client.create_request_and_push_trace(
-            messages=[self.trace.trace], 
+            messages=[self.trace.trace],
             annotations=[annotations],
             metadata=[metadata],
             dataset="my-project-20241114-09-53-00",
             # for pros, set verify to False
-            request_kwargs={"verify": False}
+            request_kwargs={"verify": False},
         )
 
         print(result, flush=True)
-
-
