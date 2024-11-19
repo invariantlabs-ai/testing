@@ -22,6 +22,7 @@ def test_is_similar_levenshtein():
         assert_that(trace.messages()[0]["content"], is_similar("hello aaaaa", 0.3))
         assert_that(trace.messages()[0]["content"], is_similar("hello THERe",0.9))
         assert_that(trace.messages()[0]["content"], is_similar("iiiii THERE",0.5))
+        
 def test_is_similar_embedding():
     """Test another agent response."""
     trace = Trace(trace=[{"role": "user", "content": "Hello there"}])
