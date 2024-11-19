@@ -5,7 +5,7 @@ from invariant_runner.custom_types.assertions import (
     assert_that,
     expect_equals,
 )
-from invariant_runner.custom_types.matchers import has_substring
+from invariant_runner.custom_types.matchers import HasSubstring
 from invariant_runner.custom_types.trace import Trace
 from invariant_runner.manager import Manager
 
@@ -36,6 +36,6 @@ def test_another_agent_response():
         )
         assert_that(
             trace.messages()[0]["content"],
-            has_substring("hsfa"),
+            HasSubstring("hsfa"),
             "First message should match 'hsfa'",
         )
