@@ -81,7 +81,7 @@ class Trace(BaseModel):
 
     def tool_calls(
         self, selector: int | None = None, **filterkwargs
-    ) -> List[InvariantDict]:
+    ) -> InvariantList | InvariantDict:
         """Return the tool calls in the trace."""
         if isinstance(selector, int):
             for i, (tc_address, tc) in enumerate(iterate_tool_calls(self.trace)):
@@ -90,7 +90,7 @@ class Trace(BaseModel):
         if len(filterkwargs) > 0:
             return InvariantList.from_values(
                 [
-                    InvariantDict(tc, [tc_address])
+                    InvariantDict(tc, tc_address)
                     for tc_address, tc in iterate_tool_calls(self.trace)
                     if all(
                         match_keyword_filter_on_tool_call(
