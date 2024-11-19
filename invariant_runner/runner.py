@@ -8,6 +8,7 @@ import sys
 import time
 
 import pytest
+from invariant_sdk.client import Client as InvariantClient
 
 from invariant_runner import utils
 from invariant_runner.config import Config
@@ -33,7 +34,8 @@ def parse_args() -> tuple[argparse.Namespace, list[str]]:
     )
     parser.add_argument(
         "--dataset_name",
-        help="The name of the dataset to be used to associate the test trace data and results",
+        help="The name of the dataset to be used to associate the test trace data and results. This name will be used to derive a fresh dataset name on each run (e.g. myproject-1732007573)",
+        default="tests",
     )
     parser.add_argument(
         "--push",
@@ -57,7 +59,8 @@ def create_config(args: argparse.Namespace) -> Config:
     """
     api_key = os.getenv(INVARIANT_AP_KEY_ENV_VAR)
 
-    dataset_name = args.dataset_name or f"dataset_{int(time.time())}"
+    prefix = args.dataset_name
+    dataset_name = f"{prefix}-{int(time.time())}"
 
     os.makedirs(INVARIANT_RUNNER_TEST_RESULTS_DIR, exist_ok=True)
 
@@ -69,11 +72,21 @@ def create_config(args: argparse.Namespace) -> Config:
     )
 
 
-def print_test_summary(conf: Config) -> None:
-    """Print a summary of the test results."""
+def finalize_tests_and_print_summary(conf: Config) -> None:
+    """
+    Finalizes the test run:
+    * pushes result metadata to the Explorer if --push
+    * prints a summary of the test results.
+    """
+    file_path = utils.get_test_results_file_path(conf.dataset_name)
+
+    if not os.path.exists(file_path):
+        print(
+            "[ERROR] No test results found. Make sure your tests were executed correctly using Invariant assertions."
+        )
+        return
 
     print(f"{BOLD}Invariant Test summary{END}")
-    file_path = utils.get_test_results_file_path(conf.dataset_name)
     print(f"Test result saved to: {file_path}")
     print(f"{BOLD}------------{END}")
 
@@ -94,6 +107,24 @@ def print_test_summary(conf: Config) -> None:
     print(f"{BOLD}Failed: {END}: {tests - passed_count}")
     print(f"{BOLD}------------{END}")
 
+    # update dataset metadata if --push
+    if conf.push:
+        client = InvariantClient()
+        client.create_request_and_update_dataset_metadata(
+            dataset_name=conf.dataset_name,
+            metadata={
+                "invariant_test_results": {
+                    "num_tests": tests,
+                    "num_dpassed": passed_count,
+                }
+            },
+            request_kwargs={"verify": utils.ssl_verification_enabled()},
+        )
+
+        print(
+            f"Results available at {client.api_url}/u/developer/{conf.dataset_name}/t/1"
+        )
+
 
 if __name__ == "__main__":
     try:
@@ -111,6 +142,8 @@ if __name__ == "__main__":
 
     # Run pytest with remaining arguments
     pytest.main(pytest_args)
-    print_test_summary(config)
+
+    # print Invariant test summary
+    finalize_tests_and_print_summary(config)
 
     # Update dataset level metadata to include the total passed and failed counts.

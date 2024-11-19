@@ -110,6 +110,8 @@ class Manager:
 
     def push(self):
         """Push the test results to Explorer."""
+        assert self.config is not None, "cannot push(...) without a config"
+
         client = InvariantClient()
 
         # annotations have the following structure:
@@ -151,13 +153,16 @@ class Manager:
             ),
         }
 
-        result = client.create_request_and_push_trace(
-            messages=[self.trace.trace],
-            annotations=[annotations],
-            metadata=[metadata],
-            dataset="my-project-20241114-09-53-00",
-            # for pros, set verify to False
-            request_kwargs={"verify": False},
-        )
-
-        print(result, flush=True)
+        try:
+            client.create_request_and_push_trace(
+                messages=[self.trace.trace],
+                annotations=[annotations],
+                metadata=[metadata],
+                dataset=self.config.dataset_name,
+                request_kwargs={"verify": utils.ssl_verification_enabled()},
+            )
+        except Exception as e:
+            # fail test suite hard if this happens
+            raise RuntimeError(
+                "Failed to push test results to Explorer. Please make sure your Invariant API key and endpoint are setup correctly or run without --push."
+            ) from e
