@@ -87,7 +87,7 @@ class Trace(BaseModel):
             for i, (tc_address, tc) in enumerate(iterate_tool_calls(self.trace)):
                 if i == selector:
                     return InvariantDict(tc, tc_address)
-        if len(filterkwargs) > 0:
+        elif len(filterkwargs) > 0:
             return InvariantList.from_values(
                 [
                     InvariantDict(tc, tc_address)
@@ -100,6 +100,7 @@ class Trace(BaseModel):
                     )
                 ]
             )
-        return InvariantList.from_values(
-            [InvariantDict(tc, [f"{i}"]) for i, tc in iterate_tool_calls(self.trace)]
-        )
+        else:
+            return InvariantList.from_values(
+                [InvariantDict(tc, [f"{i}"]) for i, tc in iterate_tool_calls(self.trace)]
+            )
