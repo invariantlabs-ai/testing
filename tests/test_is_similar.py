@@ -12,14 +12,14 @@ def test_is_similar_levenshtein():
     with Manager(trace) as _:
         # test case: expected value is longer than actual value
         assert_that(trace.messages()[0]["content"], is_similar("hello where",0.5))
-        assert_that(trace.messages()[0]["content"], is_similar("Hello there Hello there Hello there",0.4))
+        assert_that(trace.messages()[0]["content"], is_similar("Hello there Hello there Hello there",0.4,Similaritymetrics.LEVENSHTEIN))
         # test case: expected value is shorter than actual value, empty
         assert_that(trace.messages()[0]["content"], is_similar("hello",0.8))
-        assert_that(trace.messages()[0]["content"], is_similar("",0.5))
+        assert_that(trace.messages()[0]["content"], is_similar("",0.5,Similaritymetrics.LEVENSHTEIN))
         assert_that(trace.messages()[0]["content"], is_similar("there",0.5))
         # test case: expected value is the same length as actual value
-        assert_that(trace.messages()[0]["content"], is_similar("hello aaaaa", 0.3))
-        assert_that(trace.messages()[0]["content"], is_similar("hello THERe",0.9))
+        assert_that(trace.messages()[0]["content"], is_similar("hello aaaaa", 0.3,Similaritymetrics.LEVENSHTEIN))
+        assert_that(trace.messages()[0]["content"], is_similar("hello THERe",0.9,Similaritymetrics.LEVENSHTEIN))
         assert_that(trace.messages()[0]["content"], is_similar("iiiii THERE",0.5))
 
 def test_is_similar_embedding():
