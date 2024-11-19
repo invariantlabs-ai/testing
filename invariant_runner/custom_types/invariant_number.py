@@ -13,11 +13,6 @@ class InvariantNumber(InvariantValue):
     def __init__(self, value: int | float, addresses: list[str] = None):
         if not isinstance(value, (int, float)):
             raise TypeError(f"value must be an int or float, got {type(value)}")
-        # Move this to InvariantValue.__init__ when refactoring.
-        if addresses is not None and not all(
-            isinstance(addr, str) for addr in addresses
-        ):
-            raise TypeError("addresses must be a list of strings")
         if addresses is None:
             addresses = []
         super().__init__(value, addresses)
