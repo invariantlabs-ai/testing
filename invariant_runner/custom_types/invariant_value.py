@@ -1,6 +1,7 @@
 """Describes an invariant value in a test."""
 from __future__ import annotations
 import re
+# pylint: disable=import-outside-toplevel
 from typing import Any, Optional
 from invariant_runner.scorers.strings import *
 from invariant_runner.scorers.code import *
@@ -11,39 +12,62 @@ from _pytest.python_api import ApproxBase
 class InvariantValue:
     """Describes an invariant value in a test."""
 
-    def __init__(self, value: Any, addresses: list[str] = []):
+    def __init__(self, value: Any, addresses: list[str] = None):
+        if addresses is not None and not all(
+            isinstance(addr, str) for addr in addresses
+        ):
+            raise TypeError("addresses must be a list of strings")
         self.value = value
-        self.addresses = addresses
+        self.addresses = addresses if addresses is not None else []
 
-        assert self.addresses is not None, "InvariantValue must have addresses"
-
-        # if type(self.value) is str:
-        #     for i,a in enumerate(self.addresses):
-        #         if not ":" in a:
-        #             self.addresses[i] = a + ":0-" + str(len(self.value))
+        if isinstance(self.value, str) and self.addresses is None:
+            for i, a in enumerate(self.addresses):
+                if ":" not in a:
+                    self.addresses[i] = a + ":0-" + str(len(self.value))
 
     @staticmethod
     def of(value: Any, address: list[str]):
-        from .invariant_list import InvariantList
+        """Create an Invariant type object from a value and a list of addresses."""
+        from .invariant_bool import InvariantBool
         from .invariant_dict import InvariantDict
+        from .invariant_list import InvariantList
+        from .invariant_number import InvariantNumber
+        from .invariant_string import InvariantString
 
-        if type(value) is list:
-            assert type(address) is list, "InvariantValue.of requires a list of adresses for list values"
+        if isinstance(value, list):
+            assert isinstance(
+                address, list
+            ), "InvariantValue.of requires a list of adresses for list values"
             return InvariantList(value, address)
-        elif type(value) is dict:
-            assert type(address) is list, "InvariantValue.of requires a list of adresses for dict values, got " + str(address) + " " + str(type(address))
+        elif isinstance(value, dict):
+            assert isinstance(address, list), (
+                "InvariantValue.of requires a list of adresses for dict values, got "
+                + str(address)
+                + " "
+                + str(type(address))
+            )
             return InvariantDict(value, address)
+        elif isinstance(value, (int, float)):
+            return InvariantNumber(value, address)
+        elif isinstance(value, str):
+            return InvariantString(value, address)
+        elif isinstance(value, bool):
+            return InvariantBool(value, address)
         return InvariantValue(value, address)
 
-    def equals(self, value: Any) -> InvariantValue:
+    def equals(self, value: Any) -> "InvariantBool":  # type: ignore # noqa: F821
         """Check if the value is equal to the given value."""
-        cmp_result = self.value == value
-        return InvariantValue(cmp_result, self.addresses)
+        from .invariant_bool import InvariantBool
 
-    def matches(self, matcher: "Matcher") -> InvariantValue:
+        cmp_result = self.value == value
+        return InvariantBool(cmp_result, self.addresses)
+
+    def matches(self, matcher: "Matcher") -> "InvariantBool":  # type: ignore # noqa: F821
         """Check if the value matches the given matcher."""
+        from .invariant_bool import InvariantBool
+
         cmp_result = matcher.matches(self.value)
-        return InvariantValue(cmp_result, self.addresses)
+        return InvariantBool(cmp_result, self.addresses)
 
     def __str__(self):
         return str(self.value) + " at " + " -> ".join(self.addresses)

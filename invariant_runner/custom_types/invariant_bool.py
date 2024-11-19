@@ -11,11 +11,6 @@ class InvariantBool(InvariantValue):
     def __init__(self, value: bool, addresses: list[str] = None):
         if not isinstance(value, bool):
             raise TypeError(f"value must be a bool, got {type(value)}")
-        # Move this to InvariantValue.__init__ when refactoring.
-        if addresses is not None and not all(
-            isinstance(addr, str) for addr in addresses
-        ):
-            raise TypeError("addresses must be a list of strings")
         if addresses is None:
             addresses = []
         super().__init__(value, addresses)
