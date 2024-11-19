@@ -68,16 +68,28 @@ def assert_true(
     message: str = None,
     assertion_type: Literal["SOFT", "HARD"] = "HARD",
 ):
-    """Expect the invariant value to match the given matcher."""
+    """Expect the actual_value InvariantBool to be true."""
     ctx = Manager.current()
     comparison_result = actual_value.value
     assertion = AssertionResult(
-        passed=comparison_result.value,
+        passed=comparison_result,
         type=assertion_type,
-        addresses=comparison_result.addresses,
+        addresses=actual_value.addresses,
         message=message,
     )
     ctx.assertions.append(assertion)
+
+
+def expect_true(
+    actual_value: InvariantBool,
+    message: str = None,
+):
+    """Expect the actual_value InvariantBool to be true. This is a soft assertion."""
+    assert_true(
+        actual_value,
+        message,
+        "SOFT",
+    )
 
 
 def assert_false(
@@ -85,13 +97,25 @@ def assert_false(
     message: str = None,
     assertion_type: Literal["SOFT", "HARD"] = "HARD",
 ):
-    """Expect the invariant value to match the given matcher."""
+    """Expect the actual_value InvariantBool to be false."""
     ctx = Manager.current()
     comparison_result = not actual_value.value
     assertion = AssertionResult(
-        passed=comparison_result.value,
+        passed=comparison_result,
         type=assertion_type,
-        addresses=comparison_result.addresses,
+        addresses=actual_value.addresses,
         message=message,
     )
     ctx.assertions.append(assertion)
+
+
+def expect_false(
+    actual_value: InvariantBool,
+    message: str = None,
+):
+    """Expect the actual_value InvariantBool to be false. This is a soft assertion."""
+    assert_false(
+        actual_value,
+        message,
+        "SOFT",
+    )
