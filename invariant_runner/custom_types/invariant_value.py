@@ -8,6 +8,9 @@ from invariant_runner.scorers.code import *
 from invariant_runner.scorers.utils.llm import LLM_Classifier, LLM_Detector
 
 from _pytest.python_api import ApproxBase
+# pylint: disable=import-outside-toplevel
+from typing import Any
+
 
 class InvariantValue:
     """Describes an invariant value in a test."""
