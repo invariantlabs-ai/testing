@@ -14,7 +14,7 @@ class InvariantDict:
         return InvariantValue(self.value[key], [f"{self.address}.{key}"])
 
     def __str__(self):
-        return str(self.value) + " at " + self.address
+        return str(self.value) + " at " + str(self.address)
 
     def __repr__(self):
         return str(self)
