@@ -14,7 +14,6 @@ class InvariantValue:
             raise TypeError("addresses must be a list of strings")
         self.value = value
         self.addresses = addresses if addresses is not None else []
-
         if isinstance(self.value, str):
             for i, a in enumerate(self.addresses):
                 if ":" not in a:
