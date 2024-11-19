@@ -115,7 +115,7 @@ def finalize_tests_and_print_summary(conf: Config) -> None:
             metadata={
                 "invariant_test_results": {
                     "num_tests": tests,
-                    "num_dpassed": passed_count,
+                    "num_passed": passed_count,
                 }
             },
             request_kwargs={"verify": utils.ssl_verification_enabled()},
