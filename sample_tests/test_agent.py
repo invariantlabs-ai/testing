@@ -207,12 +207,19 @@ def test_big_trace(big_trace):
             )
 
 
-def test_trace_complex_agent(trace_with_tool_calls: Trace):
-    """Test a complex agent."""
-    # with Manager(trace_with_tool_calls):
-    #     raise NotImplementedError("Not implemented")
+def test_trace_rules(trace_with_tool_calls: Trace):
+    """Test trace rules."""
+    with Manager(trace_with_tool_calls):
+        tool_calls_with_greet = trace_with_tool_calls.tool_calls(name=lambda n: n == "greet")
+        assert_true(tool_calls_with_greet[0]["function"]["name"] == "greet")
 
-    tool_calls_with_greet = trace_with_tool_calls.tool_calls(name=lambda n: n == "greet")
-    print("here: ", tool_calls_with_greet[0]["function"]["name"])
-    #assert_true(tool_calls_with_greet[0]["function"]["name"] == "greetg")
+        tool_calls_with_ask = trace_with_tool_calls.tool_calls(name=lambda n: n == "ask")
+        assert_true(tool_calls_with_ask[0]["function"]["arguments"]["question"].contains("help"))
+        assert_true(not tool_calls_with_ask[0]["function"]["arguments"]["question"].contains("helpp"))
+
+        assistant_messages = trace_with_tool_calls.messages(role="assistant")
+        assert assistant_messages.len() == 2
+        assert_equals("Hello there", assistant_messages[0]["content"], "First message should greet 'there'")
+        assert_equals("I need help with something", assistant_messages[1]["content"], "Second message should greet 'something'")
+
         
