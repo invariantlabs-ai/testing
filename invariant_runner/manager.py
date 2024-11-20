@@ -161,15 +161,17 @@ class Manager:
                     else "EXPECTATION VIOLATED"
                 )
 
-                error_message += (
-                    " "
-                    + test_snippet
-                    + ("_" * column_width + "\n")
-                    + f"\n{failure_message}: {message or ''}\n"
-                    + ("_" * column_width + "\n\n")
-                    + format_trace(self.trace.trace, highlights=addresses)
-                    + "\n"
-                )
+                formatted_trace = format_trace(self.trace.trace, highlights=addresses)
+                if formatted_trace is not None:
+                    error_message += (
+                        " "
+                        + test_snippet
+                        + ("_" * column_width + "\n")
+                        + f"\n{failure_message}: {message or ''}\n"
+                        + ("_" * column_width + "\n\n")
+                        + formatted_trace
+                        + "\n"
+                    )
 
                 # add separator between failed assertions
                 if i < len(failed_hard_assertions) - 1:

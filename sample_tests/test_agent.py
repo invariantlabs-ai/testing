@@ -205,3 +205,14 @@ def test_big_trace(big_trace):
             assert_equals(
                 "", tc["content"], "Assistant message content should be empty"
             )
+
+
+def test_trace_complex_agent(trace_with_tool_calls: Trace):
+    """Test a complex agent."""
+    # with Manager(trace_with_tool_calls):
+    #     raise NotImplementedError("Not implemented")
+
+    tool_calls_with_greet = trace_with_tool_calls.tool_calls(name=lambda n: n == "greet")
+    print("here: ", tool_calls_with_greet[0]["function"]["name"])
+    #assert_true(tool_calls_with_greet[0]["function"]["name"] == "greetg")
+        

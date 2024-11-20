@@ -114,7 +114,8 @@ class InvariantString(InvariantValue):
             start, end = match.span()
             new_addresses.append(f"{start}-{end}")
         return InvariantBool(
-            len(new_addresses) > 0, self._concat_addresses(new_addresses)
+            len(new_addresses) > 0, 
+            self.addresses if len(new_addresses) == 0 else self._concat_addresses(new_addresses)
         )
 
     def is_similar(self, other: str, threshold: float = 0.5) -> InvariantBool:

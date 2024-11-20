@@ -47,6 +47,7 @@ class InvariantList:
                 "InvariantList [\n"
                 + "\n".join("  " + str(item) for item in self.value)
                 + "\n]"
+                + " at " + str(self.addresses)
             )
         return "InvariantList" + str(self.value) + " at " + str(self.addresses)
 

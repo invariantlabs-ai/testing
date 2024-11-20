@@ -124,21 +124,26 @@ def expect_that(actual_value: InvariantValue, matcher: Matcher, message: str = N
 
 
 def assert_true(
-    actual_value: InvariantBool,
+    actual_value: InvariantBool | bool,
     message: str = None,
     assertion_type: Literal["SOFT", "HARD"] = "HARD",
     stacklevels: int = 1,
 ):
     """Expect the actual_value InvariantBool to be true."""
     ctx = Manager.current()
-    comparison_result = actual_value.value
+    if isinstance(actual_value, InvariantBool):
+        comparison_result = actual_value.value
+        addresses = actual_value.addresses
+    else:
+        comparison_result = actual_value
+        addresses = []
 
     test, testline = get_caller_snippet(levels=stacklevels)
 
     assertion = AssertionResult(
         passed=comparison_result,
         type=assertion_type,
-        addresses=actual_value.addresses,
+        addresses=addresses,
         message=message,
         test=test,
         test_line=testline,
