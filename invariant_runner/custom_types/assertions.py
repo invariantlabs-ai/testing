@@ -1,7 +1,7 @@
 """Defines the expect functions."""
 
 # to get terminal column width
-from typing import Any, Literal
+from typing import Any, Literal, Tuple
 
 from invariant_runner.custom_types.assertion_result import AssertionResult
 from invariant_runner.custom_types.invariant_bool import InvariantBool
@@ -10,12 +10,12 @@ from invariant_runner.custom_types.matchers import Matcher
 from invariant_runner.manager import Manager
 
 
-def get_caller_snippet(levels=1):
+def get_caller_snippet(levels=1) -> Tuple[str, int]:
     """
     When called from e.g. assert_equals below, gets the full code of the
     caller function.
     """
-    import inspect
+    import inspect  # pylint: disable=import-outside-toplevel
 
     frame = inspect.currentframe()
     caller_frame = frame.f_back
@@ -65,10 +65,11 @@ def assert_equals(
 
 
 def formatted(value: Any) -> str:
-    # for InvariantValue, get the actual value
+    """Format the value for display in an assertion message."""
+    # For InvariantValue, get the actual value
     if isinstance(value, InvariantValue):
         value = value.value
-    # for strings, unicode_escape them, so we can see special characters and don't render newlines
+    # For strings, unicode_escape them, so we can see special characters and don't render newlines
     if isinstance(value, str):
         value = value.encode("unicode_escape").decode()
     return str(value)
@@ -118,7 +119,7 @@ def expect_that(actual_value: InvariantValue, matcher: Matcher, message: str = N
         matcher,
         message,
         "SOFT",
-        levels=2,
+        stacklevels=2,
     )
 
 
@@ -126,12 +127,13 @@ def assert_true(
     actual_value: InvariantBool,
     message: str = None,
     assertion_type: Literal["SOFT", "HARD"] = "HARD",
+    stacklevels: int = 1,
 ):
     """Expect the actual_value InvariantBool to be true."""
     ctx = Manager.current()
     comparison_result = actual_value.value
 
-    test, testline = get_caller_snippet()
+    test, testline = get_caller_snippet(levels=stacklevels)
 
     assertion = AssertionResult(
         passed=comparison_result,
@@ -153,7 +155,7 @@ def expect_true(
         actual_value,
         message,
         "SOFT",
-        levels=2,
+        stacklevels=2,
     )
 
 
@@ -161,16 +163,21 @@ def assert_false(
     actual_value: InvariantBool,
     message: str = None,
     assertion_type: Literal["SOFT", "HARD"] = "HARD",
+    stacklevels: int = 1,
 ):
     """Expect the actual_value InvariantBool to be false."""
     ctx = Manager.current()
     comparison_result = not actual_value.value
+
+    test, testline = get_caller_snippet(levels=stacklevels)
+
     assertion = AssertionResult(
         passed=comparison_result,
         type=assertion_type,
         addresses=actual_value.addresses,
         message=message,
-        test=get_caller_snippet(),
+        test=test,
+        test_line=testline,
     )
     ctx.assertions.append(assertion)
 
@@ -184,5 +191,5 @@ def expect_false(
         actual_value,
         message,
         "SOFT",
-        levels=2,
+        stacklevels=2,
     )
