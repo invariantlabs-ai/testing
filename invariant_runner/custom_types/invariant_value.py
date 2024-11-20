@@ -1,4 +1,8 @@
 """Describes an invariant value in a test."""
+from __future__ import annotations
+import re
+# pylint: disable=import-outside-toplevel
+from typing import Any, Optional
 
 # pylint: disable=import-outside-toplevel
 from typing import Any
@@ -70,3 +74,27 @@ class InvariantValue:
 
     def __repr__(self):
         return str(self)
+
+    def __bool__(self) -> bool:
+        """Convert the invariant value to a boolean."""
+        return bool(self.value)
+
+    def __float__(self) -> float:
+        """Convert the invariant value to a float."""
+        return float(self.value)
+
+    def __eq__(self, other: Any) -> bool:
+        """Check if the invariant value is equal to the given value."""
+        return self.value == other
+
+    def _concat_addresses(self, other_addresses: list[str] | None, separator: str = ":") -> list[str]:
+        """Concatenate the addresses of two invariant values."""
+        if other_addresses is None:
+            return self.addresses
+        addresses = []
+        for old_address in self.addresses:
+            for new_address in other_addresses:
+                addresses.append(old_address + separator + new_address)
+        return addresses
+
+

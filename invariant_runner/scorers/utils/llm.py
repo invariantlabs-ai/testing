@@ -1,14 +1,9 @@
 import json
 import openai
 from pydantic import BaseModel
+from invariant_runner.custom_types.addresses import Range
+from typing import Tuple
 
-
-class DetectionPair(BaseModel):
-    line: int
-    substring: str
-
-class Detections(BaseModel):
-    detections: list[DetectionPair]
 
 PROMPT_TEMPLATE = """Your goal is to classify the text provided by the user using the following classification rule.
 {prompt}
@@ -88,6 +83,15 @@ class LLM_Classifier:
         return json.loads(response.choices[0].message.tool_calls[0].function.arguments).get("best_option", "none")
 
 
+class DetectionPair(BaseModel):
+    line: int
+    substring: str
+
+
+class Detections(BaseModel):
+    detections: list[DetectionPair]
+
+
 class LLM_Detector:
 
     def __init__(self, model: str, predicate_rule: str):
@@ -98,13 +102,13 @@ class LLM_Detector:
     def _insert_lines(self, text: str) -> str:
         return "\n".join(f"{i}| {line}" for i, line in enumerate(text.split("\n"), 1))
 
-    def detect(self, text: str) -> bool:
-        text = self._insert_lines(text)
+    def detect(self, text: str) -> list[Tuple[str, Range]]:
+        formatted_text = self._insert_lines(text)
         prompt = LLM_DETECTOR_PROMPT_TEMPLATE.format(predicate_rule=self.predicate_rule)
         response = self.client.beta.chat.completions.parse(
             model=self.model,
-            messages=[{"role": "system", "content": prompt}, {"role": "user", "content": text}],
+            messages=[{"role": "system", "content": prompt}, {"role": "user", "content": formatted_text}],
             response_format=Detections,
         )
-        return response.choices[0].message.parsed
-
+        detections = response.choices[0].message.parsed
+        return [(det.substring, Range.from_line(text, det.line-1, exact_match=det.substring)) for det in detections.detections]
