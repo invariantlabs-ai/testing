@@ -1,9 +1,9 @@
 """Contains sample tests which use the Invariant Runner."""
 
 import pytest
+
 from invariant_runner.custom_types.assertions import (
     assert_equals,
-    assert_false,
     assert_that,
     assert_true,
     expect_equals,
@@ -75,7 +75,7 @@ def test_another_agent_response():
         )
         assert_equals(
             "Hello three",
-            trace.messages()[0]["content"],
+            trace.messages()[0]["content"].len(),
             "First message should greet 'three'",
         )
         assert_that(
@@ -85,35 +85,123 @@ def test_another_agent_response():
         )
 
 
-def test_trace_with_tool_calls(trace_with_tool_calls: Trace):
+@pytest.fixture
+def big_trace():
+    return Trace(
+        trace=[
+            {
+                "role": "user",
+                "content": "Could you kindly show me the list of files in tmp directory in my file system including the hidden one?",
+            },
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "call_ls7AnBVJzZQPHTrKg0G7",
+                        "type": "function",
+                        "function": {"name": "cd", "arguments": {"folder": "tmp"}},
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "content": '{"error": "cd: tmp: No such directory. You cannot use path to change directory."}',
+                "tool_call_id": "call_ls7AnBVJzZQPHTrKg0G7",
+            },
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "call_6DKFVzXQkTT0fTUDy7lw",
+                        "type": "function",
+                        "function": {"name": "ls", "arguments": {"a": True}},
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "content": '{"current_directory_content": ["report.txt"]}',
+                "tool_call_id": "call_6DKFVzXQkTT0fTUDy7lw",
+            },
+            {
+                "role": "assistant",
+                "content": "In the current directory, there is one file: **report.txt**. There are no hidden files listed.",
+            },
+            {
+                "role": "user",
+                "content": "There is a report in my current directory. I have noticed the report appears somewhat cluttered; it could benefit from having its lines sorted.",
+            },
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "call_QxxWLVviOvv7XXrXLxoN",
+                        "type": "function",
+                        "function": {
+                            "name": "sort",
+                            "arguments": {"file_name": "report.txt"},
+                        },
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "content": '{"sorted_content": "Initial report content Unsorted data More unsorted data"}',
+                "tool_call_id": "call_QxxWLVviOvv7XXrXLxoN",
+            },
+            {
+                "role": "assistant",
+                "content": "The lines in **report.txt** have been sorted. The sorted content is as follows:\n\n```\nInitial report content\nMore unsorted data\nUnsorted data\n``` \n\nIf you need any further modifications or actions, feel free to ask!",
+            },
+            {
+                "role": "user",
+                "content": "I would appreciate it if you could share the sorted result as the message body on social media, ensuring to tag 'currenttechtrend' and mention Julia, our insightful team.",
+            },
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "call_heZY5J5gObsexwC6CTcu",
+                        "type": "function",
+                        "function": {
+                            "name": "post_tweet",
+                            "arguments": {
+                                "content": "Initial report content\nMore unsorted data\nUnsorted data",
+                                "tags": [],
+                                "mentions": ["@currenttechtrend", "@Julia"],
+                            },
+                        },
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "content": '{"id": 2, "username": "tech_guru", "content": "Initial report content\\nMore unsorted data\\nUnsorted data", "tags": [], "mentions": ["@currenttechtrend", "@Julia"]}',
+                "tool_call_id": "call_heZY5J5gObsexwC6CTcu",
+            },
+            {
+                "role": "assistant",
+                "content": "The sorted report has been successfully posted on social media. Here are the details:\n\n- **Content:** \n  ```\n  Initial report content\n  More unsorted data\n  Unsorted data\n  ```\n- **Mentions:** @currenttechtrend, @Julia\n\nIf there's anything else you need, just let me know!",
+            },
+        ]
+    )
+
+
+def test_big_trace(big_trace):
     """Test trace with tool calls."""
-    with Manager(trace_with_tool_calls):
-        tool_calls_with_greet = trace_with_tool_calls.tool_calls(
-            name=lambda n: n == "greet"
-        )
-        assert_true(
-            tool_calls_with_greet.len() == 1,
-            "There should be one tool call with name 'greet'",
-        )
+    with Manager(big_trace):
+        for tc in big_trace.messages(role="assistant"):
+            assert_true(
+                tc["content"].len() == 0
+                or tc["content"].contains("current")
+                or tc["content"].contains("lines"),
+                "Assistant message content should be empty",
+            )
 
-        tool_calls_with_e = trace_with_tool_calls.tool_calls(name=lambda n: "e" in n)
-        assert_true(
-            tool_calls_with_e.len() < 3,
-            "There should be less than two tool calls with 'e' in the name",
-        )
-        assert_false(
-            1 > tool_calls_with_e.len(),
-            "There should be less than two tool calls with 'e' in the name",
-        )
-
-        tool_calls_with_type_function = trace_with_tool_calls.tool_calls(
-            type="function"
-        )
-        assert_true(
-            tool_calls_with_type_function.len() >= 3,
-            "There should be at least three tool calls with type 'function'",
-        )
-        assert_false(
-            0 == tool_calls_with_type_function.len(),
-            "There should be at least three tool calls with type 'function'",
-        )
+            assert_equals(
+                "", tc["content"], "Assistant message content should be empty"
+            )

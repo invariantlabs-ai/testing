@@ -5,6 +5,7 @@ import sys
 from unittest.mock import patch
 
 import pytest
+
 from invariant_runner.runner import create_config, parse_args
 
 
@@ -18,7 +19,7 @@ def test_create_config_with_push_and_api_key_env_var():
         invariant_runner_args, _ = parse_args()
         config = create_config(invariant_runner_args)
 
-        assert config.dataset_name.startswith("dataset_")
+        assert config.dataset_name.startswith("tests-")
         assert config.push is True
         assert config.api_key == "env_api_key"
 
@@ -33,7 +34,7 @@ def test_create_config_with_timestamp_dataset_name():
         invariant_runner_args, _ = parse_args()
         config = create_config(invariant_runner_args)
 
-        assert config.dataset_name == "dataset_1234567890"
+        assert config.dataset_name == "tests-1234567890"
         assert config.push is True
         assert config.api_key == "env_api_key"
 
@@ -66,13 +67,15 @@ def test_main_execution_with_pytest_args():
 
     with patch.dict(os.environ, {"INVARIANT_API_KEY": "env_api_key"}), patch.object(
         sys, "argv", test_args
-    ), patch("pytest.main") as mock_pytest_main:
+    ), patch("time.time", return_value=1234567890), patch(
+        "pytest.main"
+    ) as mock_pytest_main:
         # Parse args and create config
         invariant_runner_args, pytest_args = parse_args()
         config = create_config(invariant_runner_args)
 
         # Assert the Config object is correctly populated
-        assert config.dataset_name == "test_dataset"
+        assert config.dataset_name == "test_dataset-1234567890"
         assert config.push is True
         assert config.api_key == "env_api_key"
         assert config.result_output_dir == "/tmp/invariant_test_runner"
