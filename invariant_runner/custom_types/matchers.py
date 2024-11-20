@@ -1,8 +1,9 @@
 """Defines the expect functions."""
 
 from typing import Any
-from invariant_runner.constants import SimilarityMetrics
-from invariant_runner.scorers.strings import *
+
+from invariant_runner.scorers.strings import embedding_similarity, levenshtein
+
 
 class Matcher:
     """Base class for all matchers."""
@@ -10,6 +11,22 @@ class Matcher:
     def matches(self, actual_value: Any) -> bool:
         """This is the method that subclasses should implement."""
         raise NotImplementedError("Subclasses should implement this method.")
+
+
+class LambdaMatcher:
+    """Matcher for checking if a lambda function returns True."""
+
+    def __init__(self, lambda_function):
+        self.lambda_function = lambda_function
+
+    def matches(self, actual_value: Any) -> bool:
+        return self.lambda_function(actual_value)
+
+    def __str__(self):
+        return f"LambdaMatcher({self.lambda_function})"
+
+    def __repr__(self):
+        return str(self)
 
 
 class HasSubstring(Matcher):
@@ -28,25 +45,36 @@ class HasSubstring(Matcher):
 
     def __repr__(self):
         return str(self)
-  
+
+
 class IsSimilar(Matcher):
-    """ Matcher for checking if a string is similar to expected string by check if the simliarty score reaches the threshold"""
+    """A Matcher for checking if a string is similar to an expected string by checking if the similary score reaches a given threshold."""
+
+    LEVENSHTEIN = "levenshtein"
+    EMBEDDING = "embedding"
 
     metric_to_scorer_mapping = {
-        SimilarityMetrics.LEVENSHTEIN: levenshtein,
-        SimilarityMetrics.EMBEDDING: embedding_similarity
+        LEVENSHTEIN: levenshtein,
+        EMBEDDING: embedding_similarity,
     }
 
-    def __init__(self, expected_value: str, threshold: float, actual_metric: SimilarityMetrics = SimilarityMetrics.LEVENSHTEIN):
+    def __init__(
+        self,
+        expected_value: str,
+        threshold: float,
+        actual_metric: str = LEVENSHTEIN,
+    ):
         self.expected_value = expected_value
         self.threshold = threshold
         self.actual_metric = actual_metric
-    
+
     def matches(self, actual_value: str):
         if not isinstance(actual_value, str):
             raise TypeError("CompareSimilarity matcher only works with strings")
         if self.actual_metric not in self.metric_to_scorer_mapping:
             raise ValueError(f"Unsupported metric {self.actual_metric}")
-        
-        similar_score = self.metric_to_scorer_mapping[self.actual_metric](actual_value, self.expected_value)
+
+        similar_score = self.metric_to_scorer_mapping[self.actual_metric](
+            actual_value, self.expected_value
+        )
         return similar_score >= self.threshold

@@ -1,9 +1,19 @@
 """Describes an invariant string in a test."""
 
-from typing import Union
+from __future__ import annotations
+
+import re
+from typing import Optional, Union
+
+from _pytest.python_api import ApproxBase
 
 from invariant_runner.custom_types.invariant_bool import InvariantBool
+from invariant_runner.custom_types.invariant_list import InvariantList
+from invariant_runner.custom_types.invariant_number import InvariantNumber
 from invariant_runner.custom_types.invariant_value import InvariantValue
+from invariant_runner.scorers.code import is_valid_json, is_valid_python
+from invariant_runner.scorers.strings import embedding_similarity, levenshtein
+from invariant_runner.scorers.utils.llm import LLM_Classifier, LLM_Detector
 
 
 class InvariantString(InvariantValue):
@@ -20,6 +30,8 @@ class InvariantString(InvariantValue):
         """Check if the string is equal to the given string."""
         if isinstance(other, InvariantString):
             other = other.value
+        if isinstance(other, ApproxBase):
+            return self.value == other
         return InvariantBool(self.value == other, self.addresses)
 
     def __ne__(self, other: Union[str, "InvariantString"]) -> InvariantBool:
@@ -27,12 +39,6 @@ class InvariantString(InvariantValue):
         if isinstance(other, InvariantString):
             other = other.value
         return InvariantBool(self.value != other, self.addresses)
-
-    def contains(self, substring: Union[str, "InvariantString"]) -> InvariantBool:
-        """Check if the string contains the given substring."""
-        if isinstance(substring, InvariantString):
-            substring = substring.value
-        return InvariantBool(substring in self.value, self.addresses)
 
     def __add__(self, other: Union[str, "InvariantString"]) -> "InvariantString":
         """Concatenate the string with another string."""
@@ -51,3 +57,133 @@ class InvariantString(InvariantValue):
 
     def __repr__(self) -> str:
         return str(self)
+
+    def __len__(self):
+        raise NotImplementedError(
+            "InvariantList does not support len(). Please use .len() instead."
+        )
+
+    def len(self):
+        """Return the length of the list."""
+        from invariant_runner.custom_types.invariant_number import InvariantNumber
+
+        return InvariantNumber(len(self.value), self.addresses)
+
+    def _concat_addresses(
+        self, other_addresses: list[str] | None, separator: str = ":"
+    ) -> list[str]:
+        """Concatenate the addresses of two invariant values."""
+        if other_addresses is None:
+            return self.addresses
+        addresses = []
+        for old_address in self.addresses:
+            # Check if old_address ends with :start-end pattern
+            match = re.match(r"^(.*):(\d+)-(\d+)$", old_address)
+            assert match is not None
+            prefix, start, end = (
+                match.groups()[0],
+                int(match.groups()[1]),
+                int(match.groups()[2]),
+            )
+            for new_address in other_addresses:
+                new_match = re.match(r"^(\d+)-(\d+)$", new_address)
+                assert new_match is not None
+                new_start, new_end = (
+                    start + int(new_match.groups()[0]),
+                    start + int(new_match.groups()[1]),
+                )
+                addresses.append(prefix + separator + f"{new_start}-{new_end}")
+        return addresses
+
+    def moderation(self) -> InvariantBool:
+        """Check if the value is moderated."""
+        from invariant_runner.scorers.moderation import ModerationAnalyzer
+
+        analyzer = ModerationAnalyzer()
+        res = analyzer.detect_all(self.value)
+        new_addresses = [str(range) for _, range in res]
+        return InvariantBool(len(res) > 0, self._concat_addresses(new_addresses))
+
+    def contains(self, pattern: str | InvariantString) -> InvariantBool:
+        """Check if the value contains the given pattern."""
+        if isinstance(pattern, InvariantString):
+            pattern = pattern.value
+        if type(self.value) is not str:
+            raise ValueError("contains() is only supported for string values")
+        new_addresses = []
+        for match in re.finditer(pattern, self.value):
+            start, end = match.span()
+            new_addresses.append(f"{start}-{end}")
+        return InvariantBool(
+            len(new_addresses) > 0, self._concat_addresses(new_addresses)
+        )
+
+    def is_similar(self, other: str, threshold: float = 0.5) -> InvariantBool:
+        """Check if the value is similar to the given string using cosine similarity."""
+        if type(self.value) is not str or type(other) is not str:
+            raise ValueError("is_similar() is only supported for string values")
+        cmp_result = embedding_similarity(self.value, other) >= threshold
+        return InvariantBool(cmp_result, self.addresses)
+
+    def levenshtein(self, other: str) -> InvariantBool:
+        """Check if the value is similar to the given string using the Levenshtein distance."""
+        if type(self.value) is not str or type(other) is not str:
+            raise ValueError("levenshtein() is only supported for string values")
+        cmp_result = levenshtein(self.value, other)
+        return InvariantNumber(cmp_result, self.addresses)
+
+    def is_valid_code(self, lang: str) -> InvariantBool:
+        """Check if the value is valid code in the given language."""
+        if type(self.value) is not str:
+            raise ValueError("is_valid_code() is only supported for string values")
+        if lang == "python":
+            res, new_addresses = is_valid_python(self.value)
+            return InvariantBool(res, self._concat_addresses(new_addresses))
+        elif lang == "json":
+            res, new_addresses = is_valid_json(self.value)
+            return InvariantBool(res, self._concat_addresses(new_addresses))
+        else:
+            raise ValueError(f"Unsupported language: {lang}")
+
+    def llm(
+        self, prompt: str, options: list[str], model: str = "gpt-4o"
+    ) -> InvariantString:
+        """Check if the value is similar to the given string using an LLM."""
+        llm_clf = LLM_Classifier(model=model, prompt=prompt, options=options)
+        res = llm_clf.classify(self.value)
+        return InvariantString(res, self.addresses)
+
+    def llm_vision(
+        self, prompt: str, options: list[str], model: str = "gpt-4o"
+    ) -> InvariantString:
+        """Check if the value is similar to the given string using an LLM."""
+        llm_clf = LLM_Classifier(
+            model=model, prompt=prompt, options=options, vision=True
+        )
+        res = llm_clf.classify_vision(self.value)
+        return InvariantString(res, self.addresses)
+
+    def extract(self, predicate: str, model: str = "gpt-4o") -> InvariantList:
+        """Extract a value from the value using an LLM."""
+        llm_detector = LLM_Detector(model=model, predicate_rule=predicate)
+        detections = llm_detector.detect(self.value)
+        ret = []
+        values, addresses = [], []
+        for substr, range in detections:
+            values.append(substr)
+            addresses.extend(self._concat_addresses([str(range)]))
+        return InvariantList(values, addresses)
+
+    def ocr_contains(
+        self,
+        base64_image: str,
+        text: str,
+        case_sensitive: bool = False,
+        bbox: Optional[dict] = None,
+    ) -> InvariantBool:
+        """Check if the value contains the given text using OCR."""
+        from invariant_runner.scorers.utils.ocr import OCR_Detector
+
+        ocr = OCR_Detector()
+        res = ocr.contains(base64_image, text, case_sensitive, bbox)
+        return InvariantBool(res, self.addresses)

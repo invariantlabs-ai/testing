@@ -7,13 +7,16 @@ import os
 import time
 from contextvars import ContextVar
 
+import pytest
 from invariant_sdk.client import Client as InvariantClient
+from invariant_sdk.types.push_traces import PushTracesResponse
 from pydantic import ValidationError
 
 from invariant_runner import utils
 from invariant_runner.config import Config
 from invariant_runner.constants import INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR
 from invariant_runner.custom_types.test_result import AssertionResult, TestResult
+from invariant_runner.formatter import format_trace
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -28,6 +31,7 @@ class Manager:
     def __init__(self, trace):
         self.trace = trace
         self.assertions: list[AssertionResult] = []
+        self.explorer_url = ""
 
     @staticmethod
     def current():
@@ -72,6 +76,18 @@ class Manager:
             passed=passed,
             trace=self.trace,
             assertions=self.assertions,
+            explorer_url=self.explorer_url,
+        )
+
+    def _get_explorer_url(self, push_traces_response: PushTracesResponse) -> str:
+        """Get the Explorer URL for the test results."""
+        prefix = (
+            "https://localhost"
+            if self.client.api_url == "http://localhost:8000"
+            else self.client.api_url
+        )
+        return (
+            f"{prefix}/u/{push_traces_response.username}/{self.config.dataset_name}/t/1"
         )
 
     def __enter__(self) -> "Manager":
@@ -79,6 +95,9 @@ class Manager:
         INVARIANT_CONTEXT.get().append(self)
         self.config = self._load_config()  # pylint: disable=attribute-defined-outside-init
         self.test_name = self._get_test_name()  # pylint: disable=attribute-defined-outside-init
+        self.client = (  # pylint: disable=attribute-defined-outside-init
+            InvariantClient() if self.config is not None and self.config.push else None
+        )
         # Fetch the assertions and evaluate them.
         # Store the result in some state and write it to the file as part of __exit__.
 
@@ -94,7 +113,8 @@ class Manager:
 
         # if there is a config, and push is enabled, push the test results to Explorer
         if self.config is not None and self.config.push:
-            self.push()
+            push_traces_response = self.push()
+            self.explorer_url = self._get_explorer_url(push_traces_response)  # pylint: disable=attribute-defined-outside-init
 
         # make sure path exists
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -106,13 +126,60 @@ class Manager:
         # Handle exceptions via exc_value, if needed
         # Returning False allows exceptions to propagate; returning True suppresses them
         INVARIANT_CONTEXT.get().pop()
-        return True
 
-    def push(self):
+        # handle outcome (e.g. throw an exception if a hard assertion failed)
+        self.handle_outcome()
+
+        return False
+
+    def handle_outcome(self):
+        # collect set of failed hard assertions
+        failed_hard_assertions = [
+            a for a in self.assertions if a.type == "HARD" and not a.passed
+        ]
+
+        # raise a pytest failure if there are any failed hard assertions
+        if len(failed_hard_assertions) > 0:
+            # the error message is all failed hard assertions with respective
+            # code and trace snippets
+            error_message = (
+                f"ERROR: {len(failed_hard_assertions)} hard assertions failed:\n\n"
+            )
+
+            for i, failed_assertion in enumerate(failed_hard_assertions):
+                test_snippet = failed_assertion.test
+                message = failed_assertion.message
+                # flatten addresses
+                addresses = failed_assertion.addresses
+                # remove character ranges after : in addresses
+                addresses = [a.split(":")[0] if ":" in a else a for a in addresses]
+
+                column_width = utils.terminal_width()
+                failure_message = (
+                    "ASSERTION FAILED"
+                    if failed_assertion.type == "HARD"
+                    else "EXPECTATION VIOLATED"
+                )
+
+                error_message += (
+                    " "
+                    + test_snippet
+                    + ("_" * column_width + "\n")
+                    + f"\n{failure_message}: {message or ''}\n"
+                    + ("_" * column_width + "\n\n")
+                    + format_trace(self.trace.trace, highlights=addresses)
+                    + "\n"
+                )
+
+                # add separator between failed assertions
+                if i < len(failed_hard_assertions) - 1:
+                    error_message += "_" * column_width + "\n\n"
+
+            pytest.fail(error_message, pytrace=False)
+
+    def push(self) -> PushTracesResponse:
         """Push the test results to Explorer."""
         assert self.config is not None, "cannot push(...) without a config"
-
-        client = InvariantClient()
 
         # annotations have the following structure:
         # {content: str, address: str, extra_metadata: {source: str, test: str, line: int}}
@@ -133,7 +200,7 @@ class Manager:
                         "content": assertion.message or str(assertion),
                         "extra_metadata": {
                             "source": source,
-                            "test": "<not supported yet>",
+                            "test": assertion.test,
                             "passed": assertion.passed,
                             "line": 0,
                             # ID of the assertion (if an assertion results in multiple annotations)
@@ -154,15 +221,16 @@ class Manager:
         }
 
         try:
-            client.create_request_and_push_trace(
+            return self.client.create_request_and_push_trace(
                 messages=[self.trace.trace],
                 annotations=[annotations],
                 metadata=[metadata],
                 dataset=self.config.dataset_name,
                 request_kwargs={"verify": utils.ssl_verification_enabled()},
             )
-        except Exception as e:
+        except Exception:
             # fail test suite hard if this happens
-            raise RuntimeError(
-                "Failed to push test results to Explorer. Please make sure your Invariant API key and endpoint are setup correctly or run without --push."
-            ) from e
+            pytest.fail(
+                "Failed to push test results to Explorer. Please make sure your Invariant API key and endpoint are setup correctly or run without --push.",
+                pytrace=False,
+            )

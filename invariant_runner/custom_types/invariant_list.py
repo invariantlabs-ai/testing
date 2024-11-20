@@ -14,7 +14,7 @@ class InvariantList:
     @classmethod
     def from_values(cls, values: list[InvariantValue]):
         return cls(
-            [value.value for value in values], [value.address for value in values]
+            [value.value for value in values], [value.addresses for value in values]
         )
 
     def __getitem__(self, key: int):
@@ -27,7 +27,10 @@ class InvariantList:
 
     def len(self) -> InvariantNumber:
         """Return the length of the list."""
-        return InvariantNumber(len(self.value), self.addresses)
+        # flatten addresses
+        return InvariantNumber(
+            len(self.value), [item for sublist in self.addresses for item in sublist]
+        )
 
     def __iter__(self):
         for i in range(len(self.value)):
@@ -38,6 +41,13 @@ class InvariantList:
         return any(value == item for item in self.value)
 
     def __str__(self):
+        # if each element is a dict, print each dict on a new line
+        if any(isinstance(item, dict) for item in self.value):
+            return (
+                "InvariantList [\n"
+                + "\n".join("  " + str(item) for item in self.value)
+                + "\n]"
+            )
         return "InvariantList" + str(self.value) + " at " + str(self.addresses)
 
     def __repr__(self):

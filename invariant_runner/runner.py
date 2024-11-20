@@ -10,12 +10,13 @@ import time
 import pytest
 from invariant_sdk.client import Client as InvariantClient
 
-import utils
-from config import Config
-from constants import (
+from invariant_runner import utils
+from invariant_runner.config import Config
+from invariant_runner.constants import (
     INVARIANT_AP_KEY_ENV_VAR,
     INVARIANT_RUNNER_TEST_RESULTS_DIR,
     INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR,
+    INVARIANT_TEST_RUNNER_TERMINAL_WIDTH_ENV_VAR,
 )
 
 # Configure logging
@@ -92,6 +93,7 @@ def finalize_tests_and_print_summary(conf: Config) -> None:
 
     passed_count = 0
     tests = 0
+    explorer_url = ""
     with open(file_path, "r", encoding="utf-8") as file:
         for line in file:
             test_result = json.loads(line.strip())
@@ -101,6 +103,7 @@ def finalize_tests_and_print_summary(conf: Config) -> None:
             print(
                 f"{tests}. {test_result.get('name')}: {'PASSED' if test_result.get('passed') else 'FAILED'}"
             )
+            explorer_url = explorer_url or test_result.get("explorer_url")
     print("\n")
     print(f"{BOLD}Total tests: {END}{tests}")
     print(f"{BOLD}Passed: {END}: {passed_count}")
@@ -121,9 +124,7 @@ def finalize_tests_and_print_summary(conf: Config) -> None:
             request_kwargs={"verify": utils.ssl_verification_enabled()},
         )
 
-        print(
-            f"Results available at {client.api_url}/u/developer/{conf.dataset_name}/t/1"
-        )
+        print(f"Results available at {explorer_url}")
 
 
 if __name__ == "__main__":
@@ -132,6 +133,10 @@ if __name__ == "__main__":
         invariant_runner_args, pytest_args = parse_args()
         config = create_config(invariant_runner_args)
         os.environ[INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR] = config.model_dump_json()
+        # pass along actual terminal width to the test runner (for better formatting)
+        os.environ[INVARIANT_TEST_RUNNER_TERMINAL_WIDTH_ENV_VAR] = str(
+            utils.terminal_width()
+        )
     except ValueError as e:
         logger.error("Configuration error: %s", e)
         sys.exit(1)

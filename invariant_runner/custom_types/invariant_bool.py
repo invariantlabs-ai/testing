@@ -28,31 +28,39 @@ class InvariantBool(InvariantValue):
         return InvariantBool(self.value != other, self.addresses)
 
     def __and__(self, other: Union[bool, "InvariantBool"]) -> "InvariantBool":
-        """Evaluate the boolean AND with the given boolean."""
+        """Evaluate the bitwise AND (&) with the given boolean."""
         if isinstance(other, InvariantBool):
             other = other.value
         return InvariantBool(self.value and other, self.addresses)
 
     def __rand__(self, other: bool) -> "InvariantBool":
-        """Evaluate the boolean AND with the given boolean (reverse operation)."""
+        """Evaluate the bitwise AND (&) with the given boolean (reverse operation)."""
         return InvariantBool(other and self.value, self.addresses)
 
     def __or__(self, other: Union[bool, "InvariantBool"]) -> "InvariantBool":
-        """Evaluate the boolean OR with the given boolean."""
+        """Evaluate the bitwise OR (|) with the given boolean."""
         if isinstance(other, InvariantBool):
             other = other.value
         return InvariantBool(self.value or other, self.addresses)
 
     def __ror__(self, other: bool) -> "InvariantBool":
-        """Evaluate the boolean OR with the given boolean (reverse operation)."""
+        """Evaluate the bitwise OR (|) with the given boolean (reverse operation)."""
         return InvariantBool(other or self.value, self.addresses)
 
     def __invert__(self) -> "InvariantBool":
-        """Evaluate the boolean NOT value."""
+        """Evaluate the bitwise NOT (~) value."""
         return InvariantBool(not self.value, self.addresses)
+
+    def __bool__(self) -> bool:
+        """Return the truthiness of the instance."""
+        return self.value
 
     def __str__(self) -> str:
         return f"InvariantBool(value={self.value}, addresses={self.addresses})"
 
     def __repr__(self) -> str:
         return str(self)
+
+    # convert to bool
+    def __bool__(self) -> bool:
+        return self.value
