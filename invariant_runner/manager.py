@@ -127,6 +127,12 @@ class Manager:
         # Returning False allows exceptions to propagate; returning True suppresses them
         INVARIANT_CONTEXT.get().pop()
 
+        # handle outcome (e.g. throw an exception if a hard assertion failed)
+        self.handle_outcome()
+
+        return False
+
+    def handle_outcome(self):
         # collect set of failed hard assertions
         failed_hard_assertions = [
             a for a in self.assertions if a.type == "HARD" and not a.passed
@@ -170,8 +176,6 @@ class Manager:
                     error_message += "_" * column_width + "\n\n"
 
             pytest.fail(error_message, pytrace=False)
-
-        return False
 
     def push(self) -> PushTracesResponse:
         """Push the test results to Explorer."""

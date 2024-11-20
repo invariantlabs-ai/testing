@@ -2,6 +2,8 @@
 
 from typing import Any
 
+from invariant_runner.scorers.strings import embedding_similarity, levenshtein
+
 
 class Matcher:
     """Base class for all matchers."""
@@ -43,3 +45,36 @@ class HasSubstring(Matcher):
 
     def __repr__(self):
         return str(self)
+
+
+class IsSimilar(Matcher):
+    """A Matcher for checking if a string is similar to an expected string by checking if the similary score reaches a given threshold."""
+
+    LEVENSHTEIN = "levenshtein"
+    EMBEDDING = "embedding"
+
+    metric_to_scorer_mapping = {
+        LEVENSHTEIN: levenshtein,
+        EMBEDDING: embedding_similarity,
+    }
+
+    def __init__(
+        self,
+        expected_value: str,
+        threshold: float,
+        actual_metric: str = LEVENSHTEIN,
+    ):
+        self.expected_value = expected_value
+        self.threshold = threshold
+        self.actual_metric = actual_metric
+
+    def matches(self, actual_value: str):
+        if not isinstance(actual_value, str):
+            raise TypeError("CompareSimilarity matcher only works with strings")
+        if self.actual_metric not in self.metric_to_scorer_mapping:
+            raise ValueError(f"Unsupported metric {self.actual_metric}")
+
+        similar_score = self.metric_to_scorer_mapping[self.actual_metric](
+            actual_value, self.expected_value
+        )
+        return similar_score >= self.threshold
