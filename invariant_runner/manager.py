@@ -7,6 +7,7 @@ import os
 import time
 from contextvars import ContextVar
 
+import pytest
 from invariant_sdk.client import Client as InvariantClient
 from pydantic import ValidationError
 
@@ -14,6 +15,7 @@ from invariant_runner import utils
 from invariant_runner.config import Config
 from invariant_runner.constants import INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR
 from invariant_runner.custom_types.test_result import AssertionResult, TestResult
+from invariant_runner.formatter import format_trace
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -106,7 +108,52 @@ class Manager:
         # Handle exceptions via exc_value, if needed
         # Returning False allows exceptions to propagate; returning True suppresses them
         INVARIANT_CONTEXT.get().pop()
-        return True
+
+        # collect set of failed hard assertions
+        failed_hard_assertions = [
+            a for a in self.assertions if a.type == "HARD" and not a.passed
+        ]
+
+        # raise a pytest failure if there are any failed hard assertions
+        if len(failed_hard_assertions) > 0:
+            # the error message is all failed hard assertions with respective
+            # code and trace snippets
+            error_message = (
+                f"ERROR: {len(failed_hard_assertions)} hard assertions failed:\n\n"
+            )
+
+            for i, failed_assertion in enumerate(failed_hard_assertions):
+                test_snippet = failed_assertion.test
+                message = failed_assertion.message
+                # flatten addresses
+                addresses = failed_assertion.addresses
+                # remove character ranges after : in addresses
+                addresses = [a.split(":")[0] if ":" in a else a for a in addresses]
+
+                column_width = utils.terminal_width()
+                failure_message = (
+                    "ASSERTION FAILED"
+                    if failed_assertion.type == "HARD"
+                    else "EXPECTATION VIOLATED"
+                )
+
+                error_message += (
+                    " "
+                    + test_snippet
+                    + ("_" * column_width + "\n")
+                    + f"\n{failure_message}: {message or ''}\n"
+                    + ("_" * column_width + "\n\n")
+                    + format_trace(self.trace.trace, highlights=addresses)
+                    + "\n"
+                )
+
+                # add separator between failed assertions
+                if i < len(failed_hard_assertions) - 1:
+                    error_message += "_" * column_width + "\n\n"
+
+            pytest.fail(error_message, pytrace=False)
+
+        return False
 
     def push(self):
         """Push the test results to Explorer."""
@@ -133,7 +180,7 @@ class Manager:
                         "content": assertion.message or str(assertion),
                         "extra_metadata": {
                             "source": source,
-                            "test": "<not supported yet>",
+                            "test": assertion.test,
                             "passed": assertion.passed,
                             "line": 0,
                             # ID of the assertion (if an assertion results in multiple annotations)
@@ -161,8 +208,9 @@ class Manager:
                 dataset=self.config.dataset_name,
                 request_kwargs={"verify": utils.ssl_verification_enabled()},
             )
-        except Exception as e:
+        except Exception:
             # fail test suite hard if this happens
-            raise RuntimeError(
-                "Failed to push test results to Explorer. Please make sure your Invariant API key and endpoint are setup correctly or run without --push."
-            ) from e
+            pytest.fail(
+                "Failed to push test results to Explorer. Please make sure your Invariant API key and endpoint are setup correctly or run without --push.",
+                pytrace=False,
+            )

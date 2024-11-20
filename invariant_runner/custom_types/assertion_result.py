@@ -12,3 +12,8 @@ class AssertionResult(BaseModel):
     type: Literal["SOFT", "HARD"]
     addresses: List[str]
     message: str | None = None
+
+    # snippet of the test code and offset of the
+    # assertion in the test code snippet
+    test: str | None = None
+    test_line: int | None = None

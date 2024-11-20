@@ -16,6 +16,7 @@ from invariant_runner.constants import (
     INVARIANT_AP_KEY_ENV_VAR,
     INVARIANT_RUNNER_TEST_RESULTS_DIR,
     INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR,
+    INVARIANT_TEST_RUNNER_TERMINAL_WIDTH_ENV_VAR,
 )
 
 # Configure logging
@@ -132,6 +133,10 @@ if __name__ == "__main__":
         invariant_runner_args, pytest_args = parse_args()
         config = create_config(invariant_runner_args)
         os.environ[INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR] = config.model_dump_json()
+        # pass along actual terminal width to the test runner (for better formatting)
+        os.environ[INVARIANT_TEST_RUNNER_TERMINAL_WIDTH_ENV_VAR] = str(
+            utils.terminal_width()
+        )
     except ValueError as e:
         logger.error("Configuration error: %s", e)
         sys.exit(1)

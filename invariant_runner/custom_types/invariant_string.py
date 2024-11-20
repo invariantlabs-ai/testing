@@ -51,3 +51,14 @@ class InvariantString(InvariantValue):
 
     def __repr__(self) -> str:
         return str(self)
+
+    def __len__(self):
+        raise NotImplementedError(
+            "InvariantList does not support len(). Please use .len() instead."
+        )
+
+    def len(self):
+        """Return the length of the list."""
+        from invariant_runner.custom_types.invariant_number import InvariantNumber
+
+        return InvariantNumber(len(self.value), self.addresses)
