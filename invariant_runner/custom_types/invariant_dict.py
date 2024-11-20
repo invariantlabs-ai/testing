@@ -1,5 +1,6 @@
 """InvariantDict class definition"""
 
+from invariant_runner.custom_types.invariant_bool import InvariantBool
 from invariant_runner.custom_types.invariant_value import InvariantValue
 
 
@@ -20,7 +21,6 @@ class InvariantDict:
 
     def matches(self, matcher: "Matcher") -> "InvariantBool":  # type: ignore # noqa: F821
         """Check if the value matches the given matcher."""
-        from .invariant_bool import InvariantBool
 
         cmp_result = matcher.matches(self.value)
         return InvariantBool(cmp_result, self.addresses)

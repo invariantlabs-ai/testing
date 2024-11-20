@@ -1,11 +1,10 @@
 """Describes an invariant value in a test."""
+
 from __future__ import annotations
-import re
-# pylint: disable=import-outside-toplevel
-from typing import Any, Optional
+
+from typing import Any
 
 # pylint: disable=import-outside-toplevel
-from typing import Any
 
 
 class InvariantValue:
@@ -87,7 +86,9 @@ class InvariantValue:
         """Check if the invariant value is equal to the given value."""
         return self.value == other
 
-    def _concat_addresses(self, other_addresses: list[str] | None, separator: str = ":") -> list[str]:
+    def _concat_addresses(
+        self, other_addresses: list[str] | None, separator: str = ":"
+    ) -> list[str]:
         """Concatenate the addresses of two invariant values."""
         if other_addresses is None:
             return self.addresses
@@ -96,5 +97,3 @@ class InvariantValue:
             for new_address in other_addresses:
                 addresses.append(old_address + separator + new_address)
         return addresses
-
-

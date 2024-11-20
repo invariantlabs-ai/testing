@@ -20,6 +20,7 @@ class LambdaMatcher:
         self.lambda_function = lambda_function
 
     def matches(self, actual_value: Any) -> bool:
+        """Check if the lambda function returns True for actual_value."""
         return self.lambda_function(actual_value)
 
     def __str__(self):
