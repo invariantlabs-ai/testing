@@ -93,6 +93,7 @@ def finalize_tests_and_print_summary(conf: Config) -> None:
 
     passed_count = 0
     tests = 0
+    explorer_url = ""
     with open(file_path, "r", encoding="utf-8") as file:
         for line in file:
             test_result = json.loads(line.strip())
@@ -102,6 +103,7 @@ def finalize_tests_and_print_summary(conf: Config) -> None:
             print(
                 f"{tests}. {test_result.get('name')}: {'PASSED' if test_result.get('passed') else 'FAILED'}"
             )
+            explorer_url = explorer_url or test_result.get("explorer_url")
     print("\n")
     print(f"{BOLD}Total tests: {END}{tests}")
     print(f"{BOLD}Passed: {END}: {passed_count}")
@@ -122,9 +124,7 @@ def finalize_tests_and_print_summary(conf: Config) -> None:
             request_kwargs={"verify": utils.ssl_verification_enabled()},
         )
 
-        print(
-            f"Results available at {client.api_url}/u/developer/{conf.dataset_name}/t/1"
-        )
+        print(f"Results available at {explorer_url}")
 
 
 if __name__ == "__main__":

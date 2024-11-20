@@ -13,3 +13,4 @@ class TestResult(BaseModel):
     trace: Trace
     passed: bool
     assertions: list[AssertionResult]
+    explorer_url: str

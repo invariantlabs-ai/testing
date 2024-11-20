@@ -1,5 +1,6 @@
 from invariant_runner.scorers.utils.base import BaseDetector, DetectorResult
-from typing import Optional
+from invariant_runner.custom_types.addresses import Range
+from typing import Optional, Tuple
 from typing_extensions import override
 
 
@@ -51,7 +52,7 @@ class ModerationAnalyzer(BaseDetector):
         scores = {MODERATION_CATEGORIES["OpenAI"][cat]: score for cat, score in scores.items() if cat in MODERATION_CATEGORIES["OpenAI"]}
         return scores
 
-    def detect_all(self, text: str, split="\n", model=DEFAULT_MODERATION_MODEL, default_threshold=0.5, cat_thresholds: Optional[dict]=None) -> list[DetectorResult]:
+    def detect_all(self, text: str, split="\n", model=DEFAULT_MODERATION_MODEL, default_threshold=0.5, cat_thresholds: Optional[dict]=None) -> list[Tuple[str, Range]]:
         """Detects whether the text matches any of the categories that should be moderated.
 
         Args:
@@ -62,7 +63,7 @@ class ModerationAnalyzer(BaseDetector):
             cat_thresholds: A dictionary of category-specific thresholds.
 
         Returns:
-            A list of DetectorResult objects, each representing a substring that should be moderated.
+            A list of (category, range) objects, each representing a substring that should be moderated.
         """
         if not self._has_model(model):
             self._load_model(model)
@@ -102,6 +103,6 @@ class ModerationAnalyzer(BaseDetector):
                 if cat_thresholds and cat in cat_thresholds and scores[cat] > cat_thresholds[cat]:
                     flagged = cat
             if flagged:
-                res.append(DetectorResult(flagged, pos, pos + len(chunk)))
+                res.append((flagged, Range(start=pos, end=pos + len(chunk))))
             pos += len(chunk)
         return res

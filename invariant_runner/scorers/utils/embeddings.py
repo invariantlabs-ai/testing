@@ -8,7 +8,7 @@ def cosine_similarity(v1: list[float], v2: list[float]) -> float:
     return dot_product / (mag1 * mag2)
 
 
-def _get_embedding(text: str) -> list[float]:
+def get_embedding(text: str) -> list[float]:
     """Get OpenAI embedding for a text string."""
     client = openai.OpenAI()
     response = client.embeddings.create(
