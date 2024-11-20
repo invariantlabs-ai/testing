@@ -60,7 +60,3 @@ class InvariantBool(InvariantValue):
 
     def __repr__(self) -> str:
         return str(self)
-
-    # convert to bool
-    def __bool__(self) -> bool:
-        return self.value
