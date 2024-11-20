@@ -1,5 +1,4 @@
 # get Failed exception from pytest
-from _pytest.outcomes import Failed
 
 from invariant_runner.custom_types.assertions import (
     assert_that,
@@ -8,23 +7,7 @@ from invariant_runner.custom_types.matchers import IsSimilar
 from invariant_runner.custom_types.trace import Trace
 from invariant_runner.manager import Manager
 
-
-def should_fail_with(num_assertion: int | None = None):
-    def decorator(fct):
-        def wrapper(*args, **kwargs):
-            try:
-                fct(*args, **kwargs)
-                if num_assertion != 0:
-                    assert False, f"Expected test {fct.__name__} to fail, but it unexpectedly passed"
-            except Failed as e:
-                first_line = str(e).split("\n")[0]
-                assert (
-                    str(num_assertion) in first_line
-                ), f"Expected test case to fail with {num_assertion} Invariant assertion(s), but got {first_line}"
-
-        return wrapper
-
-    return decorator
+from .testutils import should_fail_with
 
 
 @should_fail_with(num_assertion=0)
