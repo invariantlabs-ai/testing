@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import re
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 from _pytest.python_api import ApproxBase
 
@@ -63,6 +64,38 @@ class InvariantString(InvariantValue):
     def __len__(self):
         raise NotImplementedError(
             "InvariantList does not support len(). Please use .len() instead."
+        )
+
+    def __getitem__(self, key: Any, default: Any = None) -> "InvariantString":
+        """Get a substring using integer, slice or string."""
+        if isinstance(key, int):
+            range = f"{key}-{key+1}"
+            return InvariantString(self.value[key], self._concat_addresses([range]))
+        elif isinstance(key, str):
+            valid_json = self.is_valid_code("json")
+            if not valid_json:
+                return default
+            json_dict = json.loads(self.value)
+            # TODO: We can find more precise address here
+            return InvariantString(json_dict[key], self.addresses)
+        elif isinstance(key, slice):
+            start = key.start if key.start is not None else 0
+            stop = key.stop if key.stop is not None else len(self.value)
+            range = f"{start}-{stop}"
+            return InvariantString(self.value[key], self._concat_addresses([range]))
+        raise TypeError("InvariantString indices must be integer, slices or strings")
+
+    def count(self, pattern: str) -> InvariantNumber:
+        """Counts the number of occurences of the given regex pattern."""
+        if not isinstance(self.value, str):
+            raise ValueError("count() is only supported for string values")
+        new_addresses = []
+        for match in re.finditer(pattern, self.value):
+            start, end = match.span()
+            new_addresses.append(f"{start}-{end}")
+        return InvariantNumber(
+            len(new_addresses), 
+            self.addresses if len(new_addresses) == 0 else self._concat_addresses(new_addresses)
         )
 
     def len(self):
