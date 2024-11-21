@@ -94,8 +94,10 @@ class InvariantString(InvariantValue):
             start, end = match.span()
             new_addresses.append(f"{start}-{end}")
         return InvariantNumber(
-            len(new_addresses), 
-            self.addresses if len(new_addresses) == 0 else self._concat_addresses(new_addresses)
+            len(new_addresses),
+            self.addresses
+            if len(new_addresses) == 0
+            else self._concat_addresses(new_addresses),
         )
 
     def len(self):
@@ -110,7 +112,9 @@ class InvariantString(InvariantValue):
             attr (str): The attribute being accessed.
 
         Returns:
-            Any: The result of the corresponding string method.
+            Any: Uses InvariantValue.of to return the result.
+                 If the result is a string, then an InvariantString is returned with that
+                 the result string as the value. If the result is a number, then an InvariantNumber.
         """
         if hasattr(self.value, attr):
             method = getattr(self.value, attr)
@@ -120,10 +124,7 @@ class InvariantString(InvariantValue):
 
                 def wrapper(*args, **kwargs):
                     result = method(*args, **kwargs)
-                    # Return an InvariantString for string results, else return the result as is
-                    return (
-                        InvariantString(result) if isinstance(result, str) else result
-                    )
+                    return InvariantValue.of(result, self.addresses)
 
                 return wrapper
             return method
@@ -174,8 +175,10 @@ class InvariantString(InvariantValue):
             start, end = match.span()
             new_addresses.append(f"{start}-{end}")
         return InvariantBool(
-            len(new_addresses) > 0, 
-            self.addresses if len(new_addresses) == 0 else self._concat_addresses(new_addresses)
+            len(new_addresses) > 0,
+            self.addresses
+            if len(new_addresses) == 0
+            else self._concat_addresses(new_addresses),
         )
 
     def is_similar(self, other: str, threshold: float = 0.5) -> InvariantBool:
