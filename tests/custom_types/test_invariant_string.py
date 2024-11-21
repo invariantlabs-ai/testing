@@ -3,12 +3,11 @@
 import base64
 
 import pytest
-from pytest import approx
-
 from invariant_runner.custom_types.invariant_bool import InvariantBool
 from invariant_runner.custom_types.invariant_list import InvariantList
 from invariant_runner.custom_types.invariant_number import InvariantNumber
 from invariant_runner.custom_types.invariant_string import InvariantString
+from pytest import approx
 
 
 def test_invariant_string_initialization():
@@ -20,6 +19,9 @@ def test_invariant_string_initialization():
     # Test default addresses
     string = InvariantString("World")
     assert string.addresses == []
+    assert string.len() == 5
+    assert string.upper() == "WORLD"
+    assert string.lower() == "world"
 
     # Test invalid value type
     with pytest.raises(TypeError, match="value must be a str"):

@@ -102,6 +102,33 @@ class InvariantString(InvariantValue):
         """Return the length of the list."""
         return InvariantNumber(len(self.value), self.addresses)
 
+    def __getattr__(self, attr):
+        """
+        Delegate attribute access to the underlying string.
+
+        Args:
+            attr (str): The attribute being accessed.
+
+        Returns:
+            Any: The result of the corresponding string method.
+        """
+        if hasattr(self.value, attr):
+            method = getattr(self.value, attr)
+
+            # If the method is callable, wrap it to return an InvariantString where appropriate
+            if callable(method):
+
+                def wrapper(*args, **kwargs):
+                    result = method(*args, **kwargs)
+                    # Return an InvariantString for string results, else return the result as is
+                    return (
+                        InvariantString(result) if isinstance(result, str) else result
+                    )
+
+                return wrapper
+            return method
+        raise AttributeError(f"'InvariantString' object has no attribute '{attr}'")
+
     def _concat_addresses(
         self, other_addresses: list[str] | None, separator: str = ":"
     ) -> list[str]:
