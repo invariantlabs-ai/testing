@@ -27,6 +27,8 @@ class InvariantValue:
     @staticmethod
     def of(value: Any, address: list[str]):
         """Create an Invariant type object from a value and a list of addresses."""
+        if isinstance(value, InvariantValue):
+            return value
         from .invariant_bool import InvariantBool
         from .invariant_dict import InvariantDict
         from .invariant_list import InvariantList
