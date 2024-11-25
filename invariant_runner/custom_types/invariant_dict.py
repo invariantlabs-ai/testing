@@ -11,10 +11,12 @@ class InvariantDict:
         self.value = value
         self.addresses = address
 
-    def __getitem__(self, key):
-        return InvariantValue.of(
-            self.value[key], [f"{a}.{key}" for a in self.addresses]
-        )
+    def __getitem__(self, key) -> InvariantValue | None:
+        if key in self.value:
+            return InvariantValue.of(
+                self.value[key], [f"{a}.{key}" for a in self.addresses]
+            )
+        return None
 
     def __str__(self):
         return "InvariantDict" + str(self.value) + " at " + str(self.addresses)
