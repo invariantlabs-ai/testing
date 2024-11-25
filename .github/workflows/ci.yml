@@ -16,8 +16,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Setup API key to call OpenAI APIs
-      run: echo "OPENAI_API_KEY=${{ secrets.INVARIANT_TESTING_OPENAI_KEY }}" >> $GITHUB_ENV
     - name: Set up Python 3.12.2
       uses: actions/setup-python@v3
       with:
@@ -32,4 +30,10 @@ jobs:
     - name: Run tests
       env:
         OPENAI_API_KEY: ${{ secrets.INVARIANT_TESTING_OPENAI_KEY }}
-      run: poetry run pytest --cov=invariant_runner -s -vv tests/
+      run: |
+        poetry run pytest --cov=invariant_runner --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=60 -s -vv tests/
+    - name: Upload coverage reports (optional)
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-html
+        path: python/htmlcov/
