@@ -86,8 +86,6 @@ class InvariantString(InvariantValue):
 
     def count(self, pattern: str) -> InvariantNumber:
         """Counts the number of occurences of the given regex pattern."""
-        if not isinstance(self.value, str):
-            raise ValueError("count() is only supported for string values")
         new_addresses = []
         for match in re.finditer(pattern, self.value):
             start, end = match.span()
@@ -167,8 +165,6 @@ class InvariantString(InvariantValue):
         """Check if the value contains the given pattern."""
         if isinstance(pattern, InvariantString):
             pattern = pattern.value
-        if not isinstance(self.value, str):
-            raise ValueError("contains() is only supported for string values")
         new_addresses = []
         for match in re.finditer(pattern, self.value):
             start, end = match.span()
@@ -182,22 +178,20 @@ class InvariantString(InvariantValue):
 
     def is_similar(self, other: str, threshold: float = 0.5) -> InvariantBool:
         """Check if the value is similar to the given string using cosine similarity."""
-        if not isinstance(self.value, str) or not isinstance(other, str):
+        if not isinstance(other, str):
             raise ValueError("is_similar() is only supported for string values")
         cmp_result = embedding_similarity(self.value, other) >= threshold
         return InvariantBool(cmp_result, self.addresses)
 
     def levenshtein(self, other: str) -> InvariantBool:
         """Check if the value is similar to the given string using the Levenshtein distance."""
-        if not isinstance(self.value, str) or not isinstance(other, str):
+        if not isinstance(other, str):
             raise ValueError("levenshtein() is only supported for string values")
         cmp_result = levenshtein(self.value, other)
         return InvariantNumber(cmp_result, self.addresses)
 
     def is_valid_code(self, lang: str) -> InvariantBool:
         """Check if the value is valid code in the given language."""
-        if not isinstance(self.value, str):
-            raise ValueError("is_valid_code() is only supported for string values")
         if lang == "python":
             res, new_addresses = is_valid_python(self.value)
             return InvariantBool(res, self._concat_addresses(new_addresses))

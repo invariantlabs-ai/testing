@@ -195,9 +195,11 @@ def test_invariant_bool_str():
     """Test the string representation of InvariantBool."""
     bool1 = InvariantBool(True, addresses=["addr1"])
     assert str(bool1) == "InvariantBool(value=True, addresses=['addr1'])"
+    assert repr(bool1) == "InvariantBool(value=True, addresses=['addr1'])"
 
     bool2 = InvariantBool(False, addresses=[])
     assert str(bool2) == "InvariantBool(value=False, addresses=[])"
+    assert repr(bool2) == "InvariantBool(value=False, addresses=[])"
 
 
 @pytest.mark.parametrize("invalid_value", [1, "True", None, [True]])

@@ -17,7 +17,7 @@ class InvariantDict:
         )
 
     def __str__(self):
-        return str(self.value) + " at " + str(self.addresses)
+        return "InvariantDict" + str(self.value) + " at " + str(self.addresses)
 
     def matches(self, matcher: "Matcher") -> "InvariantBool":  # type: ignore # noqa: F821
         """Check if the value matches the given matcher."""
