@@ -16,10 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Setup API key to call OpenAI APIs.
-      run: echo "OpenAI API key set"
-      env:
-        OPENAI_API_KEY: ${{  secrets.INVARIANT_TESTING_OPENAI_KEY  }}
+    - name: Setup API key to call OpenAI APIs
+      run: echo "OPENAI_API_KEY=${{ secrets.INVARIANT_TESTING_OPENAI_KEY }}" >> $GITHUB_ENV
     - name: Set up Python 3.12.2
       uses: actions/setup-python@v3
       with:
@@ -32,4 +30,6 @@ jobs:
     - name: Set PYTHONPATH
       run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)/python" >> $GITHUB_ENV
     - name: Run tests
+      env:
+        OPENAI_API_KEY: ${{ secrets.INVARIANT_TESTING_OPENAI_KEY }}
       run: poetry run pytest --cov=invariant_runner -s -vv tests/
