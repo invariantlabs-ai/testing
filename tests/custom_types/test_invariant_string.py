@@ -103,6 +103,28 @@ def test_invariant_string_concatenation(
     assert result.value == expected_value
     assert result.addresses == expected_addresses
 
+def test_invariant_string_len_not_implemented():
+    """Test the __len__ method of InvariantString is not implemented."""
+    with pytest.raises(NotImplementedError):
+        len(InvariantString("Hello World"))
+
+def test_invariant_string_get_item():
+    """Test the _getitem__ method of InvariantString is not implemented."""
+    string1 = InvariantString("Hello")
+    assert string1[0] == "H"
+    assert string1[-1] == "o"
+    assert string1[0:2] == "He"
+    assert string1[1:] == "ello"
+
+    string2 = InvariantString("{\"key\": \"value\"}")
+    assert string2['key'] == 'value'
+
+def test_invariant_string_count():
+    """Test the count method of InvariantString."""
+    string1 = InvariantString("Hello World")
+    assert string1.count("l") == 3
+    assert string1.count("o") == 2
+    assert string1.count("z") == 0
 
 def test_invariant_string_str_and_repr():
     """Test string representation of InvariantString."""
@@ -123,6 +145,9 @@ def test_levenshtein():
     res = InvariantString("hello").levenshtein("hallo")
     assert isinstance(res, InvariantNumber)
     assert res == approx(0.8)
+
+    with pytest.raises(ValueError, match="only supported for string values"):
+        InvariantString("hello").levenshtein(other=123)
 
 
 def test_is_valid_code():
@@ -153,6 +178,9 @@ def test_is_valid_code():
 
     assert InvariantString("""{"hello": "world"}""").is_valid_code("json")
 
+    with pytest.raises(ValueError, match="Unsupported language"):
+        InvariantString("def hello():\n\treturn 1").is_valid_code("java")
+
 
 def test_is_similar():
     """Test the is_similar transformer of InvariantString."""
@@ -160,6 +188,9 @@ def test_is_similar():
     assert isinstance(res, InvariantBool)
     assert len(res.addresses) == 1 and res.addresses[0] == "prefix:0-5"
     assert not InvariantString("banana").is_similar("quantum", 0.9)
+
+    with pytest.raises(ValueError, match="only supported for string values"):
+        InvariantString("hello").is_similar(other=123)
 
 
 def test_moderation():
