@@ -31,9 +31,4 @@ jobs:
       env:
         OPENAI_API_KEY: ${{ secrets.INVARIANT_TESTING_OPENAI_KEY }}
       run: |
-        poetry run pytest --cov=invariant_runner --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=60 -s -vv tests/
-    - name: Upload coverage reports (optional)
-      uses: actions/upload-artifact@v3
-      with:
-        name: coverage-html
-        path: python/htmlcov/
+        poetry run pytest --cov=invariant_runner --cov-report=term --cov-fail-under=60 -s -vv tests/
