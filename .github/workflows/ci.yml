@@ -14,9 +14,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    steps: 
+    steps:
     - uses: actions/checkout@v4
     - name: Setup API key to call OpenAI APIs.
+      run: echo "OpenAI API key set"
       env:
         OPENAI_API_KEY: ${{  secrets.INVARIANT_TESTING_OPENAI_KEY  }}
     - name: Set up Python 3.12.2
