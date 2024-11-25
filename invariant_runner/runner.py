@@ -98,7 +98,8 @@ def finalize_tests_and_print_summary(conf: Config) -> None:
             if test_result.get("passed"):
                 passed_count += 1
             print(
-                f"{tests}. {test_result.get('name')}: {'PASSED' if test_result.get('passed') else 'FAILED'}"
+                f"{tests}. {test_result.get('name')}: {
+                    'PASSED' if test_result.get('passed') else 'FAILED'}"
             )
             explorer_url = explorer_url or test_result.get("explorer_url")
     print("\n")
@@ -138,7 +139,8 @@ if __name__ == "__main__":
         logger.error("Configuration error: %s", e)
         sys.exit(1)
 
-    test_results_file_path = utils.get_test_results_file_path(config.dataset_name)
+    test_results_file_path = utils.get_test_results_file_path(
+        config.dataset_name)
     if os.path.exists(test_results_file_path):
         os.remove(test_results_file_path)
 

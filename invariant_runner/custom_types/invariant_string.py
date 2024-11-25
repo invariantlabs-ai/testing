@@ -14,8 +14,8 @@ from invariant_runner.custom_types.invariant_value import InvariantValue
 from invariant_runner.scorers.code import is_valid_json, is_valid_python
 from invariant_runner.scorers.moderation import ModerationAnalyzer
 from invariant_runner.scorers.strings import embedding_similarity, levenshtein
-from invariant_runner.scorers.utils.llm import LLM_Classifier, LLM_Detector
-from invariant_runner.scorers.utils.ocr import OCR_Detector
+from invariant_runner.scorers.utils.llm import LLMClassifier, LLMDetector
+from invariant_runner.scorers.utils.ocr import OCRDetector
 
 
 class InvariantString(InvariantValue):
@@ -82,7 +82,8 @@ class InvariantString(InvariantValue):
             stop = key.stop if key.stop is not None else len(self.value)
             range = f"{start}-{stop}"
             return InvariantString(self.value[key], self._concat_addresses([range]))
-        raise TypeError("InvariantString indices must be integer, slices or strings")
+        raise TypeError(
+            "InvariantString indices must be integer, slices or strings")
 
     def count(self, pattern: str) -> InvariantNumber:
         """Counts the number of occurences of the given regex pattern."""
@@ -125,7 +126,8 @@ class InvariantString(InvariantValue):
 
                 return wrapper
             return method
-        raise AttributeError(f"'InvariantString' object has no attribute '{attr}'")
+        raise AttributeError(
+            f"'InvariantString' object has no attribute '{attr}'")
 
     def _concat_addresses(
         self, other_addresses: list[str] | None, separator: str = ":"
@@ -179,14 +181,16 @@ class InvariantString(InvariantValue):
     def is_similar(self, other: str, threshold: float = 0.5) -> InvariantBool:
         """Check if the value is similar to the given string using cosine similarity."""
         if not isinstance(other, str):
-            raise ValueError("is_similar() is only supported for string values")
+            raise ValueError(
+                "is_similar() is only supported for string values")
         cmp_result = embedding_similarity(self.value, other) >= threshold
         return InvariantBool(cmp_result, self.addresses)
 
     def levenshtein(self, other: str) -> InvariantBool:
         """Check if the value is similar to the given string using the Levenshtein distance."""
         if not isinstance(other, str):
-            raise ValueError("levenshtein() is only supported for string values")
+            raise ValueError(
+                "levenshtein() is only supported for string values")
         cmp_result = levenshtein(self.value, other)
         return InvariantNumber(cmp_result, self.addresses)
 
@@ -204,7 +208,7 @@ class InvariantString(InvariantValue):
         self, prompt: str, options: list[str], model: str = "gpt-4o"
     ) -> InvariantString:
         """Check if the value is similar to the given string using an LLM."""
-        llm_clf = LLM_Classifier(model=model, prompt=prompt, options=options)
+        llm_clf = LLMClassifier(model=model, prompt=prompt, options=options)
         res = llm_clf.classify(self.value)
         return InvariantString(res, self.addresses)
 
@@ -212,7 +216,7 @@ class InvariantString(InvariantValue):
         self, prompt: str, options: list[str], model: str = "gpt-4o"
     ) -> InvariantString:
         """Check if the value is similar to the given string using an LLM."""
-        llm_clf = LLM_Classifier(
+        llm_clf = LLMClassifier(
             model=model, prompt=prompt, options=options, vision=True
         )
         res = llm_clf.classify_vision(self.value)
@@ -220,8 +224,8 @@ class InvariantString(InvariantValue):
 
     def extract(self, predicate: str, model: str = "gpt-4o") -> InvariantList:
         """Extract a value from the value using an LLM."""
-        llm_detector = LLM_Detector(model=model, predicate_rule=predicate)
-        detections = llm_detector.detect(self.value)
+        LLMDetector = LLMDetector(model=model, predicate_rule=predicate)
+        detections = LLMDetector.detect(self.value)
         values, addresses = [], []
         for substr, r in detections:
             values.append(substr)
@@ -236,6 +240,6 @@ class InvariantString(InvariantValue):
     ) -> InvariantBool:
         """Check if the value contains the given text using OCR."""
 
-        ocr = OCR_Detector()
+        ocr = OCRDetector()
         res = ocr.contains(self.value, text, case_sensitive, bbox)
         return InvariantBool(res, self.addresses)

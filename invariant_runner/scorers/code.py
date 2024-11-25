@@ -1,12 +1,13 @@
 import ast
 import json
-import openai
 import subprocess
 import tempfile
-from pydantic import BaseModel
 from typing import Tuple
 
+import openai
 from invariant_runner.custom_types.addresses import Range
+from pydantic import BaseModel
+
 
 def is_valid_json(text: str) -> Tuple[bool, int | None]:
     """Check if a string is valid JSON."""
@@ -37,7 +38,8 @@ def execute(text: str) -> str:
         file_path = temp_file.name
         with open(file_path, "w") as f:
             f.write(text)
-    prompt = f"""Extract the dependencies necessary to run the following python code:\n\n{text}"""
+    prompt = f"""Extract the dependencies necessary to run the following python code:\n\n{
+        text}"""
     client = openai.OpenAI()
     response = client.beta.chat.completions.parse(
         model="gpt-4o",
@@ -47,16 +49,17 @@ def execute(text: str) -> str:
     dependencies = response.choices[0].message.parsed
     with open(file_path, "r") as f:
         script_content = f.read()
-    
-    new_content = f"# /// script\n# dependencies = {json.dumps(dependencies.dependencies)}\n# ///\n" + script_content
+
+    new_content = f"# /// script\n# dependencies = {
+        json.dumps(dependencies.dependencies)}\n# ///\n" + script_content
     with open(file_path, "w") as f:
         f.write(new_content)
 
     cmd = [
-        "docker", "run", "-it", "--rm", 
-        "-v", f"{file_path}:/usr/src/app/script.py:ro", 
-        "-w", "/usr/src/app", 
-        "ghcr.io/astral-sh/uv:0.5.4-python3.12-bookworm", 
+        "docker", "run", "-it", "--rm",
+        "-v", f"{file_path}:/usr/src/app/script.py:ro",
+        "-w", "/usr/src/app",
+        "ghcr.io/astral-sh/uv:0.5.4-python3.12-bookworm",
         "uv", "run", "script.py"
     ]
     res = subprocess.run(cmd, capture_output=True, text=True)

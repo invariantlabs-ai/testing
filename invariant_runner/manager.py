@@ -94,7 +94,8 @@ class Manager:
         """Enter the context manager and setup configuration."""
         INVARIANT_CONTEXT.get().append(self)
         self.config = self._load_config()  # pylint: disable=attribute-defined-outside-init
-        self.test_name = self._get_test_name()  # pylint: disable=attribute-defined-outside-init
+        self.test_name = self._get_test_name(
+        )  # pylint: disable=attribute-defined-outside-init
         self.client = (  # pylint: disable=attribute-defined-outside-init
             InvariantClient() if self.config is not None and self.config.push else None
         )
@@ -109,12 +110,14 @@ class Manager:
         dataset_name_for_output_file = (
             self.config.dataset_name if self.config else int(time.time())
         )
-        file_path = utils.get_test_results_file_path(dataset_name_for_output_file)
+        file_path = utils.get_test_results_file_path(
+            dataset_name_for_output_file)
 
         # if there is a config, and push is enabled, push the test results to Explorer
         if self.config is not None and self.config.push:
             push_traces_response = self.push()
-            self.explorer_url = self._get_explorer_url(push_traces_response)  # pylint: disable=attribute-defined-outside-init
+            self.explorer_url = self._get_explorer_url(
+                push_traces_response)  # pylint: disable=attribute-defined-outside-init
 
         # make sure path exists
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -143,7 +146,8 @@ class Manager:
             # the error message is all failed hard assertions with respective
             # code and trace snippets
             error_message = (
-                f"ERROR: {len(failed_hard_assertions)} hard assertions failed:\n\n"
+                f"ERROR: {len(failed_hard_assertions)
+                          } hard assertions failed:\n\n"
             )
 
             for i, failed_assertion in enumerate(failed_hard_assertions):
@@ -152,7 +156,8 @@ class Manager:
                 # flatten addresses
                 addresses = failed_assertion.addresses
                 # remove character ranges after : in addresses
-                addresses = [a.split(":")[0] if ":" in a else a for a in addresses]
+                addresses = [
+                    a.split(":")[0] if ":" in a else a for a in addresses]
 
                 column_width = utils.terminal_width()
                 failure_message = (
@@ -161,7 +166,8 @@ class Manager:
                     else "EXPECTATION VIOLATED"
                 )
 
-                formatted_trace = format_trace(self.trace.trace, highlights=addresses)
+                formatted_trace = format_trace(
+                    self.trace.trace, highlights=addresses)
                 if formatted_trace is not None:
                     error_message += (
                         " "

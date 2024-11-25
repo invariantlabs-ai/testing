@@ -1,3 +1,5 @@
+"""Utility functions for working with embeddings."""
+
 import openai
 
 
@@ -17,5 +19,3 @@ def get_embedding(text: str) -> list[float]:
         model="text-embedding-3-small"
     )
     return response.data[0].embedding
-
-

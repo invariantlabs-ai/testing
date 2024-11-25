@@ -251,11 +251,11 @@ def test_vision_classifier():
     assert isinstance(res, InvariantString) and res.value == "3"
 
 
-def test_ocr_detector():
+def test_OCRDetector():
     # Load test image
-    from invariant_runner.scorers.utils.ocr import OCR_Detector
+    from invariant_runner.scorers.utils.ocr import OCRDetector
 
-    if not OCR_Detector.check_tesseract_installed():
+    if not OCRDetector.check_tesseract_installed():
         pytest.skip("Tesseract is not installed")
     with open("sample_tests/assets/inv_labs.png", "rb") as image_file:
         base64_image = base64.b64encode(image_file.read()).decode("utf-8")
