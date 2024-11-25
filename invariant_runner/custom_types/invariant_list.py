@@ -44,7 +44,7 @@ class InvariantList:
         # if each element is a dict, print each dict on a new line
         if any(isinstance(item, dict) for item in self.value):
             return (
-                "InvariantList [\n"
+                "InvariantList[\n"
                 + "\n".join("  " + str(item) for item in self.value)
                 + "\n]"
                 + " at " + str(self.addresses)

@@ -8,3 +8,9 @@ def test_invariant_dict_str():
     dict1 = InvariantDict({"hello": 1}, address=["addr1"])
     assert str(dict1) == "InvariantDict{'hello': 1} at ['addr1']"
     assert repr(dict1) == "InvariantDict{'hello': 1} at ['addr1']"
+
+def test_invariant_dict_get():
+    """Test the __getitem__ method of InvariantDict."""
+    dict1 = InvariantDict({"hello": 1}, address=["addr1"])
+    assert dict1["hello"] == 1
+    assert dict1["world"] is None
