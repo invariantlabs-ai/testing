@@ -236,7 +236,6 @@ class InvariantString(InvariantValue):
 
     def ocr_contains(
         self,
-        base64_image: str,
         text: str,
         case_sensitive: bool = False,
         bbox: Optional[dict] = None,
@@ -244,5 +243,5 @@ class InvariantString(InvariantValue):
         """Check if the value contains the given text using OCR."""
 
         ocr = OCR_Detector()
-        res = ocr.contains(base64_image, text, case_sensitive, bbox)
+        res = ocr.contains(self.value, text, case_sensitive, bbox)
         return InvariantBool(res, self.addresses)

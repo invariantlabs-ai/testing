@@ -41,7 +41,7 @@ def get_caller_snippet(levels=1) -> Tuple[str, int]:
 def assert_equals(
     expected_value: InvariantValue,
     actual_value: InvariantValue,
-    message: str = None,
+    message: str = "",
     assertion_type: Literal["SOFT", "HARD"] = "HARD",
     stacklevels: int = 1,
 ):
@@ -76,7 +76,7 @@ def formatted(value: Any) -> str:
 
 
 def expect_equals(
-    expected_value: InvariantValue, actual_value: InvariantValue, message: str = None
+    expected_value: InvariantValue, actual_value: InvariantValue, message: str = ""
 ):
     """Expect the invariant value to be equal to the given value. This is a soft assertion."""
     assert_equals(

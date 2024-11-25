@@ -224,3 +224,10 @@ def test_ocr_detector():
         base64_image, "making", bbox={"x1": 50, "y1": 10, "x2": 120, "y2": 40}
     )
     assert not InvariantString(base64_image, [""]).ocr_contains(base64_image, "LLM")
+
+@pytest.mark.skip(reason="Skip for now, needs docker")
+def test_execute():
+    from invariant_runner.scorers.code import execute
+    res = execute("""import requests; response = requests.get("https://jsonplaceholder.typicode.com/posts/1");print(response.json())""")
+    assert "userId" in res
+    

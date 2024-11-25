@@ -140,6 +140,21 @@ class Trace(BaseModel):
             for i, (tc_address, tc) in enumerate(iterate_tool_calls(self.trace)):
                 if i == selector:
                     return InvariantDict(tc, tc_address)
+        elif isinstance(selector, dict):
+            def find_value(d, path):
+                for k in path.split("."):
+                    d = d[k]
+                return d
+            return InvariantList.from_values(
+                [
+                    InvariantDict(tc, tc_address)
+                    for tc_address, tc in iterate_tool_calls(self.trace)
+                    if all(
+                        find_value(tc["function"], kwname) == kwvalue
+                        for kwname, kwvalue in selector.items()
+                    )
+                ]
+            )
         elif len(filterkwargs) > 0:
             return InvariantList.from_values(
                 [
