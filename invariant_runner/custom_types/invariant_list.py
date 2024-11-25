@@ -11,10 +11,18 @@ class InvariantList:
         self.value = values
         self.addresses = addresses
 
+    def __eq__(self, other: "InvariantList") -> bool:
+        if not isinstance(other, InvariantList):
+            raise TypeError(
+                "Cannot compare InvariantList with non-InvariantList")
+        return self.value == other.value and self.addresses == other.addresses
+
     @classmethod
     def from_values(cls, values: list[InvariantValue]):
+        """Create an InvariantList from a list of InvariantValues."""
         return cls(
-            [value.value for value in values], [value.addresses for value in values]
+            [value.value for value in values], [
+                value.addresses for value in values]
         )
 
     def __getitem__(self, key: int):
@@ -29,7 +37,8 @@ class InvariantList:
         """Return the length of the list."""
         # flatten addresses
         return InvariantNumber(
-            len(self.value), [item for sublist in self.addresses for item in sublist]
+            len(self.value), [
+                item for sublist in self.addresses for item in sublist]
         )
 
     def __iter__(self):

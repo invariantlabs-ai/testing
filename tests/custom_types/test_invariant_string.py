@@ -91,7 +91,8 @@ def test_invariant_string_contains(value, substring, expected):
             "HelloWorld",
             ["addr1:0-5", "addr2:0-5"],
         ),
-        ("World", InvariantString("Hello", ["addr1"]), "WorldHello", ["addr1:0-5"]),
+        ("World", InvariantString("Hello", [
+         "addr1"]), "WorldHello", ["addr1:0-5"]),
     ],
 )
 def test_invariant_string_concatenation(
@@ -103,10 +104,12 @@ def test_invariant_string_concatenation(
     assert result.value == expected_value
     assert result.addresses == expected_addresses
 
+
 def test_invariant_string_len_not_implemented():
     """Test the __len__ method of InvariantString is not implemented."""
     with pytest.raises(NotImplementedError):
         len(InvariantString("Hello World"))
+
 
 def test_invariant_string_get_item():
     """Test the _getitem__ method of InvariantString is not implemented."""
@@ -119,6 +122,7 @@ def test_invariant_string_get_item():
     string2 = InvariantString("{\"key\": \"value\"}")
     assert string2['key'] == 'value'
 
+
 def test_invariant_string_count():
     """Test the count method of InvariantString."""
     string1 = InvariantString("Hello World")
@@ -126,11 +130,14 @@ def test_invariant_string_count():
     assert string1.count("o") == 2
     assert string1.count("z") == 0
 
+
 def test_invariant_string_str_and_repr():
     """Test string representation of InvariantString."""
     string = InvariantString("Hello", ["addr1"])
-    assert str(string) == "InvariantString(value=Hello, addresses=['addr1:0-5'])"
-    assert repr(string) == "InvariantString(value=Hello, addresses=['addr1:0-5'])"
+    assert str(
+        string) == "InvariantString(value=Hello, addresses=['addr1:0-5'])"
+    assert repr(
+        string) == "InvariantString(value=Hello, addresses=['addr1:0-5'])"
 
 
 def test_contains():
@@ -158,7 +165,8 @@ def test_is_valid_code():
         """a = 2\n2x = a\nc=a""", ["messages.0.content"]
     ).is_valid_code("python")
     assert isinstance(res, InvariantBool)
-    assert len(res.addresses) == 1 and res.addresses[0] == "messages.0.content:6-12"
+    assert len(
+        res.addresses) == 1 and res.addresses[0] == "messages.0.content:6-12"
     assert not res
 
     invalid_json_example = """
@@ -173,7 +181,8 @@ def test_is_valid_code():
         "json"
     )
     assert isinstance(res, InvariantBool)
-    assert len(res.addresses) == 1 and res.addresses[0] == "messages.0.content:33-54"
+    assert len(
+        res.addresses) == 1 and res.addresses[0] == "messages.0.content:33-54"
     assert not res
 
     assert InvariantString("""{"hello": "world"}""").is_valid_code("json")
@@ -195,7 +204,8 @@ def test_is_similar():
 
 def test_moderation():
     """Test the moderation transformer of InvariantString."""
-    res = InvariantString("hello there\ni want to kill them\nbye", [""]).moderation()
+    res = InvariantString(
+        "hello there\ni want to kill them\nbye", [""]).moderation()
     assert isinstance(res, InvariantBool)
     assert len(res.addresses) == 1
     assert res.addresses[0] == ":11-31"
@@ -231,7 +241,8 @@ def test_vision_classifier():
     with open("sample_tests/assets/Group_of_cats_resized.jpg", "rb") as image_file:
         base64_image = base64.b64encode(image_file.read()).decode("utf-8")
     img = InvariantString(base64_image, [""])
-    res = img.llm_vision("What is in the image?", ["cats", "dogs", "birds", "none"])
+    res = img.llm_vision("What is in the image?", [
+                         "cats", "dogs", "birds", "none"])
     assert isinstance(res, InvariantString) and res.value == "cats"
     res = img.llm_vision(
         "How many cats are in the image?",
@@ -250,15 +261,18 @@ def test_ocr_detector():
         base64_image = base64.b64encode(image_file.read()).decode("utf-8")
 
     # Test case-insensitive detection
-    assert InvariantString(base64_image, [""]).ocr_contains(base64_image, "agents")
+    assert InvariantString(base64_image, [""]).ocr_contains(
+        base64_image, "agents")
     assert InvariantString(base64_image, [""]).ocr_contains(
         base64_image, "making", bbox={"x1": 50, "y1": 10, "x2": 120, "y2": 40}
     )
-    assert not InvariantString(base64_image, [""]).ocr_contains(base64_image, "LLM")
+    assert not InvariantString(
+        base64_image, [""]).ocr_contains(base64_image, "LLM")
+
 
 @pytest.mark.skip(reason="Skip for now, needs docker")
 def test_execute():
     from invariant_runner.scorers.code import execute
-    res = execute("""import requests; response = requests.get("https://jsonplaceholder.typicode.com/posts/1");print(response.json())""")
+    res = execute(
+        """import requests; response = requests.get("https://jsonplaceholder.typicode.com/posts/1");print(response.json())""")
     assert "userId" in res
-    
