@@ -251,7 +251,7 @@ def test_vision_classifier():
     assert isinstance(res, InvariantString) and res.value == "3"
 
 
-def test_OCRDetector():
+def test_oct_detector():
     # Load test image
     from invariant_runner.scorers.utils.ocr import OCRDetector
 

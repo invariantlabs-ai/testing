@@ -57,10 +57,10 @@ def test_llm():
     assert res == "de"
 
 
-def test_LLMDetector():
+def test_llm_detector():
     text = """I like apples and carrots, but I don't like bananas.\nThe only thing better than apples are potatoes and pears."""
-    LLMDetector = LLMDetector(model="gpt-4o", predicate_rule="fruits")
-    detections = [value for (value, addresses) in LLMDetector.detect(text)]
+    llm_detector = LLMDetector(model="gpt-4o", predicate_rule="fruits")
+    detections = [value for (value, addresses) in llm_detector.detect(text)]
     assert detections[0] == "apples"
     assert detections[1] == "bananas"
     assert detections[2] == "apples"

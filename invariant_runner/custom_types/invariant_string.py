@@ -224,8 +224,8 @@ class InvariantString(InvariantValue):
 
     def extract(self, predicate: str, model: str = "gpt-4o") -> InvariantList:
         """Extract a value from the value using an LLM."""
-        LLMDetector = LLMDetector(model=model, predicate_rule=predicate)
-        detections = LLMDetector.detect(self.value)
+        llm_detector = LLMDetector(model=model, predicate_rule=predicate)
+        detections = llm_detector.detect(self.value)
         values, addresses = [], []
         for substr, r in detections:
             values.append(substr)
