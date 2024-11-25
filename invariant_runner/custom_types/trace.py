@@ -2,10 +2,10 @@
 
 from typing import Any, Callable, Dict, List
 
-from pydantic import BaseModel
-
-from invariant_runner.custom_types.invariant_dict import InvariantDict, InvariantValue
+from invariant_runner.custom_types.invariant_dict import (InvariantDict,
+                                                          InvariantValue)
 from invariant_runner.custom_types.invariant_list import InvariantList
+from pydantic import BaseModel
 
 
 def iterate_tool_calls(messages: list[dict]):

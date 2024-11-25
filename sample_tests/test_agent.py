@@ -1,13 +1,9 @@
 """Contains sample tests which use the Invariant Runner."""
 
 import pytest
-
-from invariant_runner.custom_types.assertions import (
-    assert_equals,
-    assert_that,
-    assert_true,
-    expect_equals,
-)
+from invariant_runner.custom_types.assertions import (assert_equals,
+                                                      assert_that, assert_true,
+                                                      expect_equals)
 from invariant_runner.custom_types.invariant_string import InvariantString
 from invariant_runner.custom_types.matchers import HasSubstring
 from invariant_runner.custom_types.trace import Trace

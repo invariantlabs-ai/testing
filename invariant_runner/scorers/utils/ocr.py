@@ -2,7 +2,8 @@ import base64
 import io
 import subprocess
 import tempfile
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 
 class OCR_Detector:
 

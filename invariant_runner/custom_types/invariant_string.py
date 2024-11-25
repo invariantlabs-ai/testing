@@ -7,7 +7,6 @@ import re
 from typing import Any, Optional, Union
 
 from _pytest.python_api import ApproxBase
-
 from invariant_runner.custom_types.invariant_bool import InvariantBool
 from invariant_runner.custom_types.invariant_list import InvariantList
 from invariant_runner.custom_types.invariant_number import InvariantNumber

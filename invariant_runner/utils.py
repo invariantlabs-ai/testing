@@ -4,8 +4,7 @@ import os
 
 from invariant_runner.constants import (
     INVARIANT_RUNNER_TEST_RESULTS_DIR,
-    INVARIANT_TEST_RUNNER_TERMINAL_WIDTH_ENV_VAR,
-)
+    INVARIANT_TEST_RUNNER_TERMINAL_WIDTH_ENV_VAR)
 
 
 def get_test_results_file_path(dataset_name: str) -> str:

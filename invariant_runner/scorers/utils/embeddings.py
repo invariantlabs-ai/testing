@@ -1,5 +1,6 @@
 import openai
 
+
 def cosine_similarity(v1: list[float], v2: list[float]) -> float:
     """Compute cosine similarity between two vectors."""
     dot_product = sum(a * b for a, b in zip(v1, v2))

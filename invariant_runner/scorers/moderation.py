@@ -1,8 +1,8 @@
-from invariant_runner.scorers.utils.base import BaseDetector, DetectorResult
-from invariant_runner.custom_types.addresses import Range
 from typing import Optional, Tuple
-from typing_extensions import override
 
+from invariant_runner.custom_types.addresses import Range
+from invariant_runner.scorers.utils.base import BaseDetector, DetectorResult
+from typing_extensions import override
 
 DEFAULT_MODERATION_MODEL = "OpenAI"
 

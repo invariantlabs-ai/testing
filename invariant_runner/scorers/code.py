@@ -1,6 +1,7 @@
 import ast
 import json
 from typing import Tuple
+
 from invariant_runner.custom_types.addresses import Range
 
 

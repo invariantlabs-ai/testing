@@ -1,13 +1,9 @@
 import base64
 
 import pytest
-
 from invariant_runner.scorers.base import approx
 from invariant_runner.scorers.strings import *
-from invariant_runner.scorers.utils.llm import (
-    LLM_Classifier,
-    LLM_Detector,
-)
+from invariant_runner.scorers.utils.llm import LLM_Classifier, LLM_Detector
 from invariant_runner.scorers.utils.ocr import OCR_Detector
 
 

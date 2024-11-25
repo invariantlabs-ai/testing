@@ -5,7 +5,6 @@ import sys
 from unittest.mock import patch
 
 import pytest
-
 from invariant_runner.runner import create_config, parse_args
 
 

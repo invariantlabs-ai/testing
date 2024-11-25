@@ -1,7 +1,6 @@
 """Tests for the InvariantBool class."""
 
 import pytest
-
 from invariant_runner.custom_types.invariant_bool import InvariantBool
 
 

@@ -1,9 +1,9 @@
 import json
-import openai
-from pydantic import BaseModel
-from invariant_runner.custom_types.addresses import Range
 from typing import Tuple
 
+import openai
+from invariant_runner.custom_types.addresses import Range
+from pydantic import BaseModel
 
 PROMPT_TEMPLATE = """Your goal is to classify the text provided by the user using the following classification rule.
 {prompt}
