@@ -9,6 +9,7 @@ def test_invariant_dict_str():
     assert str(dict1) == "InvariantDict{'hello': 1} at ['addr1']"
     assert repr(dict1) == "InvariantDict{'hello': 1} at ['addr1']"
 
+
 def test_invariant_dict_get():
     """Test the __getitem__ method of InvariantDict."""
     dict1 = InvariantDict({"hello": 1}, address=["addr1"])
