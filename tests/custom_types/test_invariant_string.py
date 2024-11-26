@@ -272,9 +272,11 @@ def test_oct_detector():
 
 @pytest.mark.skip(reason="Skip for now, needs docker")
 def test_execute():
-    from invariant_runner.scorers.code import execute
+    code = InvariantString("""def f(n):\treturn n**2""", ["messages.0.content"])
+    res = code.execute("print(f(5))")
+    assert "25" in res.value
+    assert len(res.addresses) == 1 and res.addresses[0] == "messages.0.content:0-21"
 
-    res = execute(
-        """import requests; response = requests.get("https://jsonplaceholder.typicode.com/posts/1");print(response.json())"""
-    )
-    assert "userId" in res
+    code = InvariantString("""import numpy as np; print(np.array([1, 2, 3, 4])**2)""", ["messages.0.content"])
+    res = code.execute(detect_packages=True)
+    assert res.contains("9") and res.contains("16")

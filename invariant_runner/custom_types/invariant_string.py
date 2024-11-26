@@ -17,6 +17,7 @@ from invariant_runner.scorers.moderation import ModerationAnalyzer
 from invariant_runner.scorers.strings import embedding_similarity, levenshtein
 from invariant_runner.scorers.utils.llm import LLMClassifier, LLMDetector
 from invariant_runner.scorers.utils.ocr import OCRDetector
+from invariant_runner.scorers.code import execute
 
 
 class InvariantString(InvariantValue):
@@ -162,7 +163,7 @@ class InvariantString(InvariantValue):
             # Check if old_address ends with :start-end pattern
             match = re.match(r"^(.*):(\d+)-(\d+)$", old_address)
             assert match is not None
-            prefix, start, end = (
+            prefix, start, _ = (
                 match.groups()[0],
                 int(match.groups()[1]),
                 int(match.groups()[2]),
@@ -201,6 +202,10 @@ class InvariantString(InvariantValue):
                 else self._concat_addresses(new_addresses)
             ),
         )
+
+    def __contains__(self, pattern: str | InvariantString) -> InvariantBool:
+        """Check if the value contains the given pattern."""
+        return self.contains(pattern)
 
     def is_similar(self, other: str, threshold: float = 0.5) -> InvariantBool:
         """Check if the value is similar to the given string using cosine similarity."""
@@ -297,3 +302,13 @@ class InvariantString(InvariantValue):
         ocr = OCRDetector()
         res = ocr.contains(self.value, text, case_sensitive, bbox)
         return InvariantBool(res, self.addresses)
+
+    def execute(self, suffix_code: str = "", detect_packages: bool = False) -> InvariantString:
+        """Execute the value as Python code and return the standard output as InvariantString.
+
+        Args:
+            suffix_code (str): The Python code to append to the value before execution.
+            detect_packages (bool): Whether to detect the dependencies of the code.
+        """
+        res = execute(self.value + "\n" + suffix_code, detect_packages)
+        return InvariantString(res, self.addresses)
