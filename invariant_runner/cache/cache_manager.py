@@ -34,3 +34,7 @@ class CacheManager:
     def set(self, key: str, value: Any):
         """Store a response in the cache."""
         self.cache.set(key, value, expire=self.expiry)
+
+    def delete(self, key: str):
+        """Delete a cached response."""
+        self.cache.pop(key)
