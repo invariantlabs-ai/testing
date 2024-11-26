@@ -401,13 +401,13 @@ files = [
 
 [[package]]
 name = "invariant-sdk"
-version = "0.0.3"
+version = "0.0.4"
 description = "SDK for Invariant APIs"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "invariant_sdk-0.0.3-py3-none-any.whl", hash = "sha256:37ad6c4318061e125e2e6a8188dfef22b8b2cab5eb16b182354fa6c117b6a95e"},
-    {file = "invariant_sdk-0.0.3.tar.gz", hash = "sha256:0ff91a45522dfba510ab0995b25d261b8ee2d5e2712a4fae2bc71df39ce89dac"},
+    {file = "invariant_sdk-0.0.4-py3-none-any.whl", hash = "sha256:f2236ab8d980d0f83a4e9b714e6d1335252e72f9bf62c32713054a36275571a2"},
+    {file = "invariant_sdk-0.0.4.tar.gz", hash = "sha256:e8859418c226231019a283205afd078cdd4c46d06ef5e2595bcfaef7fef79893"},
 ]
 
 [package.dependencies]
@@ -1060,4 +1060,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">= 3.10"
-content-hash = "35cbbee985354a6552acc5798045d9ca590014085bc98c8277dc274ce37b02c4"
+content-hash = "d65430e139d8d4f0f7a7ce7cc36e3df7f8f31b767ba2a55154eaca2c205bf7e1"
