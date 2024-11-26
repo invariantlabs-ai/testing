@@ -257,7 +257,6 @@ def test_custom_trace():
         assert_true(tool_calls[1]["function"]["arguments"]["lon"] == "7.4474")
 
 
-
 @pytest.mark.parametrize(
     "name, bool1", [("Alice", True), ("Alice", False), ("Bob", False), ("Bob", True)]
 )
