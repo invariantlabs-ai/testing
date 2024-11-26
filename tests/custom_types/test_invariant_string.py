@@ -263,11 +263,11 @@ def test_oct_detector():
         base64_image = base64.b64encode(image_file.read()).decode("utf-8")
 
     # Test case-insensitive detection
-    assert InvariantString(base64_image, [""]).ocr_contains(base64_image, "agents")
+    assert InvariantString(base64_image, [""]).ocr_contains("agents")
     assert InvariantString(base64_image, [""]).ocr_contains(
-        base64_image, "making", bbox={"x1": 50, "y1": 10, "x2": 120, "y2": 40}
+        "making", bbox={"x1": 50, "y1": 10, "x2": 120, "y2": 40}
     )
-    assert not InvariantString(base64_image, [""]).ocr_contains(base64_image, "LLM")
+    assert not InvariantString(base64_image, [""]).ocr_contains("LLM")
 
 
 @pytest.mark.skip(reason="Skip for now, needs docker")

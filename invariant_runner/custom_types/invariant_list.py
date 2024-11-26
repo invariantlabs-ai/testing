@@ -7,7 +7,7 @@ from invariant_runner.custom_types.invariant_value import InvariantValue
 class InvariantList:
     """InvariantList class definition"""
 
-    def __init__(self, values, addresses: list[list[str]]):
+    def __init__(self, values, addresses):
         self.value = values
         self.addresses = addresses
 
@@ -16,6 +16,14 @@ class InvariantList:
             raise TypeError(
                 "Cannot compare InvariantList with non-InvariantList")
         return self.value == other.value and self.addresses == other.addresses
+    @staticmethod
+    def flatten_addresses(addr):
+        if not isinstance(addr, list):
+            return [addr]
+        ret = []
+        for sublist in addr:
+            ret.extend(InvariantList.flatten_addresses(sublist))
+        return ret
 
     @classmethod
     def from_values(cls, values: list[InvariantValue]):
@@ -37,8 +45,7 @@ class InvariantList:
         """Return the length of the list."""
         # flatten addresses
         return InvariantNumber(
-            len(self.value), [
-                item for sublist in self.addresses for item in sublist]
+            len(self.value), InvariantList.flatten_addresses(self.addresses)
         )
 
     def __iter__(self):

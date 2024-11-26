@@ -60,7 +60,7 @@ class Trace(BaseModel):
     metadata: Dict[str, Any] | None = None
 
     @classmethod
-    def from_explorer(cls, identifier_or_id: str, index: int | None = None) -> "Trace":
+    def from_explorer(cls, identifier_or_id: str, index: int | None = None, explorer_endpoint: str = "https://explorer.invariantlabs.ai") -> "Trace":
         """
         Loads a public trace from the Explorer (https://explorer.invariantlabs.ai).
 
@@ -77,13 +77,13 @@ class Trace(BaseModel):
         metadata = {
             "id": identifier_or_id,
         }
-        timeout = [5, 5]  # connect and read timeouts.
+        timeout = 5  # connect and read timeouts.
 
         if index is not None:
             username, dataset = identifier_or_id.split("/")
 
             trace_metadata = requests.get(
-                url=f"https://explorer.invariantlabs.ai/api/v1/dataset/byuser/{username}/{dataset}/traces?indices={index}",
+                url=f"{explorer_endpoint}/api/v1/dataset/byuser/{username}/{dataset}/traces?indices={index}",
                 timeout=timeout,
             )
             if len(trace_metadata.json()) == 0:
@@ -105,8 +105,9 @@ class Trace(BaseModel):
                     "Please provide the index of the trace to select from the <username>/<dataset> pair."
                 )
 
+        print(f"{explorer_endpoint}/api/v1/trace/{identifier_or_id}?annotated=1")
         response = requests.get(
-            url=f"https://explorer.invariantlabs.ai/api/v1/trace/{identifier_or_id}?annotated=1",
+            url=f"{explorer_endpoint}/api/v1/trace/{identifier_or_id}?annotated=1",
             timeout=timeout,
         )
         return cls(trace=response.json()["messages"], metadata=metadata)
@@ -131,6 +132,43 @@ class Trace(BaseModel):
         return InvariantList.from_values(
             [InvariantDict(message, [f"{i}"]) for i, message in enumerate(self.trace)]
         )
+
+    def tool_pairs(self) -> list[tuple[InvariantDict, InvariantDict]]:
+        """Returns the list of tuples of (tool_call, tool_output)."""
+        res = []
+        for msg_idx, msg in enumerate(self.trace):
+            if msg.get("role") != "assistant":
+                continue
+            for tc_idx, tc in enumerate(msg.get("tool_calls", [])):
+                res.append((msg_idx, InvariantDict(tc, [f"{msg_idx}.tool_calls.{tc_idx}"]), None))
+
+        matched_ids = set()
+        # First, find all tool outputs that have the same id as a tool call
+        for msg_idx, msg in enumerate(self.trace):
+            if msg.get("role") != "tool" or "id" not in msg:
+                continue
+            for i, res_pair in enumerate(res):
+                if res_pair[1].get("id") == msg.get("id"):
+                    res[i] = (i, res_pair[1], InvariantDict(msg, [f"{msg_idx}"]))
+                    matched_ids.add(msg.get("id"))
+
+        res = sorted(res, key=lambda x: x[0])
+
+        # For the remaining tool outputs, assign them to the previous unmatched tool call
+        for msg_idx, msg in enumerate(self.trace):
+            if msg.get("role") != "tool":
+                continue
+            if msg.get("id") in matched_ids:
+                continue
+            for i, res_pair in reversed(list(enumerate(res))):
+                tool_call_idx, tool_call, tool_out = res_pair
+                if tool_out is None and tool_call_idx < msg_idx:
+                    res[i] = (tool_call_idx, tool_call, InvariantDict(msg, [f"{msg_idx}"]))
+                    break
+
+        res = [InvariantList.from_values([res_pair[1], res_pair[2]]) for res_pair in res if res_pair[2] is not None]
+        return InvariantList.from_values(res)
+
 
     def tool_calls(
         self, selector: int | None = None, **filterkwargs
@@ -186,3 +224,7 @@ class Trace(BaseModel):
             + ",\n".join("  " + str(msg) for msg in self.trace)
             + "\n])"
         )
+
+    def __str__(self):
+        return "\n".join(str(msg) for msg in self.trace)
+            

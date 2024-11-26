@@ -256,3 +256,6 @@ def test_custom_trace():
         assert_true(tool_calls[1]["function"]["arguments"].is_valid_code("json"))
         assert_true(tool_calls[1]["function"]["arguments"]["lat"] == "46.948")
         assert_true(tool_calls[1]["function"]["arguments"]["lon"] == "7.4474")
+
+
+
