@@ -64,8 +64,8 @@ class InvariantList:
 
     def reduce_raw(self, func: Callable[[Any, Any], Any], initial_value: Any) -> Any:
         """
-        Reduce the list instance to a single value using a function disregarding address information.
-        Use this method instead of `reduce` when the `func` is not compatible with `InvariantValue`.
+        Reduce the list instance to a single value using a function and disregarding address information.
+        Use this method instead of 'reduce' when the 'func' is not compatible with 'InvariantValue'.
         """
         # Strip address information from values
         values_ = [item.value for item in self.value]
