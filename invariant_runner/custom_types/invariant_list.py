@@ -59,7 +59,7 @@ class InvariantList:
     def map(self, func: Callable[[InvariantValue], InvariantValue]) -> "InvariantList":
         """Apply a function to each element in the list."""
         return InvariantList(
-            [func(item) for item in self.value], self.addresses
+            [func(item) for item in self.__iter__()], self.addresses
         )
 
     def reduce_raw(self, func: Callable[[Any, Any], Any], initial_value: Any) -> Any:
@@ -82,30 +82,30 @@ class InvariantList:
     ) -> InvariantValue:
         """Reduce the list instance to a single value using a function."""
         accumulator = initial_value
-        for item in self.value:
+        for item in self.__iter__():
             try:
                 accumulator = func(accumulator, item)
             except TypeError as e:
                 raise TypeError(
                     f"Incompatible function: {func} for types '{type(accumulator).__name__}' and '{type(item).__name__}'. "
-                    "Did you mean to use `.reduce_raw()`?"
+                    "Did you mean to use '.reduce_raw()''?"
                 ) from e
 
         return accumulator
 
-    def min(self):
+    def min(self) -> InvariantValue:
         """Return the minimum value in the list."""
         return min(self.value)
 
-    def max(self):
+    def max(self) -> InvariantValue:
         """Return the maximum value in the list."""
         return max(self.value)
 
-    def sum(self):
+    def sum(self) -> InvariantNumber:
         """Return the sum of all values in the list."""
         return self.reduce(lambda element1, element2: element1 + element2, InvariantNumber(0, []))
 
-    def count(self, value):
+    def count(self, value: Union[InvariantValue, Any]) -> InvariantNumber:
         """Return the number of occurrences of a value in the list."""
         return self.map(
             lambda a: InvariantNumber(1, a.addresses)
@@ -113,10 +113,10 @@ class InvariantList:
             else InvariantNumber(0, a.addresses)
         ).sum()
 
-    def any(self):
+    def any(self) -> InvariantBool:
         """Return True if any element in the list is True."""
         return self.reduce(lambda element1, element2: element1 | element2, InvariantBool(False, []))
 
-    def all(self):
+    def all(self) -> InvariantBool:
         """Return True if all elements in the list are True."""
         return self.reduce(lambda element1, element2: element1 & element2, InvariantBool(True, []))
