@@ -1,4 +1,7 @@
+"""Utility functions for working with embeddings."""
+
 import openai
+
 
 def cosine_similarity(v1: list[float], v2: list[float]) -> float:
     """Compute cosine similarity between two vectors."""
@@ -16,5 +19,3 @@ def get_embedding(text: str) -> list[float]:
         model="text-embedding-3-small"
     )
     return response.data[0].embedding
-
-

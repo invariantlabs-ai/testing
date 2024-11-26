@@ -1,8 +1,8 @@
-from invariant_runner.scorers.utils.base import BaseDetector, DetectorResult
-from invariant_runner.custom_types.addresses import Range
 from typing import Optional, Tuple
-from typing_extensions import override
 
+from invariant_runner.custom_types.addresses import Range
+from invariant_runner.scorers.utils.base import BaseDetector, DetectorResult
+from typing_extensions import override
 
 DEFAULT_MODERATION_MODEL = "OpenAI"
 
@@ -33,6 +33,7 @@ MODERATION_CATEGORIES_INV = {
     provider: {v: k for k, v in provider_mapping.items()} for provider, provider_mapping in MODERATION_CATEGORIES.items()
 }
 
+
 class ModerationAnalyzer(BaseDetector):
 
     def __init__(self):
@@ -49,10 +50,11 @@ class ModerationAnalyzer(BaseDetector):
         # NOTE: OpenAI suggests: for higher accuracy, try splitting long pieces of text into smaller chunks each less than 2,000 characters.
         moderated = client.moderations.create(input=text)
         scores = moderated.results[0].category_scores.to_dict()
-        scores = {MODERATION_CATEGORIES["OpenAI"][cat]: score for cat, score in scores.items() if cat in MODERATION_CATEGORIES["OpenAI"]}
+        scores = {MODERATION_CATEGORIES["OpenAI"][cat]: score for cat, score in scores.items(
+        ) if cat in MODERATION_CATEGORIES["OpenAI"]}
         return scores
 
-    def detect_all(self, text: str, split="\n", model=DEFAULT_MODERATION_MODEL, default_threshold=0.5, cat_thresholds: Optional[dict]=None) -> list[Tuple[str, Range]]:
+    def detect_all(self, text: str, split="\n", model=DEFAULT_MODERATION_MODEL, default_threshold=0.5, cat_thresholds: Optional[dict] = None) -> list[Tuple[str, Range]]:
         """Detects whether the text matches any of the categories that should be moderated.
 
         Args:
@@ -71,7 +73,8 @@ class ModerationAnalyzer(BaseDetector):
         # split by a delimiter
         # TODO: Invariant Language doesn't support split=\n, so let's always split for now
         if split is not None:
-            text_splits = [split + chunk if i > 0 else chunk for i, chunk in enumerate(text.split(split))]
+            text_splits = [split + chunk if i > 0 else chunk for i,
+                           chunk in enumerate(text.split(split))]
         else:
             text_splits = [text]
 
@@ -79,7 +82,8 @@ class ModerationAnalyzer(BaseDetector):
         text_chunks = []
         for chunk in text_splits:
             if len(chunk) > 2000:
-                text_chunks.extend([chunk[i:i+2000] for i in range(0, len(chunk), 2000)])
+                text_chunks.extend([chunk[i:i+2000]
+                                   for i in range(0, len(chunk), 2000)])
             else:
                 text_chunks.append(chunk)
 

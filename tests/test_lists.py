@@ -1,8 +1,9 @@
 """Tests for the invariant_runner module."""
 
-from invariant_runner.custom_types.trace import Trace
-from invariant_runner.custom_types.invariant_list import InvariantList
 import pytest
+from invariant_runner.custom_types.invariant_list import InvariantList
+from invariant_runner.custom_types.trace import Trace
+
 
 @pytest.fixture
 def message_list():

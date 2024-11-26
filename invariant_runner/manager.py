@@ -16,6 +16,7 @@ from pydantic import ValidationError
 from invariant_runner import utils
 from invariant_runner.config import Config
 from invariant_runner.constants import INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR
+from invariant_runner.custom_types.test_result import AssertionResult, TestResult
 from invariant_runner.formatter import format_trace
 
 # Configure logging
@@ -29,8 +30,6 @@ class Manager:
     """Context manager class to run tests with Invariant."""
 
     def __init__(self, trace):
-        from invariant_runner.custom_types.test_result import AssertionResult
-
         self.trace = trace
         self.assertions: list[AssertionResult] = []
         self.explorer_url = ""
@@ -69,7 +68,6 @@ class Manager:
 
     def _get_test_result(self):
         """Generate the test result."""
-        from invariant_runner.custom_types.test_result import TestResult
 
         passed = all(
             assertion.passed if assertion.type == "HARD" else True
@@ -167,15 +165,17 @@ class Manager:
                     else "EXPECTATION VIOLATED"
                 )
 
-                error_message += (
-                    " "
-                    + test_snippet
-                    + ("_" * column_width + "\n")
-                    + f"\n{failure_message}: {message or ''}\n"
-                    + ("_" * column_width + "\n\n")
-                    + format_trace(self.trace.trace, highlights=addresses)
-                    + "\n"
-                )
+                formatted_trace = format_trace(self.trace.trace, highlights=addresses)
+                if formatted_trace is not None:
+                    error_message += (
+                        " "
+                        + test_snippet
+                        + ("_" * column_width + "\n")
+                        + f"\n{failure_message}: {message or ''}\n"
+                        + ("_" * column_width + "\n\n")
+                        + formatted_trace
+                        + "\n"
+                    )
 
                 # add separator between failed assertions
                 if i < len(failed_hard_assertions) - 1:

@@ -1,7 +1,8 @@
 """Tests for the invariant_runner module."""
 
-from invariant_runner.custom_types.trace import Trace
 import pytest
+from invariant_runner.custom_types.trace import Trace
+
 
 @pytest.fixture
 def trace():
@@ -70,6 +71,12 @@ def test_messages_filter_callable(trace: Trace):
 
 def test_messages_filter_callable_user(trace: Trace):
     assert trace.messages(role=lambda r: r == "user")[0]["content"].value == "Hello there"
+
+def test_messages_filter_callable_user_with_string_upper(trace: Trace):
+    assert trace.messages(role=lambda r: r == "user")[0]["content"].upper() == "HELLO THERE"
+
+def test_messages_filter_callable_user_with_string_lower(trace: Trace):
+    assert trace.messages(role=lambda r: r == "user")[0]["content"].lower() == "hello there"
 
 def test_messages_filter_callable_multiple(trace: Trace):
     assert trace.messages(role=lambda r: r == "user", content=lambda c: "computer" in c)[0]["content"].value == "I need help with my computer."

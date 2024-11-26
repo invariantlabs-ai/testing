@@ -13,13 +13,14 @@ class Matcher:
         raise NotImplementedError("Subclasses should implement this method.")
 
 
-class LambdaMatcher:
+class LambdaMatcher(Matcher):
     """Matcher for checking if a lambda function returns True."""
 
     def __init__(self, lambda_function):
         self.lambda_function = lambda_function
 
     def matches(self, actual_value: Any) -> bool:
+        """Check if the lambda function returns True for actual_value."""
         return self.lambda_function(actual_value)
 
     def __str__(self):

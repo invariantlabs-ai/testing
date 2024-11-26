@@ -6,7 +6,6 @@ from pydantic import BaseModel
 
 from invariant_runner.custom_types.invariant_dict import InvariantDict, InvariantValue
 from invariant_runner.custom_types.invariant_list import InvariantList
-from invariant_runner.manager import Manager
 
 
 def iterate_tool_calls(messages: list[dict]):
@@ -65,7 +64,9 @@ class Trace(BaseModel):
     # If this is already assigned, the trace is currently being used in a context manager already and should not be re-used.
     manager: Any = None
 
-    def as_context(self) -> Manager:
+    def as_context(self):
+        from invariant_runner.manager import Manager
+
         if self.manager is None:
             self.manager = Manager(self)
         return self.manager
@@ -75,7 +76,8 @@ class Trace(BaseModel):
         """
         Loads a public trace from the Explorer (https://explorer.invariantlabs.ai).
 
-        The identifier_or_id can be either a trace ID or a <username>/<dataset> pair, in which case the index of the trace to load must be provided.
+        The identifier_or_id can be either a trace ID or a <username>/<dataset> pair, in which case
+        the index of the trace to load must be provided.
 
         :param identifier_or_id: The trace ID or <username>/<dataset> pair.
         :param index: The index of the trace to load from the dataset.
@@ -87,12 +89,14 @@ class Trace(BaseModel):
         metadata = {
             "id": identifier_or_id,
         }
+        timeout = [5, 5]  # connect and read timeouts.
 
         if index is not None:
             username, dataset = identifier_or_id.split("/")
 
             trace_metadata = requests.get(
-                f"https://explorer.invariantlabs.ai/api/v1/dataset/byuser/{username}/{dataset}/traces?indices={index}"
+                url=f"https://explorer.invariantlabs.ai/api/v1/dataset/byuser/{username}/{dataset}/traces?indices={index}",
+                timeout=timeout,
             )
             if len(trace_metadata.json()) == 0:
                 raise ValueError(
@@ -114,7 +118,8 @@ class Trace(BaseModel):
                 )
 
         response = requests.get(
-            f"https://explorer.invariantlabs.ai/api/v1/trace/{identifier_or_id}?annotated=1"
+            url=f"https://explorer.invariantlabs.ai/api/v1/trace/{identifier_or_id}?annotated=1",
+            timeout=timeout,
         )
         return cls(trace=response.json()["messages"], metadata=metadata)
 
@@ -147,6 +152,23 @@ class Trace(BaseModel):
             for i, (tc_address, tc) in enumerate(iterate_tool_calls(self.trace)):
                 if i == selector:
                     return InvariantDict(tc, tc_address)
+        elif isinstance(selector, dict):
+
+            def find_value(d, path):
+                for k in path.split("."):
+                    d = d[k]
+                return d
+
+            return InvariantList.from_values(
+                [
+                    InvariantDict(tc, tc_address)
+                    for tc_address, tc in iterate_tool_calls(self.trace)
+                    if all(
+                        find_value(tc["function"], kwname) == kwvalue
+                        for kwname, kwvalue in selector.items()
+                    )
+                ]
+            )
         elif len(filterkwargs) > 0:
             return InvariantList.from_values(
                 [

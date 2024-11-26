@@ -1,5 +1,4 @@
 import pytest
-
 from invariant_runner.custom_types.trace import Trace
 from invariant_runner.manager import Manager
 

@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import re
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 from _pytest.python_api import ApproxBase
 
@@ -12,8 +13,10 @@ from invariant_runner.custom_types.invariant_list import InvariantList
 from invariant_runner.custom_types.invariant_number import InvariantNumber
 from invariant_runner.custom_types.invariant_value import InvariantValue
 from invariant_runner.scorers.code import is_valid_json, is_valid_python
+from invariant_runner.scorers.moderation import ModerationAnalyzer
 from invariant_runner.scorers.strings import embedding_similarity, levenshtein
-from invariant_runner.scorers.utils.llm import LLM_Classifier, LLM_Detector
+from invariant_runner.scorers.utils.llm import LLMClassifier, LLMDetector
+from invariant_runner.scorers.utils.ocr import OCRDetector
 
 
 class InvariantString(InvariantValue):
@@ -63,11 +66,69 @@ class InvariantString(InvariantValue):
             "InvariantList does not support len(). Please use .len() instead."
         )
 
+    def __getitem__(self, key: Any, default: Any = None) -> "InvariantString":
+        """Get a substring using integer, slice or string."""
+        if isinstance(key, int):
+            range = f"{key}-{key+1}"
+            return InvariantString(self.value[key], self._concat_addresses([range]))
+        elif isinstance(key, str):
+            valid_json = self.is_valid_code("json")
+            if not valid_json:
+                return default
+            json_dict = json.loads(self.value)
+            # TODO: We can find more precise address here
+            return InvariantString(json_dict[key], self.addresses)
+        elif isinstance(key, slice):
+            start = key.start if key.start is not None else 0
+            stop = key.stop if key.stop is not None else len(self.value)
+            range = f"{start}-{stop}"
+            return InvariantString(self.value[key], self._concat_addresses([range]))
+        raise TypeError("InvariantString indices must be integer, slices or strings")
+
+    def count(self, pattern: str) -> InvariantNumber:
+        """Counts the number of occurences of the given regex pattern."""
+        new_addresses = []
+        for match in re.finditer(pattern, self.value):
+            start, end = match.span()
+            new_addresses.append(f"{start}-{end}")
+        return InvariantNumber(
+            len(new_addresses),
+            (
+                self.addresses
+                if len(new_addresses) == 0
+                else self._concat_addresses(new_addresses)
+            ),
+        )
+
     def len(self):
         """Return the length of the list."""
-        from invariant_runner.custom_types.invariant_number import InvariantNumber
-
         return InvariantNumber(len(self.value), self.addresses)
+
+    def __getattr__(self, attr):
+        """
+        Delegate attribute access to the underlying string.
+
+        Args:
+            attr (str): The attribute being accessed.
+
+        Returns:
+            Any: Uses InvariantValue.of to return the result.
+                 If the result is a string, then an InvariantString is returned with that
+                 the result string as the value. If the result is a number, then an InvariantNumber.
+        """
+        if hasattr(self.value, attr):
+            method = getattr(self.value, attr)
+
+            # If the method is callable, wrap it to return an InvariantValue where appropriate
+            if callable(method):
+
+                def wrapper(*args, **kwargs):
+                    result = method(*args, **kwargs)
+                    return InvariantValue.of(result, self.addresses)
+
+                return wrapper
+            return method
+        raise AttributeError(f"'InvariantString' object has no attribute '{attr}'")
 
     def _concat_addresses(
         self, other_addresses: list[str] | None, separator: str = ":"
@@ -97,7 +158,6 @@ class InvariantString(InvariantValue):
 
     def moderation(self) -> InvariantBool:
         """Check if the value is moderated."""
-        from invariant_runner.scorers.moderation import ModerationAnalyzer
 
         analyzer = ModerationAnalyzer()
         res = analyzer.detect_all(self.value)
@@ -108,83 +168,112 @@ class InvariantString(InvariantValue):
         """Check if the value contains the given pattern."""
         if isinstance(pattern, InvariantString):
             pattern = pattern.value
-        if type(self.value) is not str:
-            raise ValueError("contains() is only supported for string values")
         new_addresses = []
         for match in re.finditer(pattern, self.value):
             start, end = match.span()
             new_addresses.append(f"{start}-{end}")
-        if len(new_addresses) == 0:
-            return InvariantBool(False, self.addresses)
-        else:
-            return InvariantBool(True, self._concat_addresses(new_addresses))
+
+        return InvariantBool(
+            len(new_addresses) > 0,
+            (
+                self.addresses
+                if len(new_addresses) == 0
+                else self._concat_addresses(new_addresses)
+            ),
+        )
 
     def is_similar(self, other: str, threshold: float = 0.5) -> InvariantBool:
         """Check if the value is similar to the given string using cosine similarity."""
-        if type(self.value) is not str or type(other) is not str:
+        if not isinstance(other, str):
             raise ValueError("is_similar() is only supported for string values")
         cmp_result = embedding_similarity(self.value, other) >= threshold
         return InvariantBool(cmp_result, self.addresses)
 
     def levenshtein(self, other: str) -> InvariantBool:
         """Check if the value is similar to the given string using the Levenshtein distance."""
-        if type(self.value) is not str or type(other) is not str:
+        if not isinstance(other, str):
             raise ValueError("levenshtein() is only supported for string values")
         cmp_result = levenshtein(self.value, other)
         return InvariantNumber(cmp_result, self.addresses)
 
     def is_valid_code(self, lang: str) -> InvariantBool:
         """Check if the value is valid code in the given language."""
-        if type(self.value) is not str:
-            raise ValueError("is_valid_code() is only supported for string values")
         if lang == "python":
             res, new_addresses = is_valid_python(self.value)
             return InvariantBool(res, self._concat_addresses(new_addresses))
-        elif lang == "json":
+        if lang == "json":
             res, new_addresses = is_valid_json(self.value)
             return InvariantBool(res, self._concat_addresses(new_addresses))
-        else:
-            raise ValueError(f"Unsupported language: {lang}")
+        raise ValueError(f"Unsupported language: {lang}")
 
     def llm(
-        self, prompt: str, options: list[str], model: str = "gpt-4o"
+        self,
+        prompt: str,
+        options: list[str],
+        model: str = "gpt-4o",
+        use_cached_result: bool = True,
     ) -> InvariantString:
-        """Check if the value is similar to the given string using an LLM."""
-        llm_clf = LLM_Classifier(model=model, prompt=prompt, options=options)
-        res = llm_clf.classify(self.value)
+        """Check if the value is similar to the given string using an LLM.
+
+        Args:
+            prompt (str): The prompt to use for the LLM.
+            options (list[str]): The options to use for the LLM.
+            model (str): The model to use for the LLM.
+            use_cached_result (bool): Whether to use a cached result if available.
+        """
+        llm_clf = LLMClassifier(model=model, prompt=prompt, options=options)
+        res = llm_clf.classify(self.value, use_cached_result)
         return InvariantString(res, self.addresses)
 
     def llm_vision(
-        self, prompt: str, options: list[str], model: str = "gpt-4o"
+        self,
+        prompt: str,
+        options: list[str],
+        model: str = "gpt-4o",
+        use_cached_result: bool = True,
     ) -> InvariantString:
-        """Check if the value is similar to the given string using an LLM."""
-        llm_clf = LLM_Classifier(
+        """Check if the value is similar to the given string using an LLM.
+
+        Args:
+            prompt (str): The prompt to use for the LLM.
+            options (list[str]): The options to use for the LLM.
+            model (str): The model to use for the LLM.
+            use_cached_result (bool): Whether to use a cached result if available
+        """
+        llm_clf = LLMClassifier(
             model=model, prompt=prompt, options=options, vision=True
         )
-        res = llm_clf.classify_vision(self.value)
+        res = llm_clf.classify_vision(self.value, use_cached_result)
         return InvariantString(res, self.addresses)
 
-    def extract(self, predicate: str, model: str = "gpt-4o") -> InvariantList:
-        """Extract a value from the value using an LLM."""
-        llm_detector = LLM_Detector(model=model, predicate_rule=predicate)
-        detections = llm_detector.detect(self.value)
-        ret = []
+    def extract(
+        self, predicate: str, model: str = "gpt-4o", use_cached_result: bool = True
+    ) -> InvariantList:
+        """Extract values from the underlying string using an LLM.
+
+        Args:
+            predicate (str): The predicate to use for extraction. This is a rule that the LLM uses to extract
+                             values. For example with a predicate "cities in Switzerland", the LLM would extract
+                             all cities in Switzerland from the text.
+            model (str): The model to use for extraction.
+            use_cached_result (bool): Whether to use a cached result if available.
+        """
+        llm_detector = LLMDetector(model=model, predicate_rule=predicate)
+        detections = llm_detector.detect(self.value, use_cached_result)
         values, addresses = [], []
-        for substr, range in detections:
+        for substr, r in detections:
             values.append(substr)
-            addresses.extend(self._concat_addresses([str(range)]))
+            addresses.extend(self._concat_addresses([str(r)]))
         return InvariantList(values, addresses)
 
     def ocr_contains(
         self,
-        base64_image: str,
         text: str,
         case_sensitive: bool = False,
         bbox: Optional[dict] = None,
     ) -> InvariantBool:
         """Check if the value contains the given text using OCR."""
-        from invariant_runner.scorers.utils.ocr import OCR_Detector
 
-        ocr = OCR_Detector()
-        res = ocr.contains(base64_image, text, case_sensitive, bbox)
+        ocr = OCRDetector()
+        res = ocr.contains(self.value, text, case_sensitive, bbox)
         return InvariantBool(res, self.addresses)

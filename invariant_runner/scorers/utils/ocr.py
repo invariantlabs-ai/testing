@@ -1,21 +1,25 @@
+"""Detect text in images using Tesseract OCR."""
 import base64
 import io
 import subprocess
 import tempfile
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
-class OCR_Detector:
+
+class OCRDetector:
+    """Detect text in images using Tesseract OCR."""
 
     def __init__(self):
         """
         Initialize OCR detector with expected text to find in images
         """
-        pass
 
     @classmethod
     def check_tesseract_installed(cls):
+        """Check if Tesseract OCR is installed on the system."""
         try:
-            subprocess.run(['tesseract', '--version'], check=True, capture_output=True)
+            subprocess.run(['tesseract', '--version'],
+                           check=True, capture_output=True)
             return True
         except FileNotFoundError:
             return False
@@ -27,37 +31,38 @@ class OCR_Detector:
     def contains(self, base64_image: str, text: str, case_sensitive: bool = False, bbox: Optional[dict] = None) -> bool:
         """
         Detect if the expected text appears in the image using tesseract CLI
-        
+
         Args:
             base64_image: Base64 encoded image string
-            
+
         Returns:
             bool: True if expected text was found, False otherwise
         """
-        if not OCR_Detector.check_tesseract_installed():
+        if not OCRDetector.check_tesseract_installed():
             raise RuntimeError("Tesseract is not installed")
-        from PIL import Image
+        from PIL import Image  # pylint: disable=import-outside-toplevel
 
         # Decode base64 image
         image_data = base64.b64decode(base64_image)
         image = Image.open(io.BytesIO(image_data))
-        
+
         # Save image to temporary file
         with tempfile.NamedTemporaryFile(suffix='.png') as temp_img:
             image.save(temp_img.name)
-            
+
             # Run tesseract CLI command
             try:
                 result = subprocess.run(
-                    ['tesseract', temp_img.name, 'stdout', '-c', 'tessedit_create_hocr=1'],
+                    ['tesseract', temp_img.name, 'stdout',
+                        '-c', 'tessedit_create_hocr=1'],
                     capture_output=True,
                     text=True,
                     check=True
                 )
-                self.last_hocr = result.stdout
+                self.last_hocr = result.stdout  # disable=attribute-defined-outside-init
                 extracted_text = self._extract_text_from_hocr(result.stdout)
             except subprocess.CalledProcessError as e:
-                raise RuntimeError(f"Tesseract OCR failed: {e.stderr}")
+                raise RuntimeError(f"Tesseract OCR failed: {e.stderr}") from e
 
         if not case_sensitive:
             text = text.lower()
@@ -71,27 +76,29 @@ class OCR_Detector:
                 if self._is_in_bbox(bbox, word['bbox']) and text in word_text:
                     return True
             return False
-                
+
         if not case_sensitive:
             extracted_text = extracted_text.lower()
         return text in extracted_text
 
     def _extract_text_from_hocr(self, hocr: str) -> str:
         """Extract plain text from HOCR content."""
-        from bs4 import BeautifulSoup
+        from bs4 import \
+            BeautifulSoup  # pylint: disable=import-outside-toplevel
         soup = BeautifulSoup(hocr, 'html.parser')
         return ' '.join(word.get_text() for word in soup.find_all(['span', 'div'], class_='ocrx_word'))
 
     def hocr_to_json(self, hocr: Optional[str] = None) -> Dict[str, Any]:
         """Convert HOCR content to JSON format.
-        
+
         Args:
             hocr: HOCR content string. If None, uses last detection result
-            
+
         Returns:
             Dict containing structured OCR data with word positions and confidence
         """
-        from bs4 import BeautifulSoup
+        from bs4 import \
+            BeautifulSoup  # pylint: disable=import-outside-toplevel
         hocr_content = hocr or getattr(self, 'last_hocr', None)
         if not hocr_content:
             raise ValueError("No HOCR content available")
@@ -100,7 +107,7 @@ class OCR_Detector:
         result = {
             'words': []
         }
-        
+
         for word in soup.find_all(['span', 'div'], class_='ocrx_word'):
             bbox = word.get('title', '').split(';')[0].split(' ')[1:]
             if len(bbox) == 4:
@@ -116,5 +123,5 @@ class OCR_Detector:
                     'confidence': float(word.get('title', '').split(';')[1].split(' ')[2])
                     if ';' in word.get('title', '') else None
                 })
-        
+
         return result

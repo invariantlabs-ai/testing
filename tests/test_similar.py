@@ -1,8 +1,6 @@
 # get Failed exception from pytest
 
-from invariant_runner.custom_types.assertions import (
-    assert_that,
-)
+from invariant_runner.custom_types.assertions import assert_that
 from invariant_runner.custom_types.matchers import IsSimilar
 from invariant_runner.custom_types.trace import Trace
 from invariant_runner.manager import Manager

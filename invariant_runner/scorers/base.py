@@ -1,11 +1,12 @@
-from invariant_runner.scorers.strings import embedding_similarity
 from typing import Optional
+
+from invariant_runner.scorers.strings import embedding_similarity
 
 
 class ApproxString(str):
     """String class that allows for approximate comparisons using embedding similarity."""
 
-    def __new__(cls, value, threshold: Optional[float]=None):
+    def __new__(cls, value, threshold: Optional[float] = None):
         instance = super(ApproxString, cls).__new__(cls, value)
         instance.threshold = threshold if threshold is not None else 0.5
         return instance

@@ -1,14 +1,10 @@
 import base64
 
 import pytest
-
 from invariant_runner.scorers.base import approx
 from invariant_runner.scorers.strings import *
-from invariant_runner.scorers.utils.llm import (
-    LLM_Classifier,
-    LLM_Detector,
-)
-from invariant_runner.scorers.utils.ocr import OCR_Detector
+from invariant_runner.scorers.utils.llm import LLMClassifier, LLMDetector
+from invariant_runner.scorers.utils.ocr import OCRDetector
 
 
 def test_levenshtein():
@@ -44,7 +40,7 @@ def test_contains():
 
 
 def test_llm():
-    llm_clf = LLM_Classifier(
+    llm_clf = LLMClassifier(
         model="gpt-4o",
         prompt="Does the text have positive sentiment?",
         options=["yes", "no"],
@@ -52,7 +48,7 @@ def test_llm():
     res = llm_clf.classify(text="I am feeling great today!")
     assert res == "yes"
 
-    llm_clf = LLM_Classifier(
+    llm_clf = LLMClassifier(
         model="gpt-4o",
         prompt="Which language is this text in?",
         options=["en", "it", "de", "fr"],
@@ -63,7 +59,7 @@ def test_llm():
 
 def test_llm_detector():
     text = """I like apples and carrots, but I don't like bananas.\nThe only thing better than apples are potatoes and pears."""
-    llm_detector = LLM_Detector(model="gpt-4o", predicate_rule="fruits")
+    llm_detector = LLMDetector(model="gpt-4o", predicate_rule="fruits")
     detections = [value for (value, addresses) in llm_detector.detect(text)]
     assert detections[0] == "apples"
     assert detections[1] == "bananas"
@@ -74,7 +70,7 @@ def test_llm_detector():
 def test_vision_classifier():
     with open("sample_tests/assets/Group_of_cats_resized.jpg", "rb") as image_file:
         base64_image = base64.b64encode(image_file.read()).decode("utf-8")
-    llm_clf = LLM_Classifier(
+    llm_clf = LLMClassifier(
         model="gpt-4o-mini",
         prompt="What is in the image?",
         options=["cats", "dogs", "birds", "none"],
@@ -83,7 +79,7 @@ def test_vision_classifier():
     res = llm_clf.classify_vision(base64_image)
     assert res == "cats"
 
-    llm_clf = LLM_Classifier(
+    llm_clf = LLMClassifier(
         model="gpt-4o",
         prompt="How many cats are in the image?",
         options=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
@@ -94,16 +90,16 @@ def test_vision_classifier():
 
 
 @pytest.mark.skipif(
-    not OCR_Detector.check_tesseract_installed(),
+    not OCRDetector.check_tesseract_installed(),
     reason="May not have tesseract installed",
 )
-def test_ocr_detector():
+def test_OCRDetector():
     # Load test image
     with open("sample_tests/assets/inv_labs.png", "rb") as image_file:
         base64_image = base64.b64encode(image_file.read()).decode("utf-8")
 
     # Test case-insensitive detection
-    ocr = OCR_Detector()
+    ocr = OCRDetector()
     assert ocr.contains(base64_image, "agents") == True
     assert (
         ocr.contains(
