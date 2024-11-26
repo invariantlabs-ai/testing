@@ -205,27 +205,27 @@ class InvariantString(InvariantValue):
         raise ValueError(f"Unsupported language: {lang}")
 
     def llm(
-        self, prompt: str, options: list[str], model: str = "gpt-4o"
+        self, prompt: str, options: list[str], model: str = "gpt-4o", use_cached_result: bool = True
     ) -> InvariantString:
         """Check if the value is similar to the given string using an LLM."""
         llm_clf = LLMClassifier(model=model, prompt=prompt, options=options)
-        res = llm_clf.classify(self.value)
+        res = llm_clf.classify(self.value, use_cached_result)
         return InvariantString(res, self.addresses)
 
     def llm_vision(
-        self, prompt: str, options: list[str], model: str = "gpt-4o"
+        self, prompt: str, options: list[str], model: str = "gpt-4o", use_cached_result: bool = True
     ) -> InvariantString:
         """Check if the value is similar to the given string using an LLM."""
         llm_clf = LLMClassifier(
             model=model, prompt=prompt, options=options, vision=True
         )
-        res = llm_clf.classify_vision(self.value)
+        res = llm_clf.classify_vision(self.value, use_cached_result)
         return InvariantString(res, self.addresses)
 
-    def extract(self, predicate: str, model: str = "gpt-4o") -> InvariantList:
-        """Extract a value from the value using an LLM."""
+    def extract(self, predicate: str, model: str = "gpt-4o", use_cached_result: bool = True) -> InvariantList:
+        """Extract values from the underlying string using an LLM."""
         llm_detector = LLMDetector(model=model, predicate_rule=predicate)
-        detections = llm_detector.detect(self.value)
+        detections = llm_detector.detect(self.value, use_cached_result)
         values, addresses = [], []
         for substr, r in detections:
             values.append(substr)

@@ -1,10 +1,14 @@
 """Utility functions for using language models."""
 
 import json
+import logging
 from typing import Tuple
 
 import openai
+from invariant_runner.cache.cache_manager import CacheManager
 from invariant_runner.custom_types.addresses import Range
+from openai.types.chat.chat_completion import ChatCompletion
+from openai.types.chat.parsed_chat_completion import ParsedChatCompletion
 from pydantic import BaseModel
 
 PROMPT_TEMPLATE = """Your goal is to classify the text provided by the user
@@ -39,6 +43,12 @@ Use the following predicate rule to find the detections in the next user message
 {predicate_rule}
 """
 
+CACHE_DIRECTORY_LLM_CLASSIFIER = ".invariant/cache/llm_classifier"
+CACHE_DIRECTORY_LLM_DETECTOR = ".invariant/cache/llm_detector"
+CACHE_TIMEOUT = 3600
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 class LLMClassifier:
     """Class to classify using a language model."""
@@ -53,7 +63,6 @@ class LLMClassifier:
                 prompt=prompt, options=",".join(options))
         self.options = options
         self.client = openai.OpenAI()
-
         self.tools = [{
             "type": "function",
             "function": {
@@ -69,30 +78,54 @@ class LLMClassifier:
                 }
             }
         }]
+        self.cache_manager = CacheManager(
+            CACHE_DIRECTORY_LLM_CLASSIFIER, expiry=CACHE_TIMEOUT)
 
-    def classify_vision(self, base64_image: str) -> str:
+    def _make_completions_create_request(self, request_data: dict, use_cached_result: bool) -> ChatCompletion:
+        """Make a request to the language model."""
+        if not use_cached_result:
+            return self.client.chat.completions.create(**request_data)
+
+        cache_key = self.cache_manager.get_cache_key(request_data)
+        response = self.cache_manager.get(cache_key)
+        if response:
+            logger.info("Using cached response for request.")
+            return response
+
+        logger.warning("Cache miss. Making request to OpenAI.")
+        # Make the actual request
+        response = self.client.chat.completions.create(**request_data)
+
+        # Store the response in the cache with an expiry
+        self.cache_manager.set(cache_key, response)
+
+        return response
+
+    def classify_vision(self, base64_image: str, use_cached_result: bool = True) -> str:
         """Classify an image using the language model."""
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
+        response = self._make_completions_create_request({
+            "model": self.model,
+            "messages": [
                 {"role": "system", "content": self.prompt},
                 {"role": "user", "content": [{"type": "image_url", "image_url": {
                     "url": f"data:image/jpeg;base64,{base64_image}"}}]}
             ],
-            tools=self.tools,
-            tool_choice="required",
-        )
+            "tools": self.tools,
+            "tool_choice": "required",
+        }, use_cached_result)
         return json.loads(response.choices[0].message.tool_calls[0].function.arguments).get("best_option", "none")
 
-    def classify(self, text: str) -> str:
+    def classify(self, text: str, use_cached_result: bool = True) -> str:
         """Classify a text using the language model."""
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "system", "content": self.prompt},
-                      {"role": "user", "content": text}],
-            tools=self.tools,
-            tool_choice="required",
-        )
+        response = self._make_completions_create_request({
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": self.prompt},
+                {"role": "user", "content": text}
+            ],
+            "tools": self.tools,
+            "tool_choice": "required",
+        }, use_cached_result)
         return json.loads(response.choices[0].message.tool_calls[0].function.arguments).get("best_option", "none")
 
 
@@ -114,20 +147,53 @@ class LLMDetector:
         self.model = model
         self.predicate_rule = predicate_rule
         self.client = openai.OpenAI()
+        self.cache_manager = CacheManager(
+            CACHE_DIRECTORY_LLM_DETECTOR, expiry=CACHE_TIMEOUT)
 
     def _insert_lines(self, text: str) -> str:
         return "\n".join(f"{i}| {line}" for i, line in enumerate(text.split("\n"), 1))
 
-    def detect(self, text: str) -> list[Tuple[str, Range]]:
+    def _to_serializable(self, response):
+        """Convert a response object to a JSON-compatible dictionary."""
+        return response.model_dump()
+
+    def _from_serializable(self, cached_response):
+        """Convert a cached JSON-compatible dictionary back to a response object."""
+        return ParsedChatCompletion[Detections].model_validate(cached_response)
+
+    def _make_completions_parse_request(self, request_data: dict, use_cached_result: bool):
+        """Make a request to the language model."""
+        if not use_cached_result:
+            return self.client.beta.chat.completions.parse(**request_data)
+
+        cache_key = self.cache_manager.get_cache_key(request_data)
+        response = self.cache_manager.get(cache_key)
+        if response:
+            logger.info("Using cached response for request.")
+            return self._from_serializable(response)
+
+        logger.warning("Cache miss. Making request to OpenAI.")
+        # Make the actual request
+        response = self.client.beta.chat.completions.parse(**request_data)
+
+        # Store the response in a serializable format
+        serializable_response = self._to_serializable(response)
+        self.cache_manager.set(cache_key, serializable_response)
+
+        return response
+
+    def detect(self, text: str, use_cached_result: bool = True) -> list[Tuple[str, Range]]:
         """Detect parts of the text that match the predicate rule."""
         formatted_text = self._insert_lines(text)
         prompt = LLM_DETECTOR_PROMPT_TEMPLATE.format(
             predicate_rule=self.predicate_rule)
-        response = self.client.beta.chat.completions.parse(
-            model=self.model,
-            messages=[{"role": "system", "content": prompt},
-                      {"role": "user", "content": formatted_text}],
-            response_format=Detections,
-        )
+        response = self._make_completions_parse_request({
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": formatted_text}
+            ],
+            "response_format": Detections,
+        }, use_cached_result)
         detections = response.choices[0].message.parsed
         return [(det.substring, Range.from_line(text, det.line-1, exact_match=det.substring)) for det in detections.detections]
