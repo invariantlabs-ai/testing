@@ -50,6 +50,16 @@ class InvariantNumber(InvariantValue):
         """Check if the number is less than or equal to the given number."""
         return self._compare(other, le)
 
+    def __add__(self, other):
+        """Add two numbers together."""
+        if isinstance(other, InvariantNumber):
+            return InvariantNumber(self.value + other.value, self.addresses + other.addresses)
+        return InvariantNumber(self.value + other, self.addresses)
+
+    def __radd__(self, other):
+        """(reverse) Add two numbers together."""
+        return InvariantNumber(other + self.value, self.addresses)
+
     def __str__(self) -> str:
         return f"InvariantNumber(value={self.value}, addresses={self.addresses})"
 
