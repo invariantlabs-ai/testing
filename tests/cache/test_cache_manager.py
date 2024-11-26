@@ -2,12 +2,9 @@
 
 import hashlib
 import json
-import os
 import tempfile
 import time
-from typing import Any
 
-import diskcache
 import pytest
 from invariant_runner.cache.cache_manager import CacheManager
 
@@ -23,7 +20,7 @@ def fiture_cache_manager():
 def fiture_cache_manager_with_small_ttl():
     """Fixture to create a CacheManager instance with a temporary directory."""
     with tempfile.TemporaryDirectory() as temp_dir:
-        yield CacheManager(cache_dir=temp_dir, expiry=3)
+        yield CacheManager(cache_dir=temp_dir, expiry=1)
 
 
 def test_cache_manager_set_and_get(cache_manager: CacheManager):
@@ -114,7 +111,7 @@ def test_cache_manager_expiry_with_small_ttl(cache_manager_with_small_ttl: Cache
     cache_manager_with_small_ttl.set(key, value)
     assert cache_manager_with_small_ttl.get(key) == value
 
-    time.sleep(3)
+    time.sleep(1)
 
     cached_value = cache_manager_with_small_ttl.get(key)
     assert cached_value is None
