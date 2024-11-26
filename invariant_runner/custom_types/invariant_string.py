@@ -82,8 +82,7 @@ class InvariantString(InvariantValue):
             stop = key.stop if key.stop is not None else len(self.value)
             range = f"{start}-{stop}"
             return InvariantString(self.value[key], self._concat_addresses([range]))
-        raise TypeError(
-            "InvariantString indices must be integer, slices or strings")
+        raise TypeError("InvariantString indices must be integer, slices or strings")
 
     def count(self, pattern: str) -> InvariantNumber:
         """Counts the number of occurences of the given regex pattern."""
@@ -93,9 +92,11 @@ class InvariantString(InvariantValue):
             new_addresses.append(f"{start}-{end}")
         return InvariantNumber(
             len(new_addresses),
-            self.addresses
-            if len(new_addresses) == 0
-            else self._concat_addresses(new_addresses),
+            (
+                self.addresses
+                if len(new_addresses) == 0
+                else self._concat_addresses(new_addresses)
+            ),
         )
 
     def len(self):
@@ -126,8 +127,7 @@ class InvariantString(InvariantValue):
 
                 return wrapper
             return method
-        raise AttributeError(
-            f"'InvariantString' object has no attribute '{attr}'")
+        raise AttributeError(f"'InvariantString' object has no attribute '{attr}'")
 
     def _concat_addresses(
         self, other_addresses: list[str] | None, separator: str = ":"
@@ -173,24 +173,24 @@ class InvariantString(InvariantValue):
             new_addresses.append(f"{start}-{end}")
         return InvariantBool(
             len(new_addresses) > 0,
-            self.addresses
-            if len(new_addresses) == 0
-            else self._concat_addresses(new_addresses),
+            (
+                self.addresses
+                if len(new_addresses) == 0
+                else self._concat_addresses(new_addresses)
+            ),
         )
 
     def is_similar(self, other: str, threshold: float = 0.5) -> InvariantBool:
         """Check if the value is similar to the given string using cosine similarity."""
         if not isinstance(other, str):
-            raise ValueError(
-                "is_similar() is only supported for string values")
+            raise ValueError("is_similar() is only supported for string values")
         cmp_result = embedding_similarity(self.value, other) >= threshold
         return InvariantBool(cmp_result, self.addresses)
 
     def levenshtein(self, other: str) -> InvariantBool:
         """Check if the value is similar to the given string using the Levenshtein distance."""
         if not isinstance(other, str):
-            raise ValueError(
-                "levenshtein() is only supported for string values")
+            raise ValueError("levenshtein() is only supported for string values")
         cmp_result = levenshtein(self.value, other)
         return InvariantNumber(cmp_result, self.addresses)
 
@@ -205,7 +205,11 @@ class InvariantString(InvariantValue):
         raise ValueError(f"Unsupported language: {lang}")
 
     def llm(
-        self, prompt: str, options: list[str], model: str = "gpt-4o", use_cached_result: bool = True
+        self,
+        prompt: str,
+        options: list[str],
+        model: str = "gpt-4o",
+        use_cached_result: bool = True,
     ) -> InvariantString:
         """Check if the value is similar to the given string using an LLM.
 
@@ -220,7 +224,11 @@ class InvariantString(InvariantValue):
         return InvariantString(res, self.addresses)
 
     def llm_vision(
-        self, prompt: str, options: list[str], model: str = "gpt-4o", use_cached_result: bool = True
+        self,
+        prompt: str,
+        options: list[str],
+        model: str = "gpt-4o",
+        use_cached_result: bool = True,
     ) -> InvariantString:
         """Check if the value is similar to the given string using an LLM.
 
@@ -236,7 +244,9 @@ class InvariantString(InvariantValue):
         res = llm_clf.classify_vision(self.value, use_cached_result)
         return InvariantString(res, self.addresses)
 
-    def extract(self, predicate: str, model: str = "gpt-4o", use_cached_result: bool = True) -> InvariantList:
+    def extract(
+        self, predicate: str, model: str = "gpt-4o", use_cached_result: bool = True
+    ) -> InvariantList:
         """Extract values from the underlying string using an LLM.
 
         Args:

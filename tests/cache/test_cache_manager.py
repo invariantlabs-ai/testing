@@ -56,6 +56,7 @@ def test_cache_manager_generate_cache_key_with_non_serializable_data(
 
     class CustomClass:
         """Custom class for testing."""
+
         pass
 
     data = {
@@ -104,7 +105,9 @@ def test_cache_manager_expiry(cache_manager: CacheManager):
     assert cached_value is None
 
 
-def test_cache_manager_expiry_with_small_ttl(cache_manager_with_small_ttl: CacheManager):
+def test_cache_manager_expiry_with_small_ttl(
+    cache_manager_with_small_ttl: CacheManager,
+):
     """Test that cache values expire after the specified time."""
     key = "test_key"
     value = {"data": "test_value"}
