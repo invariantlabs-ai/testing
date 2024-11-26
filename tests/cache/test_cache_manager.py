@@ -52,17 +52,44 @@ def test_cache_manager_generate_cache_key(cache_manager: CacheManager):
     assert cache_key == expected_key
 
 
-def test_cache_manager_generate_cache_key_with_non_serializable_data(cache_manager: CacheManager):
+def test_cache_manager_generate_cache_key_with_non_serializable_data(
+    cache_manager: CacheManager,
+):
     """Test generating a cache key with non-serializable data."""
+
     class CustomClass:
+        """Custom class for testing."""
         pass
 
-    data = {"param1": "value1", "param2": CustomClass}
+    data = {
+        "key_list": ["hello", 1, 2.0, True],
+        "key_dict": {"param1": "value1", "param2": CustomClass},
+        "key_class": CustomClass,
+        "key_bool": True,
+        "key_int": 1,
+        "key_float": 2.0,
+        "key_str": "hello",
+    }
+
     cache_key = cache_manager.get_cache_key(data)
-    expected_data = {"param1": "value1",
-                     "param2": "test_cache_manager.CustomClass"}
-    expected_key = hashlib.sha256(json.dumps(
-        expected_data, sort_keys=True).encode()).hexdigest()
+
+    expected_data = {
+        "key_bool": True,
+        "key_class": "test_cache_manager.CustomClass",
+        "key_dict": {
+            "param1": "value1",
+            "param2": "test_cache_manager.CustomClass",
+        },
+        "key_float": 2.0,
+        "key_int": 1,
+        "key_list": ["hello", 1, 2.0, True],
+        "key_str": "hello",
+    }
+
+    expected_key = hashlib.sha256(
+        json.dumps(expected_data, sort_keys=True).encode()
+    ).hexdigest()
+
     assert cache_key == expected_key
 
 

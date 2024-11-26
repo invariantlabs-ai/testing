@@ -89,18 +89,26 @@ class LLMClassifier:
         self.cache_manager = CacheManager(
             CACHE_DIRECTORY_LLM_CLASSIFIER, expiry=default_ttl)
 
+    def _generate_cache_key(self, function_name: str, request_data: dict) -> str:
+        """Generate a cache key for the request."""
+        return self.cache_manager.get_cache_key({
+            "function_name": function_name,
+            "request_data": request_data
+        })
+
     def _make_completions_create_request(self, request_data: dict, use_cached_result: bool) -> ChatCompletion:
         """Make a request to the language model."""
         if not use_cached_result:
             return self.client.chat.completions.create(**request_data)
 
-        cache_key = self.cache_manager.get_cache_key(request_data)
+        cache_key = self._generate_cache_key(
+            "self.client.chat.completions.create", request_data)
         response = self.cache_manager.get(cache_key)
         if response:
             logger.info("Using cached response for request.")
             return response
 
-        logger.warning("Cache miss. Making request to OpenAI.")
+        logger.info("Cache miss. Making request to OpenAI.")
         # Make the actual request
         response = self.client.chat.completions.create(**request_data)
 
@@ -188,18 +196,26 @@ class LLMDetector:
         """Convert a cached JSON-compatible dictionary back to a response object."""
         return ParsedChatCompletion[Detections].model_validate(cached_response)
 
+    def _generate_cache_key(self, function_name: str, request_data: dict) -> str:
+        """Generate a cache key for the request."""
+        return self.cache_manager.get_cache_key({
+            "function_name": function_name,
+            "request_data": request_data
+        })
+
     def _make_completions_parse_request(self, request_data: dict, use_cached_result: bool):
         """Make a request to the language model."""
         if not use_cached_result:
             return self.client.beta.chat.completions.parse(**request_data)
 
-        cache_key = self.cache_manager.get_cache_key(request_data)
+        cache_key = self._generate_cache_key(
+            "self.client.beta.chat.completions.parse", request_data)
         response = self.cache_manager.get(cache_key)
         if response:
             logger.info("Using cached response for request.")
             return self._from_serializable(response)
 
-        logger.warning("Cache miss. Making request to OpenAI.")
+        logger.info("Cache miss. Making request to OpenAI.")
         # Make the actual request
         response = self.client.beta.chat.completions.parse(**request_data)
 
