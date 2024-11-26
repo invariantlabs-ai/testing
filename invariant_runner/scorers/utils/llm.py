@@ -53,7 +53,15 @@ logger = logging.getLogger(__name__)
 class LLMClassifier:
     """Class to classify using a language model."""
 
-    def __init__(self, model: str, prompt: str, options: list[str], vision: bool = False):
+    def __init__(self, model: str, prompt: str, options: list[str], vision: bool = False, default_ttl: int = 3600):
+        """
+        Args:
+            model (str): The language model to use.
+            prompt (str): The prompt to use for the classification.
+            options (list[str]): The options to choose from when classifying.
+            vision (bool): Whether to classify images instead of text.
+            default_ttl (int): The default time-to-live for the cache.
+        """
         self.model = model
         if vision:
             self.prompt = PROMPT_TEMPLATE_VISION.format(
@@ -79,7 +87,7 @@ class LLMClassifier:
             }
         }]
         self.cache_manager = CacheManager(
-            CACHE_DIRECTORY_LLM_CLASSIFIER, expiry=CACHE_TIMEOUT)
+            CACHE_DIRECTORY_LLM_CLASSIFIER, expiry=default_ttl)
 
     def _make_completions_create_request(self, request_data: dict, use_cached_result: bool) -> ChatCompletion:
         """Make a request to the language model."""
@@ -102,7 +110,12 @@ class LLMClassifier:
         return response
 
     def classify_vision(self, base64_image: str, use_cached_result: bool = True) -> str:
-        """Classify an image using the language model."""
+        """Classify an image using the language model.
+
+        Args:
+            base64_image (str): The base64-encoded image to classify.
+            use_cached_result (bool): Whether to use a cached result if available.
+        """
         response = self._make_completions_create_request({
             "model": self.model,
             "messages": [
@@ -116,7 +129,12 @@ class LLMClassifier:
         return json.loads(response.choices[0].message.tool_calls[0].function.arguments).get("best_option", "none")
 
     def classify(self, text: str, use_cached_result: bool = True) -> str:
-        """Classify a text using the language model."""
+        """Classify a text using the language model.
+
+        Args:
+            text (str): The text to classify.
+            use_cached_result (bool): Whether to use a cached result if available.
+        """
         response = self._make_completions_create_request({
             "model": self.model,
             "messages": [
@@ -143,12 +161,21 @@ class Detections(BaseModel):
 class LLMDetector:
     """Class to detect using a language model."""
 
-    def __init__(self, model: str, predicate_rule: str):
+    def __init__(self, model: str, predicate_rule: str, default_ttl: int = 3600):
+        """
+        Args:
+            model (str): The language model to use.
+            predicate_rule (str): The predicate rule to use for detection. The predicate to use
+                                  for extraction. This is a rule that the LLM uses to extract values.
+                                  For example with a predicate "cities in Switzerland", the LLM would
+                                  extract all cities in Switzerland from the text.
+            default_ttl (int): The default time-to-live for the cache.
+        """
         self.model = model
         self.predicate_rule = predicate_rule
         self.client = openai.OpenAI()
         self.cache_manager = CacheManager(
-            CACHE_DIRECTORY_LLM_DETECTOR, expiry=CACHE_TIMEOUT)
+            CACHE_DIRECTORY_LLM_DETECTOR, expiry=default_ttl)
 
     def _insert_lines(self, text: str) -> str:
         return "\n".join(f"{i}| {line}" for i, line in enumerate(text.split("\n"), 1))
@@ -183,7 +210,12 @@ class LLMDetector:
         return response
 
     def detect(self, text: str, use_cached_result: bool = True) -> list[Tuple[str, Range]]:
-        """Detect parts of the text that match the predicate rule."""
+        """Detect parts of the text that match the predicate rule.
+
+        Args:
+            text (str): The text to detect on.
+            use_cached_result (bool): Whether to use a cached result if available.
+        """
         formatted_text = self._insert_lines(text)
         prompt = LLM_DETECTOR_PROMPT_TEMPLATE.format(
             predicate_rule=self.predicate_rule)
