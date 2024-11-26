@@ -118,7 +118,7 @@ class InvariantString(InvariantValue):
         if hasattr(self.value, attr):
             method = getattr(self.value, attr)
 
-            # If the method is callable, wrap it to return an InvariantString where appropriate
+            # If the method is callable, wrap it to return an InvariantValue where appropriate
             if callable(method):
 
                 def wrapper(*args, **kwargs):

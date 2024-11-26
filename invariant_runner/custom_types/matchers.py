@@ -13,7 +13,7 @@ class Matcher:
         raise NotImplementedError("Subclasses should implement this method.")
 
 
-class LambdaMatcher:
+class LambdaMatcher(Matcher):
     """Matcher for checking if a lambda function returns True."""
 
     def __init__(self, lambda_function):

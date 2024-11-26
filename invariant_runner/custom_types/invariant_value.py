@@ -36,24 +36,26 @@ class InvariantValue:
         from .invariant_string import InvariantString
 
         if isinstance(value, list):
-            assert isinstance(
-                address, list
-            ), "InvariantValue.of requires a list of adresses for list values"
+            if not isinstance(address, list):
+                raise TypeError(
+                    "InvariantValue.of requires a list of addresses for list values"
+                )
             return InvariantList(value, address)
         elif isinstance(value, dict):
-            assert isinstance(address, list), (
-                "InvariantValue.of requires a list of adresses for dict values, got "
-                + str(address)
-                + " "
-                + str(type(address))
-            )
+            if not isinstance(address, list):
+                raise TypeError(
+                    "InvariantValue.of requires a list of addresses for dict values, got "
+                    + str(address)
+                    + " "
+                    + str(type(address))
+                )
             return InvariantDict(value, address)
+        elif isinstance(value, bool):
+            return InvariantBool(value, address)
         elif isinstance(value, (int, float)):
             return InvariantNumber(value, address)
         elif isinstance(value, str):
             return InvariantString(value, address)
-        elif isinstance(value, bool):
-            return InvariantBool(value, address)
         return InvariantValue(value, address)
 
     def equals(self, value: Any) -> "InvariantBool":  # type: ignore # noqa: F821
@@ -87,15 +89,3 @@ class InvariantValue:
     def __eq__(self, other: Any) -> bool:
         """Check if the invariant value is equal to the given value."""
         return self.value == other
-
-    def _concat_addresses(
-        self, other_addresses: list[str] | None, separator: str = ":"
-    ) -> list[str]:
-        """Concatenate the addresses of two invariant values."""
-        if other_addresses is None:
-            return self.addresses
-        addresses = []
-        for old_address in self.addresses:
-            for new_address in other_addresses:
-                addresses.append(old_address + separator + new_address)
-        return addresses
