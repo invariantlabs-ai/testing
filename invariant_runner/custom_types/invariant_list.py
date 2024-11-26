@@ -88,7 +88,7 @@ class InvariantList:
             except TypeError as e:
                 raise TypeError(
                     f"Incompatible function: {func} for types '{type(accumulator).__name__}' and '{type(item).__name__}'. "
-                    "Did you mean to use '.reduce_raw()''?"
+                    "Did you mean to use '.reduce_raw()'?"
                 ) from e
 
         return accumulator
