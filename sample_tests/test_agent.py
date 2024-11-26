@@ -196,12 +196,6 @@ def test_big_trace(big_trace):
     with Manager(big_trace):
         for tc in big_trace.messages(role="assistant"):
             assert_true(
-                tc["content"].len() == 0
-                or tc["content"].contains("current")
-                or tc["content"].contains("lines"),
-                "Assistant message content should be empty",
-            )
-
-            assert_equals(
-                "", tc["content"], "Assistant message content should be empty"
+                tc["content"].contains("current"),
+                "Assistant message content should contain the word 'current'",
             )

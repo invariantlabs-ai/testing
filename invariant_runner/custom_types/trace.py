@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from invariant_runner.custom_types.invariant_dict import InvariantDict, InvariantValue
 from invariant_runner.custom_types.invariant_list import InvariantList
+from invariant_runner.manager import Manager
 
 
 def iterate_tool_calls(messages: list[dict]):
@@ -58,6 +59,16 @@ class Trace(BaseModel):
 
     trace: List[Dict]
     metadata: Dict[str, Any] | None = None
+
+    # Active Manager that is running with this trace as context
+    # (e.g. with Trace(...) as trace: ... )
+    # If this is already assigned, the trace is currently being used in a context manager already and should not be re-used.
+    manager: Any = None
+
+    def as_context(self) -> Manager:
+        if self.manager is None:
+            self.manager = Manager(self)
+        return self.manager
 
     @classmethod
     def from_explorer(cls, identifier_or_id: str, index: int | None = None) -> "Trace":

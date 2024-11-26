@@ -6,6 +6,7 @@ import logging
 import os
 import time
 from contextvars import ContextVar
+from json import JSONEncoder
 
 import pytest
 from invariant_sdk.client import Client as InvariantClient
@@ -15,7 +16,6 @@ from pydantic import ValidationError
 from invariant_runner import utils
 from invariant_runner.config import Config
 from invariant_runner.constants import INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR
-from invariant_runner.custom_types.test_result import AssertionResult, TestResult
 from invariant_runner.formatter import format_trace
 
 # Configure logging
@@ -29,6 +29,8 @@ class Manager:
     """Context manager class to run tests with Invariant."""
 
     def __init__(self, trace):
+        from invariant_runner.custom_types.test_result import AssertionResult
+
         self.trace = trace
         self.assertions: list[AssertionResult] = []
         self.explorer_url = ""
@@ -67,6 +69,8 @@ class Manager:
 
     def _get_test_result(self):
         """Generate the test result."""
+        from invariant_runner.custom_types.test_result import TestResult
+
         passed = all(
             assertion.passed if assertion.type == "HARD" else True
             for assertion in self.assertions
@@ -98,8 +102,6 @@ class Manager:
         self.client = (  # pylint: disable=attribute-defined-outside-init
             InvariantClient() if self.config is not None and self.config.push else None
         )
-        # Fetch the assertions and evaluate them.
-        # Store the result in some state and write it to the file as part of __exit__.
 
         return self
 
@@ -120,12 +122,16 @@ class Manager:
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
         with open(file_path, "a", encoding="utf-8") as file:
-            json.dump(self._get_test_result().model_dump(), file)
+            json.dump(self._get_test_result().model_dump(), file, cls=TestResultEncoder)
             file.write("\n")
 
         # Handle exceptions via exc_value, if needed
         # Returning False allows exceptions to propagate; returning True suppresses them
         INVARIANT_CONTEXT.get().pop()
+
+        # unset 'manager' field of parent Trace
+        if self.trace.manager is self:
+            self.trace.manager = None
 
         # handle outcome (e.g. throw an exception if a hard assertion failed)
         self.handle_outcome()
@@ -234,3 +240,14 @@ class Manager:
                 "Failed to push test results to Explorer. Please make sure your Invariant API key and endpoint are setup correctly or run without --push.",
                 pytrace=False,
             )
+
+
+class TestResultEncoder(JSONEncoder):
+    """
+    Simple encoder that omits the Manager object from the JSON output.
+    """
+
+    def default(self, o):
+        if isinstance(o, Manager):
+            return None
+        return JSONEncoder.default(self, o)

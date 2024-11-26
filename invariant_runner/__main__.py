@@ -28,10 +28,11 @@ BOLD = "\033[1m"
 END = "\033[0m"
 
 
-def parse_args() -> tuple[argparse.Namespace, list[str]]:
+def parse_args(args: list[str]) -> tuple[argparse.Namespace, list[str]]:
     """Parse command-line arguments for the Invariant Runner."""
     parser = argparse.ArgumentParser(
-        description="Run tests with Invariant Runner configuration."
+        prog="invariant test",
+        description="Runs a specified test (folder) with Invariant test (pytest compatible arguments)",
     )
     parser.add_argument(
         "--dataset_name",
@@ -46,7 +47,7 @@ def parse_args() -> tuple[argparse.Namespace, list[str]]:
         {BOLD}https://explorer.invariantlabs.ai/docs/{END} to see steps to generate
         an API key.""",
     )
-    return parser.parse_known_args()
+    return parser.parse_known_args(args)
 
 
 def create_config(args: argparse.Namespace) -> Config:
@@ -127,10 +128,10 @@ def finalize_tests_and_print_summary(conf: Config) -> None:
         print(f"Results available at {explorer_url}")
 
 
-if __name__ == "__main__":
+def test(args: list[str]) -> None:
     try:
         # Parse command-line arguments and create configuration
-        invariant_runner_args, pytest_args = parse_args()
+        invariant_runner_args, pytest_args = parse_args(args)
         config = create_config(invariant_runner_args)
         os.environ[INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR] = config.model_dump_json()
         # pass along actual terminal width to the test runner (for better formatting)
@@ -152,3 +153,25 @@ if __name__ == "__main__":
     finalize_tests_and_print_summary(config)
 
     # Update dataset level metadata to include the total passed and failed counts.
+
+
+def main():
+    actions = {
+        "test": "Runs a specified test (folder) with Invariant test (pytest compatible arguments)",
+        "help": "Shows this help message",
+    }
+
+    if len(sys.argv) < 2 or sys.argv[1] not in actions or sys.argv[1] == "help":
+        print("Usage: invariant <command> [<args>]")
+        print("\nSupported Commands:\n")
+        for verb, description in actions.items():
+            print(f"  {verb}: {description}")
+        print()
+        sys.exit(1)
+
+    verb = sys.argv[1]
+    if verb == "test":
+        test(sys.argv[2:])
+    else:
+        print(f"Unknown action: {verb}")
+        sys.exit(1)

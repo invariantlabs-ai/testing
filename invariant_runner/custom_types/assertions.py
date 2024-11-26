@@ -165,12 +165,15 @@ def assert_false(
     """Expect the actual_value InvariantBool to be false."""
     ctx = Manager.current()
     comparison_result = not actual_value.value
+    test, testline = get_caller_snippet()
+
     assertion = AssertionResult(
         passed=comparison_result,
         type=assertion_type,
         addresses=actual_value.addresses,
         message=message,
-        test=get_caller_snippet(),
+        test=test,
+        test_line=testline,
     )
     ctx.assertions.append(assertion)
 

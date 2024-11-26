@@ -30,3 +30,7 @@ log_cli = true
 log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+# top-level command 'invariant'
+[tool.poetry.scripts]
+invariant = "invariant_runner.__main__:main"

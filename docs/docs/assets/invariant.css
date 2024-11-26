@@ -1,0 +1,291 @@
+@font-face {
+    font-family: NeueMontreal;
+    src: url("./NeueMontreal-Regular.otf") format("opentype");
+}
+@font-face {
+    font-family: NeueMontreal;
+    src: url("./NeueMontreal-Medium.otf") format("opentype");
+    font-weight: 500;
+}
+body {
+    font-family: NeueMontreal, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased !important;
+    text-rendering: optimizeLegibility;
+
+    --text-color: #0C0C13;
+}
+
+h1 {
+    font-family: NeueMontreal, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+.md-header {
+    background-color: white;
+    border-bottom: 1px solid #E5E5E5;
+    box-shadow: none;
+}
+
+.md-header__topic {
+    color: var(--text-color);
+    font-weight: 300 !important;
+    font-family: NeueMontreal, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+.md-icon svg {
+    fill: var(--text-color);
+    stroke: var(--text-color);
+    opacity: 0.9;
+}
+
+.md-nav--primary .md-nav__title[for=__drawer] {
+    background-color: white;
+    color: var(--text-color);
+}
+
+.md-nav--primary .md-nav__title[for=__drawer] {
+    color: var(--text-color);
+    font-weight: 500 !important;
+}
+
+.md-header__title {
+    margin-left: 0pt !important;
+    font-size: 14pt;
+}
+
+.md-typeset h1 {
+    color: var(--text-color);
+    
+    color: #0C0C13;
+    font-family: "NeueMontreal";
+    font-size: 38px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 52px;
+    letter-spacing: 0.55px;
+    margin-bottom: 20pt;
+    margin-top: 10pt;
+}
+
+.md-typeset p {
+    font-size: 14pt;
+}
+
+a {
+    color: #3A3E60;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #3A3E60;
+    text-decoration: underline;
+}
+
+a:visted {
+    color: #3A3E60;
+    text-decoration: none;
+}
+
+.md-main__inner {
+    margin-top: 5pt;
+}
+
+.md-search__form {
+    background-color: white;
+    border: 1px solid #E5E5E5;
+    border-radius: 4px;
+    box-shadow: none;
+    color: var(--text-color);
+    border-radius: 50pt !important;
+}
+
+.md-search__form input {
+    color: var(--text-color);
+}
+
+/* placeholder text color */
+.md-search__form input::placeholder {
+    color: var(--text-color);
+    opacity: 0.5;
+}
+
+.md-search__output {
+    margin-top: 10pt;
+    border-radius: 2pt;
+}
+
+div.subtitle {
+    position: relative;
+    top: -15pt;
+    font-size: 18pt;
+    opacity: 0.5;
+    margin-bottom: 0pt;
+}
+
+p>img {
+    border-radius: 4pt;
+}
+
+.md-footer {
+    margin-top: 220pt;
+}
+
+.md-footer-invariant {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 40pt;
+    align-items: center;
+}
+
+.md-footer-invariant div {
+    margin-right: auto;
+}
+
+.md-footer-invariant a {
+    display: block;
+    margin-left: 5pt;
+    color: grey;
+    opacity: 0.7;
+}
+
+img.inline-invariant {
+    width: 15pt;
+    position: relative;
+    top: 0.2em;
+    margin-left: 0.1em;
+}
+
+.tiles {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 20pt;
+    margin: -10pt;
+}
+
+a.tile {
+    display: inline-block;
+    flex: 1;
+    min-width: 228pt;
+    background-color: rgb(239, 239, 239);
+    border-radius: 5pt;
+    padding: 10pt;
+    margin: 10pt;
+    transition: background-color 0.2s;
+}
+
+a.tile:hover {
+    text-decoration: none;
+    background-color: rgb(225, 225, 225);
+}
+
+a.tile span {
+    display: block;
+    margin-top: 5pt;
+    color: #3A3E60;
+}
+
+a.tile span:nth-child(2) {
+    font-size: 12pt;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+.spacer {
+    height: 220pt;
+}
+
+strong {
+    font-weight: 600 !important;
+    font-family: NeueMontreal, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+blockquote {
+    background-color: #fdfdfd;
+    border-left: 0.5pt solid #3E3AFF !important;
+    border-radius: 5pt;
+    font-size: 12pt;
+    border: 1pt solid #3E3AFF;
+    background-color: hsl(241, 100%, 99.5%);
+    overflow: hidden;
+    color: black;
+    margin-top: 30pt !important;
+}
+
+blockquote pre {
+    position: relative;
+    margin-left: -10pt;
+}
+
+blockquote p {
+    font-size: 12pt !important;
+    color: #3A3E60;
+}
+
+figure {
+    max-width: 400pt !important;
+    display: block !important;
+    margin: 40pt auto !important;
+}
+
+figure.wide {
+    max-width: 500pt !important;
+}
+
+h2, h3, h4 {
+    margin-top: 40pt !important;
+}
+
+h2 {
+    border-top: 1pt solid #e5e5e58e;
+    padding-top: 30pt;
+    margin-top: 30pt !important;
+}
+
+h5 {
+    text-transform: none !important;
+    border-top: 1pt solid #e5e5e58e;
+    padding-top: 10pt;
+    font-size: 14pt !important;
+    line-height: 10pt !important;
+}
+
+h5 span.type {
+    font-size: 10pt;
+    position: relative;
+    top: -0.07em;
+    font-family: monospace;
+}
+
+h5 span.required:after {
+    content: "Required";
+    color: red;
+    font-size: 10pt;
+    margin-left: 10pt;
+    font-weight: 400;
+    display: inline-block;
+}
+
+h5 span.optional:after {
+    content: "Optional";
+    color: green;
+    opacity: 0.5;
+    font-size: 10pt;
+    margin-left: 10pt;
+    font-weight: 400;
+    display: inline-block;
+}
+
+ul {
+    margin-top: 0pt !important;
+    list-style-type: none !important;
+}
+
+/* p when preceded by h5 */
+h5 + p, h5 + p + p, h5 + p + p + p, h5 + p + p + p + p {
+    font-size: 12pt !important;
+    margin-top: -5pt !important;
+}

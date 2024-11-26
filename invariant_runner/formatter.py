@@ -46,7 +46,7 @@ def format_trace(json_obj, highlights=[]):
             start = i
         if not updated[i].lstrip().startswith("#"):
             end = i + 1
-    start = max(0, (start or None) - 5)
+    start = max(0, (start or 0) - 5)
     end = min(len(updated), end + 5)
 
     return "\n".join(updated[start:end])

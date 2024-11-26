@@ -114,9 +114,10 @@ class InvariantString(InvariantValue):
         for match in re.finditer(pattern, self.value):
             start, end = match.span()
             new_addresses.append(f"{start}-{end}")
-        return InvariantBool(
-            len(new_addresses) > 0, self._concat_addresses(new_addresses)
-        )
+        if len(new_addresses) == 0:
+            return InvariantBool(False, self.addresses)
+        else:
+            return InvariantBool(True, self._concat_addresses(new_addresses))
 
     def is_similar(self, other: str, threshold: float = 0.5) -> InvariantBool:
         """Check if the value is similar to the given string using cosine similarity."""

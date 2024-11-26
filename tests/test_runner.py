@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from invariant_runner.runner import create_config, parse_args
+from invariant_runner.__main__ import create_config, parse_args
 
 
 def test_create_config_with_push_and_api_key_env_var():
