@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from operator import ge, gt, le, lt, ne
 from typing import Any, Optional, Union
 
 from _pytest.python_api import ApproxBase
@@ -17,6 +18,7 @@ from invariant_runner.scorers.moderation import ModerationAnalyzer
 from invariant_runner.scorers.strings import embedding_similarity, levenshtein
 from invariant_runner.scorers.utils.llm import LLMClassifier, LLMDetector
 from invariant_runner.scorers.utils.ocr import OCRDetector
+from invariant_runner.scorers.code import execute
 
 
 class InvariantString(InvariantValue):
@@ -31,6 +33,13 @@ class InvariantString(InvariantValue):
             addresses = [addresses]
         super().__init__(value, addresses)
 
+    def _compare(self, other: Union[str, "InvariantString"], operator) -> InvariantBool:
+        """Helper function to compare with another string."""
+        if isinstance(other, InvariantString):
+            other = other.value
+        cmp_result = operator(self.value, other)
+        return InvariantBool(cmp_result, self.addresses)
+
     def __eq__(self, other: Union[str, "InvariantString"]) -> InvariantBool:
         """Check if the string is equal to the given string."""
         if isinstance(other, InvariantString):
@@ -41,9 +50,23 @@ class InvariantString(InvariantValue):
 
     def __ne__(self, other: Union[str, "InvariantString"]) -> InvariantBool:
         """Check if the string is not equal to the given string."""
-        if isinstance(other, InvariantString):
-            other = other.value
-        return InvariantBool(self.value != other, self.addresses)
+        return self._compare(other, ne)
+
+    def __gt__(self, other: Union[str, "InvariantString"]) -> InvariantBool:
+        """Check if the string is greater than the given string."""
+        return self._compare(other, gt)
+
+    def __lt__(self, other: Union[str, "InvariantString"]) -> InvariantBool:
+        """Check if the string is less than the given string."""
+        return self._compare(other, lt)
+
+    def __ge__(self, other: Union[str, "InvariantString"]) -> InvariantBool:
+        """Check if the string is greater than or equal to the given string."""
+        return self._compare(other, ge)
+
+    def __le__(self, other: Union[str, "InvariantString"]) -> InvariantBool:
+        """Check if the string is less than or equal to the given string."""
+        return self._compare(other, le)
 
     def __add__(self, other: Union[str, "InvariantString"]) -> "InvariantString":
         """Concatenate the string with another string."""
@@ -65,7 +88,7 @@ class InvariantString(InvariantValue):
 
     def __len__(self):
         raise NotImplementedError(
-            "InvariantList does not support len(). Please use .len() instead."
+            "InvariantString does not support len(). Please use .len() instead."
         )
 
     def __getitem__(self, key: Any, default: Any = None) -> "InvariantString":
@@ -143,7 +166,7 @@ class InvariantString(InvariantValue):
             # Check if old_address ends with :start-end pattern
             match = re.match(r"^(.*):(\d+)-(\d+)$", old_address)
             assert match is not None
-            prefix, start, end = (
+            prefix, start, _ = (
                 match.groups()[0],
                 int(match.groups()[1]),
                 int(match.groups()[2]),
@@ -184,6 +207,10 @@ class InvariantString(InvariantValue):
             ),
         )
 
+    def __contains__(self, pattern: str | InvariantString) -> InvariantBool:
+        """Check if the value contains the given pattern."""
+        return self.contains(pattern)
+
     def is_similar(self, other: str, threshold: float = 0.5) -> InvariantBool:
         """Check if the value is similar to the given string using cosine similarity."""
         if not isinstance(other, str):
@@ -191,7 +218,7 @@ class InvariantString(InvariantValue):
         cmp_result = embedding_similarity(self.value, other) >= threshold
         return InvariantBool(cmp_result, self.addresses)
 
-    def levenshtein(self, other: str) -> InvariantBool:
+    def levenshtein(self, other: str) -> InvariantNumber:
         """Check if the value is similar to the given string using the Levenshtein distance."""
         if not isinstance(other, str):
             raise ValueError("levenshtein() is only supported for string values")
@@ -279,3 +306,13 @@ class InvariantString(InvariantValue):
         ocr = OCRDetector()
         res = ocr.contains(self.value, text, case_sensitive, bbox)
         return InvariantBool(res, self.addresses)
+
+    def execute(self, suffix_code: str = "", detect_packages: bool = False) -> InvariantString:
+        """Execute the value as Python code and return the standard output as InvariantString.
+
+        Args:
+            suffix_code (str): The Python code to append to the value before execution.
+            detect_packages (bool): Whether to detect the dependencies of the code.
+        """
+        res = execute(self.value + "\n" + suffix_code, detect_packages)
+        return InvariantString(res, self.addresses)

@@ -1,5 +1,7 @@
 """Define a context manager class to run tests with Invariant."""
 
+# pylint: disable=attribute-defined-outside-init
+
 import inspect
 import json
 import logging
@@ -42,13 +44,18 @@ class Manager:
     def _get_test_name(self):
         """Retrieve the name of the current test function."""
         frame = inspect.currentframe().f_back.f_back
-        # If request fixture is an argument to the test function, use that to get the test
-        # function name (with the parameters).
+        # If the request fixture is accessible, use that to get the test name with the paramaters.
         # This gives the test name in the format: test_name[param1-param2-...] from pytest.
         request = frame.f_locals.get("request")
         if request:
             return request.node.name
-        # Fallback to just the test function name.
+        # pytest sets the test name in the environment variable.
+        # when the test is running, PYTEST_CURRENT_TEST has the format:
+        # sample_tests/test_agent.py::test_get_test_name_and_parameters[Bob-True] (call)
+        # This too contains the parameter names with the test name.
+        if "PYTEST_CURRENT_TEST" in os.environ:
+            return os.environ.get("PYTEST_CURRENT_TEST").split("::")[-1].split(" ")[0]
+        # Fallback to just the test function name without parameters.
         return inspect.stack()[2].function
 
     def _load_config(self):
@@ -95,9 +102,9 @@ class Manager:
     def __enter__(self) -> "Manager":
         """Enter the context manager and setup configuration."""
         INVARIANT_CONTEXT.get().append(self)
-        self.config = self._load_config()  # pylint: disable=attribute-defined-outside-init
-        self.test_name = self._get_test_name()  # pylint: disable=attribute-defined-outside-init
-        self.client = (  # pylint: disable=attribute-defined-outside-init
+        self.config = self._load_config()
+        self.test_name = self._get_test_name()
+        self.client = (
             InvariantClient() if self.config is not None and self.config.push else None
         )
 
@@ -106,22 +113,24 @@ class Manager:
     def __exit__(self, exc_type, exc_value, traceback) -> bool:
         """Exit the context manager, handling any exceptions that occurred."""
         # Save test result to the output directory.
-        dataset_name_for_output_file = (
+        dataset_name_for_test_results = (
             self.config.dataset_name if self.config else int(time.time())
         )
-        file_path = utils.get_test_results_file_path(dataset_name_for_output_file)
+        test_results_directory = utils.get_test_results_directory_path(
+            dataset_name_for_test_results
+        )
+        test_result_file_path = f"{test_results_directory}/{self.test_name}.json"
 
         # if there is a config, and push is enabled, push the test results to Explorer
         if self.config is not None and self.config.push:
             push_traces_response = self.push()
-            self.explorer_url = self._get_explorer_url(push_traces_response)  # pylint: disable=attribute-defined-outside-init
+            self.explorer_url = self._get_explorer_url(push_traces_response)
 
         # make sure path exists
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        os.makedirs(os.path.dirname(test_result_file_path), exist_ok=True)
 
-        with open(file_path, "a", encoding="utf-8") as file:
-            json.dump(self._get_test_result().model_dump(), file, cls=TestResultEncoder)
-            file.write("\n")
+        with open(test_result_file_path, "w", encoding="utf-8") as file:
+            json.dump(self._get_test_result().model_dump(), file)
 
         # Handle exceptions via exc_value, if needed
         # Returning False allows exceptions to propagate; returning True suppresses them

@@ -263,18 +263,20 @@ def test_oct_detector():
         base64_image = base64.b64encode(image_file.read()).decode("utf-8")
 
     # Test case-insensitive detection
-    assert InvariantString(base64_image, [""]).ocr_contains(base64_image, "agents")
+    assert InvariantString(base64_image, [""]).ocr_contains("agents")
     assert InvariantString(base64_image, [""]).ocr_contains(
-        base64_image, "making", bbox={"x1": 50, "y1": 10, "x2": 120, "y2": 40}
+        "making", bbox={"x1": 50, "y1": 10, "x2": 120, "y2": 40}
     )
-    assert not InvariantString(base64_image, [""]).ocr_contains(base64_image, "LLM")
+    assert not InvariantString(base64_image, [""]).ocr_contains("LLM")
 
 
 @pytest.mark.skip(reason="Skip for now, needs docker")
 def test_execute():
-    from invariant_runner.scorers.code import execute
+    code = InvariantString("""def f(n):\treturn n**2""", ["messages.0.content"])
+    res = code.execute("print(f(5))")
+    assert "25" in res.value
+    assert len(res.addresses) == 1 and res.addresses[0] == "messages.0.content:0-21"
 
-    res = execute(
-        """import requests; response = requests.get("https://jsonplaceholder.typicode.com/posts/1");print(response.json())"""
-    )
-    assert "userId" in res
+    code = InvariantString("""import numpy as np; print(np.array([1, 2, 3, 4])**2)""", ["messages.0.content"])
+    res = code.execute(detect_packages=True)
+    assert res.contains("9") and res.contains("16")

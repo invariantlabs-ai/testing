@@ -80,24 +80,27 @@ def finalize_tests_and_print_summary(conf: Config) -> None:
     * pushes result metadata to the Explorer if --push
     * prints a summary of the test results.
     """
-    file_path = utils.get_test_results_file_path(conf.dataset_name)
+    test_results_directory = utils.get_test_results_directory_path(conf.dataset_name)
 
-    if not os.path.exists(file_path):
+    if not os.path.exists(test_results_directory):
         print(
             "[ERROR] No test results found. Make sure your tests were executed correctly using Invariant assertions."
         )
         return
 
     print(f"{BOLD}Invariant Test summary{END}")
-    print(f"Test result saved to: {file_path}")
+    print(f"Test result saved to: {test_results_directory}")
     print(f"{BOLD}------------{END}")
 
     passed_count = 0
     tests = 0
     explorer_url = ""
-    with open(file_path, "r", encoding="utf-8") as file:
-        for line in file:
-            test_result = json.loads(line.strip())
+    for filename in os.listdir(test_results_directory):
+        file_path = os.path.join(test_results_directory, filename)
+        # The directory should only contain test result files - one per test.
+        with open(file_path, "r", encoding="utf-8") as file:
+            # Only one line in each file.
+            test_result = json.loads(file.readline().strip())
             tests += 1
             if test_result.get("passed"):
                 passed_count += 1
@@ -142,9 +145,11 @@ def test(args: list[str]) -> None:
         logger.error("Configuration error: %s", e)
         sys.exit(1)
 
-    test_results_file_path = utils.get_test_results_file_path(config.dataset_name)
-    if os.path.exists(test_results_file_path):
-        os.remove(test_results_file_path)
+    test_results_directory_path = utils.get_test_results_directory_path(
+        config.dataset_name
+    )
+    if os.path.exists(test_results_directory_path):
+        os.remove(test_results_directory_path)
 
     # Run pytest with remaining arguments
     pytest.main(pytest_args)

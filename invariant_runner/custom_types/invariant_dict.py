@@ -18,6 +18,11 @@ class InvariantDict:
             )
         return None
 
+    def get(self, key, default=None):
+        return InvariantValue.of(
+            self.value.get(key, default), [f"{a}.{key}" for a in self.addresses]
+        )
+
     def __str__(self):
         return "InvariantDict" + str(self.value) + " at " + str(self.addresses)
 
