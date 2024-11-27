@@ -14,3 +14,8 @@ TODO
 
 TODO
 
+## `IsFactuallyEqual`
+
+Checks for factual equality / entailment of two sentences or words. This can be used to check if two sentences are factually equivalent, or subset/superset of each other.
+
+TODO
