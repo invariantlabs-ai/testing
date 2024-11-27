@@ -350,3 +350,7 @@ span.llm::before {
     padding: 2pt 4pt;
     border-radius: 4pt;
 }
+
+.jupyter-wrapper {
+    margin-top: -20pt;
+}

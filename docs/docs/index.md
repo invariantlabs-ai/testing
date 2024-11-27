@@ -83,7 +83,6 @@ As an alternative to the command line, you can also visualize test results on th
 $ invariant test --push
 ```
 
-<!-- explorer.png from assets -->
 ![Explorer](/assets/explorer.png)
 
 Like the terminal output, the Explorer highlights the relevant ranges, but does so even more precisely, marking the exact words that caused the assertion to fail.
