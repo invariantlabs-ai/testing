@@ -9,7 +9,6 @@ from typing import Any, Optional, Union
 
 from _pytest.python_api import ApproxBase
 from invariant_runner.custom_types.invariant_bool import InvariantBool
-from invariant_runner.custom_types.invariant_list import InvariantList
 from invariant_runner.custom_types.invariant_number import InvariantNumber
 from invariant_runner.custom_types.invariant_value import InvariantValue
 from invariant_runner.scorers.code import is_valid_json, is_valid_python
@@ -273,7 +272,7 @@ class InvariantString(InvariantValue):
 
     def extract(
         self, predicate: str, model: str = "gpt-4o", use_cached_result: bool = True
-    ) -> InvariantList:
+    ) -> list[InvariantString]:
         """Extract values from the underlying string using an LLM.
 
         Args:
@@ -285,11 +284,10 @@ class InvariantString(InvariantValue):
         """
         llm_detector = LLMDetector(model=model, predicate_rule=predicate)
         detections = llm_detector.detect(self.value, use_cached_result)
-        values, addresses = [], []
+        ret = []
         for substr, r in detections:
-            values.append(substr)
-            addresses.extend(self._concat_addresses([str(r)]))
-        return InvariantList(values, addresses)
+            ret.append(InvariantString(substr, self._concat_addresses([str(r)])))
+        return ret
 
     def ocr_contains(
         self,
@@ -298,9 +296,9 @@ class InvariantString(InvariantValue):
         bbox: Optional[dict] = None,
     ) -> InvariantBool:
         """Check if the value contains the given text using OCR."""
-
+        value = self.value if not self.value.startswith("local_base64_img: ") else self.value[16:]
         ocr = OCRDetector()
-        res = ocr.contains(self.value, text, case_sensitive, bbox)
+        res = ocr.contains(value, text, case_sensitive, bbox)
         return InvariantBool(res, self.addresses)
 
     def execute(self, suffix_code: str = "", detect_packages: bool = False) -> InvariantString:

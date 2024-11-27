@@ -4,7 +4,6 @@ import base64
 
 import pytest
 from invariant_runner.custom_types.invariant_bool import InvariantBool
-from invariant_runner.custom_types.invariant_list import InvariantList
 from invariant_runner.custom_types.invariant_number import InvariantNumber
 from invariant_runner.custom_types.invariant_string import InvariantString
 from pytest import approx
@@ -232,12 +231,12 @@ def test_extract():
         "I like apples and carrots, but I don't like bananas.\nThe only thing better than apples are potatoes and pears.",
         ["message.0.content"],
     ).extract("fruits")
-    assert isinstance(res, InvariantList)
-    assert len(res.value) == 4
-    assert res.value[0] == "apples" and res.addresses[0] == "message.0.content:7-13"
-    assert res.value[1] == "bananas" and res.addresses[1] == "message.0.content:44-51"
-    assert res.value[2] == "apples" and res.addresses[2] == "message.0.content:80-86"
-    assert res.value[3] == "pears" and res.addresses[3] == "message.0.content:104-109"
+    assert isinstance(res, list)
+    assert len(res) == 4
+    assert res[0] == "apples" and res[0].addresses[0] == "message.0.content:7-13"
+    assert res[1] == "bananas" and res[1].addresses[0] == "message.0.content:44-51"
+    assert res[2] == "apples" and res[2].addresses[0] == "message.0.content:80-86"
+    assert res[3] == "pears" and res[3].addresses[0] == "message.0.content:104-109"
 
 
 def test_vision_classifier():
