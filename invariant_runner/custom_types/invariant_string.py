@@ -122,7 +122,7 @@ class InvariantString(InvariantValue):
         )
 
     def len(self):
-        """Return the length of the list."""
+        """Return the length of the string."""
         return InvariantNumber(len(self.value), self.addresses)
 
     def __getattr__(self, attr):

@@ -4,7 +4,6 @@ from typing import Any, Callable, Dict, List
 
 from invariant_runner.custom_types.invariant_dict import (InvariantDict,
                                                           InvariantValue)
-# from invariant_runner.custom_types.invariant_list import InvariantList
 from pydantic import BaseModel
 
 
