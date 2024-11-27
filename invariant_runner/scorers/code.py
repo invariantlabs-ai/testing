@@ -60,8 +60,7 @@ def execute(text: str, detect_packages: bool = False) -> str:
             script_content = f.read()
 
         new_content = (
-            f"# /// script\n# dependencies = {
-        json.dumps(dependencies.dependencies)}\n# ///\n"
+            f"# /// script\n# dependencies = {json.dumps(dependencies.dependencies)}\n# ///\n"
             + script_content
         )
         with open(file_path, "w") as f:
