@@ -2,7 +2,7 @@
 title: Overview
 ---
 
-# Invariant `testing`: build reliable AI agents using localized assertions
+# Invariant `testing`: helps you build better AI agents through unit testing
 
 Invariant `testing` is a lightweight library to write and run AI agent tests. It provides helpers and assertions that enable you to write robust tests for your agentic applications.
 
