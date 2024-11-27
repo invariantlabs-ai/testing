@@ -72,8 +72,7 @@ def _format_trace(json_obj, indent="", path=[], highlights=[]):
     if type(json_obj) is dict:
         entries = []
         for k, v in json_obj.items():
-            value = _format_trace(
-                v, indent + "  ", path + [k], highlights=highlights)
+            value = _format_trace(v, indent + "  ", path + [k], highlights=highlights)
             has_comment, value = strip_comment(value)
             comment = "#" if has_comment else ""
             entries.append(f"{comment}{indent}  {k}: {value}\n")
@@ -90,8 +89,7 @@ def _format_trace(json_obj, indent="", path=[], highlights=[]):
             # (f"---- <highlighted> ----\n{indent}" if is_highlighted else "")
             "[\n"
             + "".join(
-                f"{indent}  {_format_trace(
-                    v, indent + '  ', path + [i], highlights=highlights)},\n"
+                f"{indent}  {_format_trace(v, indent + '  ', path + [i], highlights=highlights)},\n"
                 for i, v in enumerate(json_obj)
             )
             + f"{indent}]"

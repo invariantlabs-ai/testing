@@ -10,14 +10,15 @@ import time
 from contextvars import ContextVar
 
 import pytest
+from invariant_sdk.client import Client as InvariantClient
+from invariant_sdk.types.push_traces import PushTracesResponse
+from pydantic import ValidationError
+
 from invariant_runner import utils
 from invariant_runner.config import Config
 from invariant_runner.constants import INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR
 from invariant_runner.custom_types.test_result import AssertionResult, TestResult
 from invariant_runner.formatter import format_trace
-from invariant_sdk.client import Client as InvariantClient
-from invariant_sdk.types.push_traces import PushTracesResponse
-from pydantic import ValidationError
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -52,7 +53,7 @@ class Manager:
         # sample_tests/test_agent.py::test_get_test_name_and_parameters[Bob-True] (call)
         # This too contains the parameter names with the test name.
         if "PYTEST_CURRENT_TEST" in os.environ:
-            return os.environ.get('PYTEST_CURRENT_TEST').split('::')[-1].split(' ')[0]
+            return os.environ.get("PYTEST_CURRENT_TEST").split("::")[-1].split(" ")[0]
         # Fallback to just the test function name without parameters.
         return inspect.stack()[2].function
 
@@ -149,8 +150,7 @@ class Manager:
             # the error message is all failed hard assertions with respective
             # code and trace snippets
             error_message = (
-                f"ERROR: {len(failed_hard_assertions)
-                          } hard assertions failed:\n\n"
+                f"ERROR: {len(failed_hard_assertions)} hard assertions failed:\n\n"
             )
 
             for i, failed_assertion in enumerate(failed_hard_assertions):
@@ -159,8 +159,7 @@ class Manager:
                 # flatten addresses
                 addresses = failed_assertion.addresses
                 # remove character ranges after : in addresses
-                addresses = [
-                    a.split(":")[0] if ":" in a else a for a in addresses]
+                addresses = [a.split(":")[0] if ":" in a else a for a in addresses]
 
                 column_width = utils.terminal_width()
                 failure_message = (
@@ -169,8 +168,7 @@ class Manager:
                     else "EXPECTATION VIOLATED"
                 )
 
-                formatted_trace = format_trace(
-                    self.trace.trace, highlights=addresses)
+                formatted_trace = format_trace(self.trace.trace, highlights=addresses)
                 if formatted_trace is not None:
                     error_message += (
                         " "

@@ -1,0 +1,97 @@
+from invariant_runner.custom_types.assertions import assert_false, assert_that
+from invariant_runner.custom_types.matchers import IsFactuallyEqual
+from invariant_runner.custom_types.trace import Trace
+from invariant_runner.manager import Manager
+
+
+def test_is_factually_equal():
+    question = "Who wins the American Election of 2024?"
+
+    # Test case: super strict aggrement
+    trace = Trace(trace=[{"role": "user", "content": "Trump"}])
+    with Manager(trace) as _:
+        expected_output = "Trump"
+        assert_that(
+            trace.messages()[0]["content"], IsFactuallyEqual(expected_output, question)
+        )
+        expected_output = "Donald Trump"
+        assert_that(
+            trace.messages()[0]["content"],
+            IsFactuallyEqual(
+                expected_output, question, IsFactuallyEqual.Agreement.FUZZY_AGGREMENT
+            ),
+        )
+
+    # Test case: disaaggrement
+    trace = Trace(trace=[{"role": "user", "content": "Harris"}])
+    with Manager(trace) as _:
+        expected_output = "Trump"
+        assert_false(
+            trace.messages()[0]["content"].matches(
+                IsFactuallyEqual(expected_output, question)
+            )
+        )
+        expected_output = "Donald Trump"
+        assert_false(
+            trace.messages()[0]["content"].matches(
+                IsFactuallyEqual(expected_output, question)
+            )
+        )
+
+    # Test case: strict aggrement:
+    question = "who's the best Japanese directors"
+    trace = Trace(
+        trace=[
+            {
+                "role": "user",
+                "content": "Akira Kurosawa, Hayao Miyazaki,Takeshi Kitano,Isao Takahata",
+            }
+        ]
+    )
+    with Manager(trace) as _:
+        expected_output = "Isao Takahata"
+        # under strict aggrement, the output is not close to the expected output (only 1/4 directors are correct)
+        assert_false(
+            trace.messages()[0]["content"].matches(
+                IsFactuallyEqual(
+                    expected_output,
+                    question,
+                    IsFactuallyEqual.Agreement.SUPER_STRICT_AGGREMENT,
+                )
+            )
+        )
+        # under strict aggrement, the output is close to the expected output (3/4 directors are correct)
+        assert_false(
+            trace.messages()[0]["content"].matches(
+                IsFactuallyEqual(
+                    expected_output,
+                    question,
+                    IsFactuallyEqual.Agreement.SUPER_STRICT_AGGREMENT,
+                )
+            )
+        )
+
+    # sTest case: fuzzy aggrement:
+    question = "who's the best Japanese directors"
+    trace = Trace(
+        trace=[
+            {
+                "role": "user",
+                "content": "Akira Kurosawa, Hayao Miyazaki,Takeshi Kitano,Isao Takahata",
+            }
+        ]
+    )
+    with Manager(trace) as _:
+        expected_output = "Akira Kurosawa, Yasujiro Ozu,Hayao Miyazaki,Kenji Mizoguchi,Hirokazu Kore-eda,Takeshi Kitano,Masaki Kobayashi,Isao Takahata"
+        assert_that(
+            trace.messages()[0]["content"],
+            IsFactuallyEqual(
+                expected_output, question, IsFactuallyEqual.Agreement.FUZZY_AGGREMENT
+            ),
+        )
+        assert_that(
+            trace.messages()[0]["content"],
+            IsFactuallyEqual(
+                expected_output, question, IsFactuallyEqual.Agreement.FUZZY_AGGREMENT
+            ),
+        )
