@@ -17,3 +17,7 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+
+plugins:
+  - mkdocs-jupyter
+  - macros

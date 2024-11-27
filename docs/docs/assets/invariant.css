@@ -213,6 +213,7 @@ blockquote {
     overflow: hidden;
     color: black;
     margin-top: 30pt !important;
+    padding-top: 5pt;
 }
 
 blockquote pre {
@@ -241,8 +242,8 @@ h2, h3, h4 {
 
 h2 {
     border-top: 1pt solid #e5e5e58e;
-    padding-top: 30pt;
-    margin-top: 30pt !important;
+    padding-top: 10pt;
+    margin-top: 20pt !important;
 }
 
 h5 {
@@ -279,13 +280,47 @@ h5 span.optional:after {
     display: inline-block;
 }
 
-ul {
-    margin-top: 0pt !important;
-    list-style-type: none !important;
-}
 
 /* p when preceded by h5 */
 h5 + p, h5 + p + p, h5 + p + p + p, h5 + p + p + p + p {
     font-size: 12pt !important;
     margin-top: -5pt !important;
+}
+
+a {
+    text-decoration: underline;
+}
+
+.md-nav__list a {
+    text-decoration: none;
+}
+
+.jupyter-wrapper .jp-InputArea-editor {
+    /* border-radius: 5pt; */
+    border: none !important;
+}
+
+.jupyter-wrapper .jp-InputArea-editor {
+    padding: 5pt;
+}
+
+.jupyter-wrapper .jp-InputArea-editor pre {
+    font-size: 12pt;
+}
+
+.jupyter-wrapper .jp-InputPrompt, .jupyter-wrapper .jp-CodeCell .jp-Cell-inputWrapper .jp-InputPrompt {
+    display: none !important;
+}
+
+.jupyter-wrapper .jp-Notebook .jp-Cell:not(.jp-mod-active) .jp-OutputPrompt {
+    display: none !important;
+}
+
+.jupyter-wrapper .jp-Cell-inputArea, .jupyter-wrapper .jp-Cell-outputArea {
+    margin-top: 10pt;
+}
+
+/* do not show stderr */
+.jupyter-wrapper .jp-RenderedText.jp-OutputArea-output[data-mime-type="application/vnd.jupyter.stderr"] {
+    display: none !important;
 }

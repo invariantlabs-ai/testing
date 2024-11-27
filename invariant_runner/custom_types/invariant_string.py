@@ -27,6 +27,8 @@ class InvariantString(InvariantValue):
             raise TypeError(f"value must be a str, got {type(value)}")
         if addresses is None:
             addresses = []
+        if type(addresses) is str:
+            addresses = [addresses]
         super().__init__(value, addresses)
 
     def __eq__(self, other: Union[str, "InvariantString"]) -> InvariantBool:
