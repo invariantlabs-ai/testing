@@ -20,4 +20,3 @@ markdown_extensions:
 
 plugins:
   - mkdocs-jupyter
-  - macros
