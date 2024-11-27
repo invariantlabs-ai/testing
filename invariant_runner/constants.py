@@ -1,6 +1,6 @@
 """Constants for the Invariant Test Runner."""
 
-INVARIANT_RUNNER_TEST_RESULTS_DIR = "/tmp/invariant_test_runner"
+INVARIANT_RUNNER_TEST_RESULTS_DIR = ".invariant/test_results"
 INVARIANT_AP_KEY_ENV_VAR = "INVARIANT_API_KEY"
 INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR = "INVARIANT_TEST_RUNNER_CONFIG"
 

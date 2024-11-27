@@ -4,7 +4,6 @@ import pytest
 from invariant_runner.custom_types.assertions import (assert_equals,
                                                       assert_that, assert_true,
                                                       expect_equals)
-from invariant_runner.custom_types.invariant_string import InvariantString
 from invariant_runner.custom_types.matchers import HasSubstring
 from invariant_runner.custom_types.trace import Trace
 from invariant_runner.manager import Manager
@@ -258,4 +257,19 @@ def test_custom_trace():
         assert_true(tool_calls[1]["function"]["arguments"]["lon"] == "7.4474")
 
 
+@pytest.mark.parametrize(
+    "name, bool1", [("Alice", True), ("Alice", False), ("Bob", False), ("Bob", True)]
+)
+def test_get_test_name_and_parameters_from_request(request, name, bool1, trace_with_tool_calls):
+    """Test get_test_name_and_parameters."""
+    with Manager(trace_with_tool_calls):
+        pass
 
+
+@pytest.mark.parametrize(
+    "name, bool1", [("Jacob", True), ("Jacob", False), ("Alfred", False), ("Alfred", True)]
+)
+def test_get_test_name_and_parameters_from_env(name, bool1, trace_with_tool_calls):
+    """Test get_test_name_and_parameters."""
+    with Manager(trace_with_tool_calls):
+        pass

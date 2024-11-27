@@ -1,5 +1,7 @@
 """Define a context manager class to run tests with Invariant."""
 
+# pylint: disable=attribute-defined-outside-init
+
 import inspect
 import json
 import logging
@@ -8,15 +10,15 @@ import time
 from contextvars import ContextVar
 
 import pytest
-from invariant_runner import utils
-from invariant_runner.config import Config
-from invariant_runner.constants import INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR
-from invariant_runner.custom_types.test_result import (AssertionResult,
-                                                       TestResult)
-from invariant_runner.formatter import format_trace
 from invariant_sdk.client import Client as InvariantClient
 from invariant_sdk.types.push_traces import PushTracesResponse
 from pydantic import ValidationError
+
+from invariant_runner import utils
+from invariant_runner.config import Config
+from invariant_runner.constants import INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR
+from invariant_runner.custom_types.test_result import AssertionResult, TestResult
+from invariant_runner.formatter import format_trace
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -41,13 +43,18 @@ class Manager:
     def _get_test_name(self):
         """Retrieve the name of the current test function."""
         frame = inspect.currentframe().f_back.f_back
-        # If request fixture is an argument to the test function, use that to get the test
-        # function name (with the parameters).
+        # If the request fixture is accessible, use that to get the test name with the paramaters.
         # This gives the test name in the format: test_name[param1-param2-...] from pytest.
         request = frame.f_locals.get("request")
         if request:
             return request.node.name
-        # Fallback to just the test function name.
+        # pytest sets the test name in the environment variable.
+        # when the test is running, PYTEST_CURRENT_TEST has the format:
+        # sample_tests/test_agent.py::test_get_test_name_and_parameters[Bob-True] (call)
+        # This too contains the parameter names with the test name.
+        if "PYTEST_CURRENT_TEST" in os.environ:
+            return os.environ.get("PYTEST_CURRENT_TEST").split("::")[-1].split(" ")[0]
+        # Fallback to just the test function name without parameters.
         return inspect.stack()[2].function
 
     def _load_config(self):
@@ -93,38 +100,35 @@ class Manager:
     def __enter__(self) -> "Manager":
         """Enter the context manager and setup configuration."""
         INVARIANT_CONTEXT.get().append(self)
-        self.config = self._load_config()  # pylint: disable=attribute-defined-outside-init
-        self.test_name = self._get_test_name(
-        )  # pylint: disable=attribute-defined-outside-init
-        self.client = (  # pylint: disable=attribute-defined-outside-init
+        self.config = self._load_config()
+        self.test_name = self._get_test_name()
+        self.client = (
             InvariantClient() if self.config is not None and self.config.push else None
         )
-        # Fetch the assertions and evaluate them.
-        # Store the result in some state and write it to the file as part of __exit__.
 
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> bool:
         """Exit the context manager, handling any exceptions that occurred."""
         # Save test result to the output directory.
-        dataset_name_for_output_file = (
+        dataset_name_for_test_results = (
             self.config.dataset_name if self.config else int(time.time())
         )
-        file_path = utils.get_test_results_file_path(
-            dataset_name_for_output_file)
+        test_results_directory = utils.get_test_results_directory_path(
+            dataset_name_for_test_results
+        )
+        test_result_file_path = f"{test_results_directory}/{self.test_name}.json"
 
         # if there is a config, and push is enabled, push the test results to Explorer
         if self.config is not None and self.config.push:
             push_traces_response = self.push()
-            self.explorer_url = self._get_explorer_url(
-                push_traces_response)  # pylint: disable=attribute-defined-outside-init
+            self.explorer_url = self._get_explorer_url(push_traces_response)
 
         # make sure path exists
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        os.makedirs(os.path.dirname(test_result_file_path), exist_ok=True)
 
-        with open(file_path, "a", encoding="utf-8") as file:
+        with open(test_result_file_path, "w", encoding="utf-8") as file:
             json.dump(self._get_test_result().model_dump(), file)
-            file.write("\n")
 
         # Handle exceptions via exc_value, if needed
         # Returning False allows exceptions to propagate; returning True suppresses them
@@ -146,8 +150,7 @@ class Manager:
             # the error message is all failed hard assertions with respective
             # code and trace snippets
             error_message = (
-                f"ERROR: {len(failed_hard_assertions)
-                          } hard assertions failed:\n\n"
+                f"ERROR: {len(failed_hard_assertions)} hard assertions failed:\n\n"
             )
 
             for i, failed_assertion in enumerate(failed_hard_assertions):
@@ -156,8 +159,7 @@ class Manager:
                 # flatten addresses
                 addresses = failed_assertion.addresses
                 # remove character ranges after : in addresses
-                addresses = [
-                    a.split(":")[0] if ":" in a else a for a in addresses]
+                addresses = [a.split(":")[0] if ":" in a else a for a in addresses]
 
                 column_width = utils.terminal_width()
                 failure_message = (
@@ -166,8 +168,7 @@ class Manager:
                     else "EXPECTATION VIOLATED"
                 )
 
-                formatted_trace = format_trace(
-                    self.trace.trace, highlights=addresses)
+                formatted_trace = format_trace(self.trace.trace, highlights=addresses)
                 if formatted_trace is not None:
                     error_message += (
                         " "
