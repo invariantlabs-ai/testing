@@ -31,17 +31,10 @@ class InvariantValue:
             return value
         from .invariant_bool import InvariantBool
         from .invariant_dict import InvariantDict
-        from .invariant_list import InvariantList
         from .invariant_number import InvariantNumber
         from .invariant_string import InvariantString
 
-        if isinstance(value, list):
-            if not isinstance(address, list):
-                raise TypeError(
-                    "InvariantValue.of requires a list of addresses for list values"
-                )
-            return InvariantList(value, address)
-        elif isinstance(value, dict):
+        if isinstance(value, dict):
             if not isinstance(address, list):
                 raise TypeError(
                     "InvariantValue.of requires a list of addresses for dict values, got "

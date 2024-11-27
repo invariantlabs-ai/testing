@@ -86,24 +86,24 @@ def test_messages_filter_callable_multiple_2(trace: Trace):
 
 def test_tool_calls(trace_with_tool_calls: Trace):
     tool_calls = trace_with_tool_calls.tool_calls()
-    assert tool_calls.len().value == 3
+    assert len(tool_calls) == 3
 
 def test_tool_calls_filter(trace_with_tool_calls: Trace):
     tool_calls = trace_with_tool_calls.tool_calls(type="function")
-    assert tool_calls.len().value == 3
+    assert len(tool_calls) == 3
 
 def test_tool_calls_filter_callable(trace_with_tool_calls: Trace):
     tool_calls = trace_with_tool_calls.tool_calls(function=lambda f: f["name"] == "greet")
-    assert tool_calls.len().value == 1
+    assert len(tool_calls) == 1
 
 def test_tool_calls_filter_name(trace_with_tool_calls: Trace):
     tool_calls = trace_with_tool_calls.tool_calls(name="greet")
-    assert tool_calls.len().value == 1
+    assert len(tool_calls) == 1
 
 def test_tool_calls_filter_name_callable(trace_with_tool_calls: Trace):
     tool_calls = trace_with_tool_calls.tool_calls(name=lambda n: n == "greet")
-    assert tool_calls.len().value == 1
+    assert len(tool_calls) == 1
 
 def test_tool_calls_filter_name_callable_2(trace_with_tool_calls: Trace):
     tool_calls = trace_with_tool_calls.tool_calls(name=lambda n: "e" in n)
-    assert tool_calls.len().value == 2
+    assert len(tool_calls) == 2
