@@ -191,10 +191,23 @@ def big_trace():
     )
 
 
-def test_big_trace(big_trace):
+def test_big_trace(big_trace: Trace):
     """Test trace with tool calls."""
-    with Manager(big_trace):
-        for tc in big_trace.messages(role="assistant"):
+    trace = Trace(
+        trace=[
+            {
+                "role": "user",
+                "content": "Could you kindly show me the list of files in tmp directory in my file system including the hidden one?",
+            },
+            {
+                "role": "assistant",
+                "content": "In the current directory, there is one file: **report.txt**. There are no hidden files listed.",
+            },
+        ]
+    )
+
+    with trace.as_context():
+        for tc in trace.messages(role="assistant"):
             assert_true(
                 tc["content"].contains("current"),
                 "Assistant message content should contain the word 'current'",

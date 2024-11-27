@@ -316,6 +316,13 @@ a {
     display: none !important;
 }
 
+/* output font size larger */
+.jupyter-wrapper .jp-RenderedText.jp-OutputArea-output pre {
+    font-size: 12pt;
+    border-left: 4pt solid #3d3aff4d;
+    padding-left: 8pt;
+}
+
 .jupyter-wrapper .jp-Cell-inputArea, .jupyter-wrapper .jp-Cell-outputArea {
     margin-top: 10pt;
 }
@@ -323,4 +330,23 @@ a {
 /* do not show stderr */
 .jupyter-wrapper .jp-RenderedText.jp-OutputArea-output[data-mime-type="application/vnd.jupyter.stderr"] {
     display: none !important;
+}
+
+div.highlight {
+    font-size: 12pt !important;
+}
+
+span.llm::before {
+    content: "LLM-based";
+    color: white;
+    font-size: 8pt;
+    position: relative;
+    top: -3pt;
+    margin-left: 3pt;
+    background-color: rgb(199, 130, 199);
+    display: inline-block;
+    height: 10pt;
+    
+    padding: 2pt 4pt;
+    border-radius: 4pt;
 }

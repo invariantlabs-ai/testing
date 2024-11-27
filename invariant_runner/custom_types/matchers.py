@@ -78,4 +78,5 @@ class IsSimilar(Matcher):
         similar_score = self.metric_to_scorer_mapping[self.actual_metric](
             actual_value, self.expected_value
         )
+        print(similar_score)
         return similar_score >= self.threshold

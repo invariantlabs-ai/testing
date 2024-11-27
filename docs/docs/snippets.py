@@ -47,4 +47,4 @@ def run_snippets(file):
 
 
 if __name__ == "__main__":
-    run_snippets("index.md")
+    run_snippets("Writing_Tests/2_Tests.md")

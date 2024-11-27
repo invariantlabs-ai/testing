@@ -13,7 +13,7 @@ This quickstart guide demonstrates how to write and run your first agent test ca
 First, install the Invariant Testing library using pip:
 
 ```bash
-pip install invariant-testing
+pip install invariant
 ```
 
 ## 2. Create a test case
