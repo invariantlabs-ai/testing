@@ -8,6 +8,7 @@ import logging
 import os
 import time
 from contextvars import ContextVar
+from json import JSONEncoder
 
 import pytest
 from invariant_sdk.client import Client as InvariantClient
@@ -27,6 +28,41 @@ logger = logging.getLogger(__name__)
 INVARIANT_CONTEXT = ContextVar("invariant_context", default=[])
 
 
+class RaisingManager:
+    """
+    Similar to 'Manager' but immediately raises hard exceptions and does not track them over time.
+
+    This manager will be used e.g. when the `trace.as_context()` context manager was not used.
+
+    Example scenarios include users using library assertion functions like `assert_that` but outside of
+    the context of a trace context manager.
+    """
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        return False
+
+    def add_assertion(self, assertion: AssertionResult):
+        # raise hard assertions directly
+        if assertion.type == "HARD" and not assertion.passed:
+            column_width = utils.terminal_width()
+            failure_message = "ASSERTION FAILED"
+            message = assertion.message
+            # locate in snippet like below
+            error_message = (
+                " "
+                + assertion.test
+                + ("_" * column_width + "\n")
+                + f"\n{failure_message}: {message or ''}\n"
+                + ("_" * column_width + "\n\n")
+            )
+            pytest.fail(error_message, pytrace=False)
+
+        # ignore soft and passed assertions
+
+
 class Manager:
     """Context manager class to run tests with Invariant."""
 
@@ -38,7 +74,13 @@ class Manager:
     @staticmethod
     def current():
         """Return the current context."""
+        if len(INVARIANT_CONTEXT.get()) == 0:
+            return RaisingManager()
         return INVARIANT_CONTEXT.get()[-1]
+
+    def add_assertion(self, assertion: AssertionResult):
+        """Add an assertion to the list of assertions."""
+        self.assertions.append(assertion)
 
     def _get_test_name(self):
         """Retrieve the name of the current test function."""
@@ -74,6 +116,7 @@ class Manager:
 
     def _get_test_result(self):
         """Generate the test result."""
+
         passed = all(
             assertion.passed if assertion.type == "HARD" else True
             for assertion in self.assertions
@@ -110,6 +153,29 @@ class Manager:
 
     def __exit__(self, exc_type, exc_value, traceback) -> bool:
         """Exit the context manager, handling any exceptions that occurred."""
+
+        if exc_type is AssertionError:
+            # add regular assertion failure as hard assertion result
+            assertion = AssertionResult(
+                test=self.test_name,
+                message="'" + str(exc_value).encode("unicode_escape").decode() + "'",
+                passed=False,
+                type="HARD",
+                addresses=[],
+            )
+            self.add_assertion(assertion)
+        elif exc_type is not None:
+            assertion = AssertionResult(
+                test=self.test_name,
+                message="Error during test execution: " + str(exc_value),
+                passed=False,
+                type="HARD",
+                addresses=[],
+            )
+            self.add_assertion(assertion)
+
+        # print("exit manager with", exc_type, exc_value)
+
         # Save test result to the output directory.
         dataset_name_for_test_results = (
             self.config.dataset_name if self.config else int(time.time())
@@ -128,11 +194,19 @@ class Manager:
         os.makedirs(os.path.dirname(test_result_file_path), exist_ok=True)
 
         with open(test_result_file_path, "w", encoding="utf-8") as file:
-            json.dump(self._get_test_result().model_dump(), file)
+            json.dump(self._get_test_result().model_dump(), file, cls=TestResultEncoder)
 
         # Handle exceptions via exc_value, if needed
         # Returning False allows exceptions to propagate; returning True suppresses them
         INVARIANT_CONTEXT.get().pop()
+
+        # unset 'manager' field of parent Trace
+        if self.trace.manager is self:
+            self.trace.manager = None
+
+        # if there was only normal assertions and we already recorded it, we are n
+        if exc_type is not None:
+            return False
 
         # handle outcome (e.g. throw an exception if a hard assertion failed)
         self.handle_outcome()
@@ -243,3 +317,14 @@ class Manager:
                 "Failed to push test results to Explorer. Please make sure your Invariant API key and endpoint are setup correctly or run without --push.",
                 pytrace=False,
             )
+
+
+class TestResultEncoder(JSONEncoder):
+    """
+    Simple encoder that omits the Manager object from the JSON output.
+    """
+
+    def default(self, o):
+        if isinstance(o, Manager):
+            return None
+        return JSONEncoder.default(self, o)

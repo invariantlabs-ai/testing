@@ -8,13 +8,16 @@ import sys
 import time
 
 import pytest
+from invariant_sdk.client import Client as InvariantClient
+
 from invariant_runner import utils
 from invariant_runner.config import Config
 from invariant_runner.constants import (
-    INVARIANT_AP_KEY_ENV_VAR, INVARIANT_RUNNER_TEST_RESULTS_DIR,
+    INVARIANT_AP_KEY_ENV_VAR,
+    INVARIANT_RUNNER_TEST_RESULTS_DIR,
     INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR,
-    INVARIANT_TEST_RUNNER_TERMINAL_WIDTH_ENV_VAR)
-from invariant_sdk.client import Client as InvariantClient
+    INVARIANT_TEST_RUNNER_TERMINAL_WIDTH_ENV_VAR,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -25,10 +28,11 @@ BOLD = "\033[1m"
 END = "\033[0m"
 
 
-def parse_args() -> tuple[argparse.Namespace, list[str]]:
+def parse_args(args: list[str]) -> tuple[argparse.Namespace, list[str]]:
     """Parse command-line arguments for the Invariant Runner."""
     parser = argparse.ArgumentParser(
-        description="Run tests with Invariant Runner configuration."
+        prog="invariant test",
+        description="Runs a specified test (folder) with Invariant test (pytest compatible arguments)",
     )
     parser.add_argument(
         "--dataset_name",
@@ -43,7 +47,7 @@ def parse_args() -> tuple[argparse.Namespace, list[str]]:
         {BOLD}https://explorer.invariantlabs.ai/docs/{END} to see steps to generate
         an API key.""",
     )
-    return parser.parse_known_args()
+    return parser.parse_known_args(args)
 
 
 def create_config(args: argparse.Namespace) -> Config:
@@ -101,8 +105,7 @@ def finalize_tests_and_print_summary(conf: Config) -> None:
             if test_result.get("passed"):
                 passed_count += 1
             print(
-                f"{tests}. {test_result.get('name')}: {
-                    'PASSED' if test_result.get('passed') else 'FAILED'}"
+                f"{tests}. {test_result.get('name')}: {'PASSED' if test_result.get('passed') else 'FAILED'}"
             )
             explorer_url = explorer_url or test_result.get("explorer_url")
     print("\n")
@@ -128,10 +131,10 @@ def finalize_tests_and_print_summary(conf: Config) -> None:
         print(f"Results available at {explorer_url}")
 
 
-if __name__ == "__main__":
+def test(args: list[str]) -> None:
     try:
         # Parse command-line arguments and create configuration
-        invariant_runner_args, pytest_args = parse_args()
+        invariant_runner_args, pytest_args = parse_args(args)
         config = create_config(invariant_runner_args)
         os.environ[INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR] = config.model_dump_json()
         # pass along actual terminal width to the test runner (for better formatting)
@@ -143,14 +146,37 @@ if __name__ == "__main__":
         sys.exit(1)
 
     test_results_directory_path = utils.get_test_results_directory_path(
-        config.dataset_name)
+        config.dataset_name
+    )
     if os.path.exists(test_results_directory_path):
         os.remove(test_results_directory_path)
 
     # Run pytest with remaining arguments
-    pytest.main(pytest_args)
+    exit_code = pytest.main(pytest_args)
 
     # print Invariant test summary
     finalize_tests_and_print_summary(config)
 
-    # Update dataset level metadata to include the total passed and failed counts.
+    return exit_code
+
+
+def main():
+    actions = {
+        "test": "Runs a specified test (folder) with Invariant test (pytest compatible arguments)",
+        "help": "Shows this help message",
+    }
+
+    if len(sys.argv) < 2 or sys.argv[1] not in actions or sys.argv[1] == "help":
+        print("Usage: invariant <command> [<args>]")
+        print("\nSupported Commands:\n")
+        for verb, description in actions.items():
+            print(f"  {verb}: {description}")
+        print()
+        sys.exit(1)
+
+    verb = sys.argv[1]
+    if verb == "test":
+        return test(sys.argv[2:])
+    else:
+        print(f"Unknown action: {verb}")
+        return 1

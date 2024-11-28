@@ -1,9 +1,13 @@
 """Contains sample tests which use the Invariant Runner."""
 
 import pytest
-from invariant_runner.custom_types.assertions import (assert_equals,
-                                                      assert_that, assert_true,
-                                                      expect_equals)
+
+from invariant_runner.custom_types.assertions import (
+    assert_equals,
+    assert_that,
+    assert_true,
+    expect_equals,
+)
 from invariant_runner.custom_types.matchers import HasSubstring
 from invariant_runner.custom_types.trace import Trace
 from invariant_runner.manager import Manager
@@ -187,54 +191,123 @@ def big_trace():
     )
 
 
-def test_big_trace(big_trace):
+def test_big_trace(big_trace: Trace):
     """Test trace with tool calls."""
-    with Manager(big_trace):
-        for tc in big_trace.messages(role="assistant"):
-            assert_true(
-                tc["content"].len() == 0
-                or tc["content"].contains("current")
-                or tc["content"].contains("lines"),
-                "Assistant message content should be empty",
-            )
+    trace = Trace(
+        trace=[
+            {
+                "role": "user",
+                "content": "Could you kindly show me the list of files in tmp directory in my file system including the hidden one?",
+            },
+            {
+                "role": "assistant",
+                "content": "In the current directory, there is one file: **report.txt**. There are no hidden files listed.",
+            },
+        ]
+    )
 
-            assert_equals(
-                "", tc["content"], "Assistant message content should be empty"
+    with trace.as_context():
+        for tc in trace.messages(role="assistant"):
+            assert_true(
+                tc["content"].contains("current"),
+                "Assistant message content should contain the word 'current'",
             )
 
 
 def test_trace_rules(trace_with_tool_calls: Trace):
     """Test trace rules."""
     with Manager(trace_with_tool_calls):
-        tool_calls_with_greet = trace_with_tool_calls.tool_calls(name=lambda n: n == "greet")
+        tool_calls_with_greet = trace_with_tool_calls.tool_calls(
+            name=lambda n: n == "greet"
+        )
         assert_true(tool_calls_with_greet[0]["function"]["name"] == "greet")
 
-        tool_calls_with_ask = trace_with_tool_calls.tool_calls(name=lambda n: n == "ask")
-        assert_true(tool_calls_with_ask[0]["function"]["arguments"]["question"].contains("help"))
-        assert_true(not tool_calls_with_ask[0]["function"]["arguments"]["question"].contains("helpp"))
+        tool_calls_with_ask = trace_with_tool_calls.tool_calls(
+            name=lambda n: n == "ask"
+        )
+        assert_true(
+            tool_calls_with_ask[0]["function"]["arguments"]["question"].contains("help")
+        )
+        assert_true(
+            not tool_calls_with_ask[0]["function"]["arguments"]["question"].contains(
+                "helpp"
+            )
+        )
 
         assistant_messages = trace_with_tool_calls.messages(role="assistant")
         assert assistant_messages.len() == 2
-        assert_equals("Hello there", assistant_messages[0]["content"], "First message should greet 'there'")
-        assert_equals("I need help with something", assistant_messages[1]["content"], "Second message should greet 'something'")
+        assert_equals(
+            "Hello there",
+            assistant_messages[0]["content"],
+            "First message should greet 'there'",
+        )
+        assert_equals(
+            "I need help with something",
+            assistant_messages[1]["content"],
+            "Second message should greet 'something'",
+        )
 
-        
+
 def test_custom_trace():
-    trace = Trace(trace=[
-        {"role": "user", "content": "what's the weather in bern?"}, 
-        {"content": "", "role": "assistant", "sender": "Agent A", "tool_calls": [
-            {"id": "call_WqAaSNVKa8Ii5nD3EaNlJqsW", "function": {"arguments": "{}", "name": "transfer_to_agent_b"}, "type": "function"}]}, 
-        {"role": "tool", "tool_call_id": "call_WqAaSNVKa8Ii5nD3EaNlJqsW", "tool_name": "transfer_to_agent_b", "content": "{\"assistant\": \"Agent B\"}"}, 
-        {"role": "assistant", "tool_calls": [{"id": "call_qbPWQHy8pwQEjuAdnRzR7qEj", "function": {"arguments": "{\"lat\": \"46.948\", \"lon\": \"7.4474\"}", "name": "get_weather"}, "type": "function"}], "sender": "Agent B"}, {"role": "tool", "tool_call_id": "call_qbPWQHy8pwQEjuAdnRzR7qEj", "tool_name": "get_weather", "content": "{'coord': {'lon': 7.4515, 'lat': 46.9483}, 'weather': [{'id': 803, 'main': 'Clouds', 'description': 'broken clouds', 'icon': '04d'}], 'base': 'stations', 'main': {'temp': 272.86, 'feels_like': 272.86, 'temp_min': 270.7, 'temp_max': 273.4, 'pressure': 1011, 'humidity': 78, 'sea_level': 1011, 'grnd_level': 935}, 'visibility': 10000, 'wind': {'speed': 0.89, 'deg': 212, 'gust': 1.79}, 'clouds': {'all': 73}, 'dt': 1732172700, 'sys': {'type': 2, 'id': 2012960, 'country': 'CH', 'sunrise': 1732171347, 'sunset': 1732204211}, 'timezone': 3600, 'id': 2661552, 'name': 'Bern', 'cod': 200}"}, 
-        {"content": "Clouds hover above,  \nIn beautiful Bern today,  \nChilly air whispers.", "role": "assistant", "sender": "Agent B"}
-    ])
+    trace = Trace(
+        trace=[
+            {"role": "user", "content": "what's the weather in bern?"},
+            {
+                "content": "",
+                "role": "assistant",
+                "sender": "Agent A",
+                "tool_calls": [
+                    {
+                        "id": "call_WqAaSNVKa8Ii5nD3EaNlJqsW",
+                        "function": {"arguments": "{}", "name": "transfer_to_agent_b"},
+                        "type": "function",
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "tool_call_id": "call_WqAaSNVKa8Ii5nD3EaNlJqsW",
+                "tool_name": "transfer_to_agent_b",
+                "content": '{"assistant": "Agent B"}',
+            },
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {
+                        "id": "call_qbPWQHy8pwQEjuAdnRzR7qEj",
+                        "function": {
+                            "arguments": '{"lat": "46.948", "lon": "7.4474"}',
+                            "name": "get_weather",
+                        },
+                        "type": "function",
+                    }
+                ],
+                "sender": "Agent B",
+            },
+            {
+                "role": "tool",
+                "tool_call_id": "call_qbPWQHy8pwQEjuAdnRzR7qEj",
+                "tool_name": "get_weather",
+                "content": "{'coord': {'lon': 7.4515, 'lat': 46.9483}, 'weather': [{'id': 803, 'main': 'Clouds', 'description': 'broken clouds', 'icon': '04d'}], 'base': 'stations', 'main': {'temp': 272.86, 'feels_like': 272.86, 'temp_min': 270.7, 'temp_max': 273.4, 'pressure': 1011, 'humidity': 78, 'sea_level': 1011, 'grnd_level': 935}, 'visibility': 10000, 'wind': {'speed': 0.89, 'deg': 212, 'gust': 1.79}, 'clouds': {'all': 73}, 'dt': 1732172700, 'sys': {'type': 2, 'id': 2012960, 'country': 'CH', 'sunrise': 1732171347, 'sunset': 1732204211}, 'timezone': 3600, 'id': 2661552, 'name': 'Bern', 'cod': 200}",
+            },
+            {
+                "content": "Clouds hover above,  \nIn beautiful Bern today,  \nChilly air whispers.",
+                "role": "assistant",
+                "sender": "Agent B",
+            },
+        ]
+    )
     with Manager(trace):
         assert_true(trace.messages(role="assistant")[0]["sender"] == "Agent A")
 
         # assert 3 lines in the last message
         res = trace.messages(role="assistant")[-1]["content"].count("\n")
         assert_true(res == 2)
-        assert len(res.addresses) == 2 and res.addresses[0] == "5.content:21-22" and res.addresses[1] == "5.content:48-49"
+        assert (
+            len(res.addresses) == 2
+            and res.addresses[0] == "5.content:21-22"
+            and res.addresses[1] == "5.content:48-49"
+        )
 
         # tool call names
         tool_calls = trace.tool_calls()
@@ -244,12 +317,18 @@ def test_custom_trace():
         # single index
         res = tool_calls[1]["function"]["arguments"][19]
         assert_true(res == "l")
-        assert len(res.addresses) == 1 and res.addresses[0] == "3.tool_calls.0.function.arguments:19-20"
+        assert (
+            len(res.addresses) == 1
+            and res.addresses[0] == "3.tool_calls.0.function.arguments:19-20"
+        )
 
         # slice
         res = tool_calls[1]["function"]["arguments"][19:22]
         assert_true(res == "lon")
-        assert len(res.addresses) == 1 and res.addresses[0] == "3.tool_calls.0.function.arguments:19-22"
+        assert (
+            len(res.addresses) == 1
+            and res.addresses[0] == "3.tool_calls.0.function.arguments:19-22"
+        )
 
         # json parameters
         assert_true(tool_calls[1]["function"]["arguments"].is_valid_code("json"))
@@ -260,14 +339,17 @@ def test_custom_trace():
 @pytest.mark.parametrize(
     "name, bool1", [("Alice", True), ("Alice", False), ("Bob", False), ("Bob", True)]
 )
-def test_get_test_name_and_parameters_from_request(request, name, bool1, trace_with_tool_calls):
+def test_get_test_name_and_parameters_from_request(
+    request, name, bool1, trace_with_tool_calls
+):
     """Test get_test_name_and_parameters."""
     with Manager(trace_with_tool_calls):
         pass
 
 
 @pytest.mark.parametrize(
-    "name, bool1", [("Jacob", True), ("Jacob", False), ("Alfred", False), ("Alfred", True)]
+    "name, bool1",
+    [("Jacob", True), ("Jacob", False), ("Alfred", False), ("Alfred", True)],
 )
 def test_get_test_name_and_parameters_from_env(name, bool1, trace_with_tool_calls):
     """Test get_test_name_and_parameters."""

@@ -2,9 +2,9 @@
 
 from typing import Any, Callable, Dict, List
 
-from invariant_runner.custom_types.invariant_dict import (InvariantDict,
-                                                          InvariantValue)
 from pydantic import BaseModel
+
+from invariant_runner.custom_types.invariant_dict import InvariantDict, InvariantValue
 
 
 def iterate_tool_calls(messages: list[dict]):
@@ -58,8 +58,25 @@ class Trace(BaseModel):
     trace: List[Dict]
     metadata: Dict[str, Any] | None = None
 
+    # Active Manager that is running with this trace as context
+    # (e.g. with Trace(...) as trace: ... )
+    # If this is already assigned, the trace is currently being used in a context manager already and should not be re-used.
+    manager: Any = None
+
+    def as_context(self):
+        from invariant_runner.manager import Manager
+
+        if self.manager is None:
+            self.manager = Manager(self)
+        return self.manager
+
     @classmethod
-    def from_explorer(cls, identifier_or_id: str, index: int | None = None, explorer_endpoint: str = "https://explorer.invariantlabs.ai") -> "Trace":
+    def from_explorer(
+        cls,
+        identifier_or_id: str,
+        index: int | None = None,
+        explorer_endpoint: str = "https://explorer.invariantlabs.ai",
+    ) -> "Trace":
         """
         Loads a public trace from the Explorer (https://explorer.invariantlabs.ai).
 
@@ -126,7 +143,9 @@ class Trace(BaseModel):
                     for kwname, kwvalue in filterkwargs.items()
                 )
             ]
-        return [InvariantDict(message, [f"{i}"]) for i, message in enumerate(self.trace)]
+        return [
+            InvariantDict(message, [f"{i}"]) for i, message in enumerate(self.trace)
+        ]
 
     def tool_pairs(self) -> list[tuple[InvariantDict, InvariantDict]]:
         """Returns the list of tuples of (tool_call, tool_output)."""
@@ -135,7 +154,13 @@ class Trace(BaseModel):
             if msg.get("role") != "assistant":
                 continue
             for tc_idx, tc in enumerate(msg.get("tool_calls", [])):
-                res.append((msg_idx, InvariantDict(tc, [f"{msg_idx}.tool_calls.{tc_idx}"]), None))
+                res.append(
+                    (
+                        msg_idx,
+                        InvariantDict(tc, [f"{msg_idx}.tool_calls.{tc_idx}"]),
+                        None,
+                    )
+                )
 
         matched_ids = set()
         # First, find all tool outputs that have the same id as a tool call
@@ -158,11 +183,16 @@ class Trace(BaseModel):
             for i, res_pair in reversed(list(enumerate(res))):
                 tool_call_idx, tool_call, tool_out = res_pair
                 if tool_out is None and tool_call_idx < msg_idx:
-                    res[i] = (tool_call_idx, tool_call, InvariantDict(msg, [f"{msg_idx}"]))
+                    res[i] = (
+                        tool_call_idx,
+                        tool_call,
+                        InvariantDict(msg, [f"{msg_idx}"]),
+                    )
                     break
 
-        return [(res_pair[1], res_pair[2]) for res_pair in res if res_pair[2] is not None]
-
+        return [
+            (res_pair[1], res_pair[2]) for res_pair in res if res_pair[2] is not None
+        ]
 
     def tool_calls(
         self, selector: int | None = None, **filterkwargs
@@ -173,10 +203,12 @@ class Trace(BaseModel):
                 if i == selector:
                     return InvariantDict(tc, tc_address)
         elif isinstance(selector, dict):
+
             def find_value(d, path):
                 for k in path.split("."):
                     d = d[k]
                 return d
+
             return [
                 InvariantDict(tc, tc_address)
                 for tc_address, tc in iterate_tool_calls(self.trace)
@@ -201,7 +233,7 @@ class Trace(BaseModel):
                 InvariantDict(tc, tc_address)
                 for tc_address, tc in iterate_tool_calls(self.trace)
             ]
-            
+
     def to_python(self):
         """
         Returns a snippet of Python code construct that can be used
@@ -215,4 +247,3 @@ class Trace(BaseModel):
 
     def __str__(self):
         return "\n".join(str(msg) for msg in self.trace)
-            

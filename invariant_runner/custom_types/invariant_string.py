@@ -8,14 +8,14 @@ from operator import ge, gt, le, lt, ne
 from typing import Any, Union
 
 from _pytest.python_api import ApproxBase
+
 from invariant_runner.custom_types.invariant_bool import InvariantBool
 from invariant_runner.custom_types.invariant_number import InvariantNumber
 from invariant_runner.custom_types.invariant_value import InvariantValue
-from invariant_runner.scorers.code import is_valid_json, is_valid_python
+from invariant_runner.scorers.code import execute, is_valid_json, is_valid_python
 from invariant_runner.scorers.moderation import ModerationAnalyzer
 from invariant_runner.scorers.strings import embedding_similarity, levenshtein
 from invariant_runner.scorers.utils.llm import LLMClassifier, LLMDetector
-from invariant_runner.scorers.code import execute
 
 
 class InvariantString(InvariantValue):
@@ -26,6 +26,8 @@ class InvariantString(InvariantValue):
             raise TypeError(f"value must be a str, got {type(value)}")
         if addresses is None:
             addresses = []
+        if type(addresses) is str:
+            addresses = [addresses]
         super().__init__(value, addresses)
 
     def _compare(self, other: Union[str, "InvariantString"], operator) -> InvariantBool:
@@ -192,6 +194,7 @@ class InvariantString(InvariantValue):
         for match in re.finditer(pattern, self.value):
             start, end = match.span()
             new_addresses.append(f"{start}-{end}")
+
         return InvariantBool(
             len(new_addresses) > 0,
             (
@@ -267,7 +270,9 @@ class InvariantString(InvariantValue):
             ret.append(InvariantString(substr, self._concat_addresses([str(r)])))
         return ret
 
-    def execute(self, suffix_code: str = "", detect_packages: bool = False) -> InvariantString:
+    def execute(
+        self, suffix_code: str = "", detect_packages: bool = False
+    ) -> InvariantString:
         """Execute the value as Python code and return the standard output as InvariantString.
 
         Args:
