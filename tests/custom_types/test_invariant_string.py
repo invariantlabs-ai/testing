@@ -4,7 +4,6 @@ import base64
 
 import pytest
 from invariant_runner.custom_types.invariant_bool import InvariantBool
-from invariant_runner.custom_types.invariant_list import InvariantList
 from invariant_runner.custom_types.invariant_number import InvariantNumber
 from invariant_runner.custom_types.invariant_string import InvariantString
 from pytest import approx
@@ -232,42 +231,12 @@ def test_extract():
         "I like apples and carrots, but I don't like bananas.\nThe only thing better than apples are potatoes and pears.",
         ["message.0.content"],
     ).extract("fruits")
-    assert isinstance(res, InvariantList)
-    assert len(res.value) == 4
-    assert res.value[0] == "apples" and res.addresses[0] == "message.0.content:7-13"
-    assert res.value[1] == "bananas" and res.addresses[1] == "message.0.content:44-51"
-    assert res.value[2] == "apples" and res.addresses[2] == "message.0.content:80-86"
-    assert res.value[3] == "pears" and res.addresses[3] == "message.0.content:104-109"
-
-
-def test_vision_classifier():
-    with open("sample_tests/assets/Group_of_cats_resized.jpg", "rb") as image_file:
-        base64_image = base64.b64encode(image_file.read()).decode("utf-8")
-    img = InvariantString(base64_image, [""])
-    res = img.llm_vision("What is in the image?", ["cats", "dogs", "birds", "none"])
-    assert isinstance(res, InvariantString) and res.value == "cats"
-    res = img.llm_vision(
-        "How many cats are in the image?",
-        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
-    )
-    assert isinstance(res, InvariantString) and res.value == "3"
-
-
-def test_oct_detector():
-    # Load test image
-    from invariant_runner.scorers.utils.ocr import OCRDetector
-
-    if not OCRDetector.check_tesseract_installed():
-        pytest.skip("Tesseract is not installed")
-    with open("sample_tests/assets/inv_labs.png", "rb") as image_file:
-        base64_image = base64.b64encode(image_file.read()).decode("utf-8")
-
-    # Test case-insensitive detection
-    assert InvariantString(base64_image, [""]).ocr_contains("agents")
-    assert InvariantString(base64_image, [""]).ocr_contains(
-        "making", bbox={"x1": 50, "y1": 10, "x2": 120, "y2": 40}
-    )
-    assert not InvariantString(base64_image, [""]).ocr_contains("LLM")
+    assert isinstance(res, list)
+    assert len(res) == 4
+    assert res[0] == "apples" and res[0].addresses[0] == "message.0.content:7-13"
+    assert res[1] == "bananas" and res[1].addresses[0] == "message.0.content:44-51"
+    assert res[2] == "apples" and res[2].addresses[0] == "message.0.content:80-86"
+    assert res[3] == "pears" and res[3].addresses[0] == "message.0.content:104-109"
 
 
 @pytest.mark.skip(reason="Skip for now, needs docker")

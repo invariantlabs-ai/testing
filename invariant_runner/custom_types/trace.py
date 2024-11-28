@@ -5,7 +5,6 @@ from typing import Any, Callable, Dict, List
 from pydantic import BaseModel
 
 from invariant_runner.custom_types.invariant_dict import InvariantDict, InvariantValue
-from invariant_runner.custom_types.invariant_list import InvariantList
 
 
 def iterate_tool_calls(messages: list[dict]):
@@ -72,7 +71,12 @@ class Trace(BaseModel):
         return self.manager
 
     @classmethod
-    def from_explorer(cls, identifier_or_id: str, index: int | None = None, explorer_endpoint: str = "https://explorer.invariantlabs.ai") -> "Trace":
+    def from_explorer(
+        cls,
+        identifier_or_id: str,
+        index: int | None = None,
+        explorer_endpoint: str = "https://explorer.invariantlabs.ai",
+    ) -> "Trace":
         """
         Loads a public trace from the Explorer (https://explorer.invariantlabs.ai).
 
@@ -126,24 +130,22 @@ class Trace(BaseModel):
 
     def messages(
         self, selector: int | None = None, **filterkwargs
-    ) -> List[InvariantDict]:
+    ) -> list[InvariantDict]:
         """Return the messages in the trace."""
         if isinstance(selector, int):
             return InvariantDict(self.trace[selector], f"{selector}")
         if len(filterkwargs) > 0:
-            return InvariantList.from_values(
-                [
-                    InvariantDict(message, [f"{i}"])
-                    for i, message in enumerate(self.trace)
-                    if all(
-                        match_keyword_filter(kwname, kwvalue, message.get(kwname))
-                        for kwname, kwvalue in filterkwargs.items()
-                    )
-                ]
-            )
-        return InvariantList.from_values(
-            [InvariantDict(message, [f"{i}"]) for i, message in enumerate(self.trace)]
-        )
+            return [
+                InvariantDict(message, [f"{i}"])
+                for i, message in enumerate(self.trace)
+                if all(
+                    match_keyword_filter(kwname, kwvalue, message.get(kwname))
+                    for kwname, kwvalue in filterkwargs.items()
+                )
+            ]
+        return [
+            InvariantDict(message, [f"{i}"]) for i, message in enumerate(self.trace)
+        ]
 
     def tool_pairs(self) -> list[tuple[InvariantDict, InvariantDict]]:
         """Returns the list of tuples of (tool_call, tool_output)."""
@@ -152,7 +154,13 @@ class Trace(BaseModel):
             if msg.get("role") != "assistant":
                 continue
             for tc_idx, tc in enumerate(msg.get("tool_calls", [])):
-                res.append((msg_idx, InvariantDict(tc, [f"{msg_idx}.tool_calls.{tc_idx}"]), None))
+                res.append(
+                    (
+                        msg_idx,
+                        InvariantDict(tc, [f"{msg_idx}.tool_calls.{tc_idx}"]),
+                        None,
+                    )
+                )
 
         matched_ids = set()
         # First, find all tool outputs that have the same id as a tool call
@@ -175,16 +183,20 @@ class Trace(BaseModel):
             for i, res_pair in reversed(list(enumerate(res))):
                 tool_call_idx, tool_call, tool_out = res_pair
                 if tool_out is None and tool_call_idx < msg_idx:
-                    res[i] = (tool_call_idx, tool_call, InvariantDict(msg, [f"{msg_idx}"]))
+                    res[i] = (
+                        tool_call_idx,
+                        tool_call,
+                        InvariantDict(msg, [f"{msg_idx}"]),
+                    )
                     break
 
-        res = [InvariantList.from_values([res_pair[1], res_pair[2]]) for res_pair in res if res_pair[2] is not None]
-        return InvariantList.from_values(res)
-
+        return [
+            (res_pair[1], res_pair[2]) for res_pair in res if res_pair[2] is not None
+        ]
 
     def tool_calls(
         self, selector: int | None = None, **filterkwargs
-    ) -> InvariantList | InvariantDict:
+    ) -> list[InvariantDict] | InvariantDict:
         """Return the tool calls in the trace."""
         if isinstance(selector, int):
             for i, (tc_address, tc) in enumerate(iterate_tool_calls(self.trace)):
@@ -197,36 +209,30 @@ class Trace(BaseModel):
                     d = d[k]
                 return d
 
-            return InvariantList.from_values(
-                [
-                    InvariantDict(tc, tc_address)
-                    for tc_address, tc in iterate_tool_calls(self.trace)
-                    if all(
-                        find_value(tc["function"], kwname) == kwvalue
-                        for kwname, kwvalue in selector.items()
-                    )
-                ]
-            )
+            return [
+                InvariantDict(tc, tc_address)
+                for tc_address, tc in iterate_tool_calls(self.trace)
+                if all(
+                    find_value(tc["function"], kwname) == kwvalue
+                    for kwname, kwvalue in selector.items()
+                )
+            ]
         elif len(filterkwargs) > 0:
-            return InvariantList.from_values(
-                [
-                    InvariantDict(tc, tc_address)
-                    for tc_address, tc in iterate_tool_calls(self.trace)
-                    if all(
-                        match_keyword_filter_on_tool_call(
-                            kwname, kwvalue, tc.get(kwname), tc
-                        )
-                        for kwname, kwvalue in filterkwargs.items()
+            return [
+                InvariantDict(tc, tc_address)
+                for tc_address, tc in iterate_tool_calls(self.trace)
+                if all(
+                    match_keyword_filter_on_tool_call(
+                        kwname, kwvalue, tc.get(kwname), tc
                     )
-                ]
-            )
+                    for kwname, kwvalue in filterkwargs.items()
+                )
+            ]
         else:
-            return InvariantList.from_values(
-                [
-                    InvariantDict(tc, tc_address)
-                    for tc_address, tc in iterate_tool_calls(self.trace)
-                ]
-            )
+            return [
+                InvariantDict(tc, tc_address)
+                for tc_address, tc in iterate_tool_calls(self.trace)
+            ]
 
     def to_python(self):
         """
@@ -241,4 +247,3 @@ class Trace(BaseModel):
 
     def __str__(self):
         return "\n".join(str(msg) for msg in self.trace)
-            

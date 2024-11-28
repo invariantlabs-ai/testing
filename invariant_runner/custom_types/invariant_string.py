@@ -5,19 +5,17 @@ from __future__ import annotations
 import json
 import re
 from operator import ge, gt, le, lt, ne
-from typing import Any, Optional, Union
+from typing import Any, Union
 
 from _pytest.python_api import ApproxBase
 
 from invariant_runner.custom_types.invariant_bool import InvariantBool
-from invariant_runner.custom_types.invariant_list import InvariantList
 from invariant_runner.custom_types.invariant_number import InvariantNumber
 from invariant_runner.custom_types.invariant_value import InvariantValue
 from invariant_runner.scorers.code import execute, is_valid_json, is_valid_python
 from invariant_runner.scorers.moderation import ModerationAnalyzer
 from invariant_runner.scorers.strings import embedding_similarity, levenshtein
 from invariant_runner.scorers.utils.llm import LLMClassifier, LLMDetector
-from invariant_runner.scorers.utils.ocr import OCRDetector
 
 
 class InvariantString(InvariantValue):
@@ -125,7 +123,7 @@ class InvariantString(InvariantValue):
         )
 
     def len(self):
-        """Return the length of the list."""
+        """Return the length of the string."""
         return InvariantNumber(len(self.value), self.addresses)
 
     def __getattr__(self, attr):
@@ -253,30 +251,9 @@ class InvariantString(InvariantValue):
         res = llm_clf.classify(self.value, use_cached_result)
         return InvariantString(res, self.addresses)
 
-    def llm_vision(
-        self,
-        prompt: str,
-        options: list[str],
-        model: str = "gpt-4o",
-        use_cached_result: bool = True,
-    ) -> InvariantString:
-        """Check if the value is similar to the given string using an LLM.
-
-        Args:
-            prompt (str): The prompt to use for the LLM.
-            options (list[str]): The options to use for the LLM.
-            model (str): The model to use for the LLM.
-            use_cached_result (bool): Whether to use a cached result if available
-        """
-        llm_clf = LLMClassifier(
-            model=model, prompt=prompt, options=options, vision=True
-        )
-        res = llm_clf.classify_vision(self.value, use_cached_result)
-        return InvariantString(res, self.addresses)
-
     def extract(
         self, predicate: str, model: str = "gpt-4o", use_cached_result: bool = True
-    ) -> InvariantList:
+    ) -> list[InvariantString]:
         """Extract values from the underlying string using an LLM.
 
         Args:
@@ -288,23 +265,10 @@ class InvariantString(InvariantValue):
         """
         llm_detector = LLMDetector(model=model, predicate_rule=predicate)
         detections = llm_detector.detect(self.value, use_cached_result)
-        values, addresses = [], []
+        ret = []
         for substr, r in detections:
-            values.append(substr)
-            addresses.extend(self._concat_addresses([str(r)]))
-        return InvariantList(values, addresses)
-
-    def ocr_contains(
-        self,
-        text: str,
-        case_sensitive: bool = False,
-        bbox: Optional[dict] = None,
-    ) -> InvariantBool:
-        """Check if the value contains the given text using OCR."""
-
-        ocr = OCRDetector()
-        res = ocr.contains(self.value, text, case_sensitive, bbox)
-        return InvariantBool(res, self.addresses)
+            ret.append(InvariantString(substr, self._concat_addresses([str(r)])))
+        return ret
 
     def execute(
         self, suffix_code: str = "", detect_packages: bool = False

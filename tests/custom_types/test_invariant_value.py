@@ -3,7 +3,6 @@
 import pytest
 from invariant_runner.custom_types.invariant_bool import InvariantBool
 from invariant_runner.custom_types.invariant_dict import InvariantDict
-from invariant_runner.custom_types.invariant_list import InvariantList
 from invariant_runner.custom_types.invariant_number import InvariantNumber
 from invariant_runner.custom_types.invariant_string import InvariantString
 from invariant_runner.custom_types.invariant_value import InvariantValue
@@ -50,14 +49,6 @@ def test_invariant_value_of():
     assert isinstance(value, InvariantBool)
     assert value.value is True
     assert value.addresses == ["address1"]
-
-    value = InvariantValue.of(["item1", "item2"], ["address1"])
-    assert isinstance(value, InvariantList)
-    assert value.value == ["item1", "item2"]
-    assert value.addresses == ["address1"]
-
-    with pytest.raises(TypeError):
-        InvariantValue.of(["item1", "item2"], "address1")
 
     value = InvariantValue.of({"key": "value"}, ["address1"])
     assert isinstance(value, InvariantDict)
