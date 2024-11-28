@@ -10,7 +10,7 @@ Using [**localized assertions**](Writing_Tests/1_Traces.ipynb), `testing` always
 
 
 <br/>
-<img src="/assets/overview.png" width="80%" style="margin: 0 auto; display: block;">
+<img src="assets/overview.png" width="80%" style="margin: 0 auto; display: block;">
 
 ## Installation
 
@@ -83,7 +83,7 @@ As an alternative to the command line, you can also [visualize test results](./R
 $ invariant test --push
 ```
 
-![Explorer](/assets/explorer.png)
+![Explorer](assets/explorer.png)
 
 Like the terminal output, the Explorer highlights the relevant ranges, but does so even more precisely, marking the exact words that caused the assertion to fail.
 

@@ -12,7 +12,7 @@ invariant test --push
 
 The Explorer can render long-form agent traces in a more readable format, and it can also display test result and localized assertions down to the character level.
 
-![Explorer](/assets/explorer.png)
+![Explorer](assets/explorer.png)
 
 <center>Viewing test results in Explorer</center>
 
