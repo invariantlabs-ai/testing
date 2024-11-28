@@ -1,7 +1,6 @@
 """Contains sample tests which use the Invariant Runner."""
 
 import pytest
-
 from invariant.testing import (
     HasSubstring,
     Trace,
