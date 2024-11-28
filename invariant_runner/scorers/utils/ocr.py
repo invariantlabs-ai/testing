@@ -4,6 +4,7 @@ import io
 import subprocess
 import tempfile
 from typing import Any, Dict, Optional
+from PIL import Image
 
 
 class OCRDetector:
@@ -28,7 +29,7 @@ class OCRDetector:
         """Checks if bbox2 is inside bbox1"""
         return bbox1['x1'] <= bbox2['x1'] and bbox1['y1'] <= bbox2['y1'] and bbox1['x2'] >= bbox2['x2'] and bbox1['y2'] >= bbox2['y2']
 
-    def contains(self, base64_image: str, text: str, case_sensitive: bool = False, bbox: Optional[dict] = None) -> bool:
+    def contains(self, image: Image.Image, text: str, case_sensitive: bool = False, bbox: Optional[dict] = None) -> bool:
         """
         Detect if the expected text appears in the image using tesseract CLI
 
@@ -40,11 +41,6 @@ class OCRDetector:
         """
         if not OCRDetector.check_tesseract_installed():
             raise RuntimeError("Tesseract is not installed")
-        from PIL import Image  # pylint: disable=import-outside-toplevel
-
-        # Decode base64 image
-        image_data = base64.b64decode(base64_image)
-        image = Image.open(io.BytesIO(image_data))
 
         # Save image to temporary file
         with tempfile.NamedTemporaryFile(suffix='.png') as temp_img:

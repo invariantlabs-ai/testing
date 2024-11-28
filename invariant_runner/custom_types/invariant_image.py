@@ -1,0 +1,51 @@
+import base64
+import io
+from invariant_runner.custom_types.invariant_string import InvariantString
+from typing import Optional
+from invariant_runner.custom_types.invariant_bool import InvariantBool
+from invariant_runner.scorers.utils.llm import LLMClassifier
+from invariant_runner.scorers.utils.ocr import OCRDetector
+from PIL import Image
+
+class InvariantImage(InvariantString):
+    """An invariant image."""
+
+    def __init__(self, value: str, addresses: Optional[list[str]] = None):
+        if value.startswith("local_base64_img: "):
+            value = value[16:]
+        super().__init__(value, addresses)
+        image_data = base64.b64decode(value)
+        self.image = Image.open(io.BytesIO(image_data))
+        assert isinstance(self.image, Image.Image)
+
+    def llm_vision(
+        self,
+        prompt: str,
+        options: list[str],
+        model: str = "gpt-4o",
+        use_cached_result: bool = True,
+    ) -> InvariantString:
+        """Check if the value is similar to the given string using an LLM.
+
+        Args:
+            prompt (str): The prompt to use for the LLM.
+            options (list[str]): The options to use for the LLM.
+            model (str): The model to use for the LLM.
+            use_cached_result (bool): Whether to use a cached result if available
+        """
+        llm_clf = LLMClassifier(
+            model=model, prompt=prompt, options=options, vision=True
+        )
+        res = llm_clf.classify_vision(self.value, use_cached_result)
+        return InvariantString(res, self.addresses)
+
+    def ocr_contains(
+        self,
+        text: str,
+        case_sensitive: bool = False,
+        bbox: Optional[dict] = None,
+    ) -> InvariantBool:
+        """Check if the value contains the given text using OCR."""
+        res = OCRDetector().contains(self.image, text, case_sensitive, bbox)
+        return InvariantBool(res, self.addresses)
+

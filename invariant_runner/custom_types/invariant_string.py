@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 from operator import ge, gt, le, lt, ne
-from typing import Any, Optional, Union
+from typing import Any, Union
 
 from _pytest.python_api import ApproxBase
 from invariant_runner.custom_types.invariant_bool import InvariantBool
@@ -15,7 +15,6 @@ from invariant_runner.scorers.code import is_valid_json, is_valid_python
 from invariant_runner.scorers.moderation import ModerationAnalyzer
 from invariant_runner.scorers.strings import embedding_similarity, levenshtein
 from invariant_runner.scorers.utils.llm import LLMClassifier, LLMDetector
-from invariant_runner.scorers.utils.ocr import OCRDetector
 from invariant_runner.scorers.code import execute
 
 
@@ -249,27 +248,6 @@ class InvariantString(InvariantValue):
         res = llm_clf.classify(self.value, use_cached_result)
         return InvariantString(res, self.addresses)
 
-    def llm_vision(
-        self,
-        prompt: str,
-        options: list[str],
-        model: str = "gpt-4o",
-        use_cached_result: bool = True,
-    ) -> InvariantString:
-        """Check if the value is similar to the given string using an LLM.
-
-        Args:
-            prompt (str): The prompt to use for the LLM.
-            options (list[str]): The options to use for the LLM.
-            model (str): The model to use for the LLM.
-            use_cached_result (bool): Whether to use a cached result if available
-        """
-        llm_clf = LLMClassifier(
-            model=model, prompt=prompt, options=options, vision=True
-        )
-        res = llm_clf.classify_vision(self.value, use_cached_result)
-        return InvariantString(res, self.addresses)
-
     def extract(
         self, predicate: str, model: str = "gpt-4o", use_cached_result: bool = True
     ) -> list[InvariantString]:
@@ -288,18 +266,6 @@ class InvariantString(InvariantValue):
         for substr, r in detections:
             ret.append(InvariantString(substr, self._concat_addresses([str(r)])))
         return ret
-
-    def ocr_contains(
-        self,
-        text: str,
-        case_sensitive: bool = False,
-        bbox: Optional[dict] = None,
-    ) -> InvariantBool:
-        """Check if the value contains the given text using OCR."""
-        value = self.value if not self.value.startswith("local_base64_img: ") else self.value[16:]
-        ocr = OCRDetector()
-        res = ocr.contains(value, text, case_sensitive, bbox)
-        return InvariantBool(res, self.addresses)
 
     def execute(self, suffix_code: str = "", detect_packages: bool = False) -> InvariantString:
         """Execute the value as Python code and return the standard output as InvariantString.

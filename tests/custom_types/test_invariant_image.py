@@ -1,0 +1,30 @@
+import base64
+import pytest
+from invariant_runner.custom_types.invariant_image import InvariantImage
+from invariant_runner.custom_types.invariant_string import InvariantString
+
+def test_vision_classifier():
+    with open("sample_tests/assets/Group_of_cats_resized.jpg", "rb") as image_file:
+        base64_image = base64.b64encode(image_file.read()).decode("utf-8")
+    img = InvariantImage(base64_image)
+    res = img.llm_vision("What is in the image?", ["cats", "dogs", "birds", "none"])
+    assert isinstance(res, InvariantString) and res.value == "cats"
+    res = img.llm_vision(
+        "How many cats are in the image?",
+        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+    )
+    assert isinstance(res, InvariantString) and res.value == "3"
+
+
+def test_ocr_detector():
+    from invariant_runner.scorers.utils.ocr import OCRDetector
+
+    if not OCRDetector.check_tesseract_installed():
+        pytest.skip("Tesseract is not installed")
+    with open("sample_tests/assets/inv_labs.png", "rb") as image_file:
+        base64_image = base64.b64encode(image_file.read()).decode("utf-8")
+
+    inv_img = InvariantImage(base64_image)
+    assert inv_img.ocr_contains("agents")
+    assert inv_img.ocr_contains("making", bbox={"x1": 50, "y1": 10, "x2": 120, "y2": 40})
+    assert not inv_img.ocr_contains("LLM")
