@@ -2,19 +2,8 @@
 
 import pytest
 
+import invariant.testing.functional as F
 from invariant.custom_types.invariant_bool import InvariantBool
-from invariant.custom_types.invariant_list import (
-    invariant_all,
-    invariant_any,
-    invariant_count,
-    invariant_filter,
-    invariant_find,
-    invariant_map,
-    invariant_max,
-    invariant_min,
-    invariant_reduce,
-    invariant_reduce_raw,
-)
 from invariant.custom_types.invariant_number import InvariantNumber
 from invariant.custom_types.invariant_string import InvariantString
 from invariant.testing import Trace
@@ -88,9 +77,7 @@ def test_list_iteration(message_list: list):
 def test_map_applies_function(message_list: list):
     """Test that the map function applies a function to each element in the list."""
     test_message_content = message_list[1]["content"].value
-    new_list = invariant_map(
-        lambda item: item["content"] == test_message_content, message_list
-    )
+    new_list = F.map(lambda item: item["content"] == test_message_content, message_list)
 
     for i, new_item in enumerate(new_list):
         assert new_item.value == (
@@ -100,7 +87,7 @@ def test_map_applies_function(message_list: list):
 
 def test_map_maintains_addresses(message_list: list):
     """Test that the map function maintains addresses when applying a function."""
-    new_list = invariant_map(lambda item: item, message_list)
+    new_list = F.map(lambda item: item, message_list)
 
     for i, new_item in enumerate(new_list):
         assert new_item.addresses == message_list[i].addresses
@@ -112,7 +99,7 @@ def test_reduce(invariant_number_list: list):
     for item in invariant_number_list:
         sum_of_list += item.value
 
-    reduced = invariant_reduce(lambda a, b: a + b, 0, invariant_number_list)
+    reduced = F.reduce(lambda a, b: a + b, 0, invariant_number_list)
 
     assert reduced.value == sum_of_list
     assert isinstance(reduced, InvariantNumber)
@@ -124,7 +111,7 @@ def test_reduce_raw(invariant_number_list: list):
     for item in invariant_number_list:
         sum_of_list += item.value
 
-    reduced = invariant_reduce_raw(lambda a, b: a + b, 0, invariant_number_list)
+    reduced = F.reduce_raw(lambda a, b: a + b, 0, invariant_number_list)
 
     assert reduced == sum_of_list
     assert isinstance(reduced, int)
@@ -163,7 +150,7 @@ def test_count_helper(invariant_string_list: list):
     """Test that the count helper returns correct value and keeps all addresses."""
     string_to_count = "12"
 
-    count_value = invariant_count(string_to_count, invariant_string_list)
+    count_value = F.count(string_to_count, invariant_string_list)
     real_count = sum(
         [1 if item.value == string_to_count else 0 for item in invariant_string_list]
     )
@@ -175,7 +162,7 @@ def test_count_helper(invariant_string_list: list):
 
 def test_any_helper(invariant_bool_list: list):
     """Test that the any helper returns correct value and keeps all addresses."""
-    any_value = invariant_any(invariant_bool_list)
+    any_value = F.any(invariant_bool_list)
 
     assert isinstance(any_value, InvariantBool)
     assert any_value.value == True
@@ -184,7 +171,7 @@ def test_any_helper(invariant_bool_list: list):
 
 def test_all_helper(invariant_bool_list: list):
     """Test that the all helper returns correct value and keeps all addresses."""
-    all_value = invariant_all(invariant_bool_list)
+    all_value = F.all(invariant_bool_list)
 
     assert isinstance(all_value, InvariantBool)
     assert all_value.value == False
@@ -198,17 +185,17 @@ def test_invariant_filter():
         InvariantNumber(2, addresses=["addr2"]),
         InvariantNumber(3, addresses=["addr3"]),
     ]
-    result = invariant_filter(lambda x: x.value > 1, values)
+    result = F.filter(lambda x: x.value > 1, values)
     assert result == [InvariantNumber(2), InvariantNumber(3)]
 
 
 def test_invariant_find():
     """Test the invariant_find function."""
     values = [InvariantNumber(1), InvariantNumber(2), InvariantNumber(3)]
-    result = invariant_find(lambda x: x.value > 1, values)
+    result = F.find(lambda x: x.value > 1, values)
     assert result == InvariantNumber(2)
 
-    result = invariant_find(lambda x: x.value > 3, values)
+    result = F.find(lambda x: x.value > 3, values)
     assert result is None
 
     values = [
@@ -216,7 +203,7 @@ def test_invariant_find():
         InvariantString("def", addresses=["addr1"]),
         InvariantString("ghi"),
     ]
-    result = invariant_find(lambda x: x.value == "def", values)
+    result = F.find(lambda x: x.value == "def", values)
     assert result.value == "def"
     assert result.addresses == ["addr1:0-3"]
 
@@ -224,12 +211,12 @@ def test_invariant_find():
 def test_invariant_min():
     """Test the invariant_min function."""
     values = [InvariantNumber(3), InvariantNumber(1), InvariantNumber(2)]
-    result = invariant_min(values)
+    result = F.min(values)
     assert result == InvariantNumber(1)
 
 
 def test_invariant_max():
     """Test the invariant_max function."""
     values = [InvariantNumber(3), InvariantNumber(1), InvariantNumber(2)]
-    result = invariant_max(values)
+    result = F.max(values)
     assert result == InvariantNumber(3)
