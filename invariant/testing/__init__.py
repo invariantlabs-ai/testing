@@ -1,4 +1,4 @@
-from .custom_types.assertions import (
+from invariant.custom_types.assertions import (
     assert_equals,
     assert_false,
     assert_that,
@@ -8,14 +8,14 @@ from .custom_types.assertions import (
     expect_that,
     expect_true,
 )
-from .custom_types.matchers import (
+from invariant.custom_types.matchers import (
     HasSubstring,
     IsFactuallyEqual,
     IsSimilar,
     LambdaMatcher,
     Matcher,
 )
-from .custom_types.trace import Trace
+from invariant.custom_types.trace import Trace
 
 # re-export trace and various assertion types
 __all__ = [
