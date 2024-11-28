@@ -89,7 +89,7 @@ ________________________________________________________________________________
 #     },
 #  ]
 ```
-The test result provides information about which assertion failed but also [localizes the assertion failure precisely](https://explorer.invariantlabs.ai/docs/testing/Writing_Tests/1_Traces/) in the provided list of agent messages.
+The test result precisely [localizes the failure in the provided agent trace](https://explorer.invariantlabs.ai/docs/testing/Writing_Tests/2_Tests/).
 
 **Visual Test Viewer (Explorer):**
 
