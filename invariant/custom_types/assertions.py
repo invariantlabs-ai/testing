@@ -47,6 +47,10 @@ def assert_equals(
 ):
     """Expect the invariant value to be equal to the given value."""
 
+    # make sure lhs is an InvariantValue
+    if not isinstance(actual_value, InvariantValue):
+        actual_value = InvariantValue.of(actual_value, [])
+
     ctx = Manager.current()
     comparison_result = actual_value.equals(expected_value)
 

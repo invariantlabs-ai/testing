@@ -56,7 +56,12 @@ class InvariantValue:
         from .invariant_bool import InvariantBool
 
         cmp_result = self.value == value
-        return InvariantBool(cmp_result, self.addresses)
+        # unpack potential InvariantBoolean result
+        addresses = [*self.addresses]
+        if isinstance(cmp_result, InvariantBool):
+            addresses += cmp_result.addresses
+            cmp_result = cmp_result.value
+        return InvariantBool(cmp_result, addresses)
 
     def matches(self, matcher: "Matcher") -> "InvariantBool":  # type: ignore # noqa: F821
         """Check if the value matches the given matcher."""
