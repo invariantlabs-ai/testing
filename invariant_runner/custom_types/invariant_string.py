@@ -13,12 +13,11 @@ from invariant_runner.custom_types.invariant_bool import InvariantBool
 from invariant_runner.custom_types.invariant_list import InvariantList
 from invariant_runner.custom_types.invariant_number import InvariantNumber
 from invariant_runner.custom_types.invariant_value import InvariantValue
-from invariant_runner.scorers.code import is_valid_json, is_valid_python
+from invariant_runner.scorers.code import execute, is_valid_json, is_valid_python
 from invariant_runner.scorers.moderation import ModerationAnalyzer
 from invariant_runner.scorers.strings import embedding_similarity, levenshtein
 from invariant_runner.scorers.utils.llm import LLMClassifier, LLMDetector
 from invariant_runner.scorers.utils.ocr import OCRDetector
-from invariant_runner.scorers.code import execute
 
 
 class InvariantString(InvariantValue):
@@ -307,7 +306,9 @@ class InvariantString(InvariantValue):
         res = ocr.contains(self.value, text, case_sensitive, bbox)
         return InvariantBool(res, self.addresses)
 
-    def execute(self, suffix_code: str = "", detect_packages: bool = False) -> InvariantString:
+    def execute(
+        self, suffix_code: str = "", detect_packages: bool = False
+    ) -> InvariantString:
         """Execute the value as Python code and return the standard output as InvariantString.
 
         Args:

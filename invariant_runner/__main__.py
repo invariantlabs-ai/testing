@@ -152,12 +152,12 @@ def test(args: list[str]) -> None:
         os.remove(test_results_directory_path)
 
     # Run pytest with remaining arguments
-    pytest.main(pytest_args)
+    exit_code = pytest.main(pytest_args)
 
     # print Invariant test summary
     finalize_tests_and_print_summary(config)
 
-    # Update dataset level metadata to include the total passed and failed counts.
+    return exit_code
 
 
 def main():
@@ -176,7 +176,7 @@ def main():
 
     verb = sys.argv[1]
     if verb == "test":
-        test(sys.argv[2:])
+        return test(sys.argv[2:])
     else:
         print(f"Unknown action: {verb}")
-        sys.exit(1)
+        return 1

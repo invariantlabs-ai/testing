@@ -2,7 +2,7 @@
 title: Overview
 ---
 
-# Invariant `testing`: helps you build better AI agents through unit testing
+# Invariant `testing`: helps you build better AI agents through debuggable unit testing
 
 Invariant `testing` is a lightweight library to write and run AI agent tests. It provides helpers and assertions that enable you to write robust tests for your agentic applications.
 
@@ -77,7 +77,7 @@ The test result provides information about which assertion failed but also [loca
 
 **Visual Test Viewer (Explorer):**
 
-As an alternative to the command line, you can also visualize test results on the [Invariant Explorer](https://explorer.invariantlabs.ai/):
+As an alternative to the command line, you can also [visualize test results](./Running_Tests/Visual_Debugger.md) on the [Invariant Explorer](https://explorer.invariantlabs.ai/):
 
 ```py
 $ invariant test --push

@@ -61,7 +61,7 @@ def assert_equals(
         test=test,
         test_line=testline,
     )
-    ctx.assertions.append(assertion)
+    ctx.add_assertion(assertion)
 
 
 def formatted(value: Any) -> str:
@@ -109,7 +109,7 @@ def assert_that(
         test=test,
         test_line=testline,
     )
-    ctx.assertions.append(assertion)
+    ctx.add_assertion(assertion)
 
 
 def expect_that(actual_value: InvariantValue, matcher: Matcher, message: str = None):
@@ -148,7 +148,7 @@ def assert_true(
         test=test,
         test_line=testline,
     )
-    ctx.assertions.append(assertion)
+    ctx.add_assertion(assertion)
 
 
 def expect_true(
@@ -184,7 +184,7 @@ def assert_false(
         test=test,
         test_line=testline,
     )
-    ctx.assertions.append(assertion)
+    ctx.add_assertion(assertion)
 
 
 def expect_false(
