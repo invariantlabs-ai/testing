@@ -10,7 +10,7 @@
 
  <a href="https://discord.gg/dZuZfhKnJ4"><img src="https://img.shields.io/discord/1265409784409231483?style=plastic&logo=discord&color=blueviolet&logoColor=white" height=18/></a>
 
-[Read The Documentation](https://explorer.invariantlabs.ai/docs/testing/)
+[Documentation](https://explorer.invariantlabs.ai/docs/testing/)
 
   </p>
 </div>
