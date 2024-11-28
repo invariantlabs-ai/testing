@@ -95,7 +95,12 @@ class Manager:
         # sample_tests/test_agent.py::test_get_test_name_and_parameters[Bob-True] (call)
         # This too contains the parameter names with the test name.
         if "PYTEST_CURRENT_TEST" in os.environ:
-            return os.environ.get("PYTEST_CURRENT_TEST").split("::")[-1].split(" ")[0]
+            return (
+                os.environ.get("PYTEST_CURRENT_TEST")
+                .split("::", 1)[1]
+                .rsplit("(call)", 1)[0]
+                .strip()
+            )
         # Fallback to just the test function name without parameters.
         return inspect.stack()[2].function
 
