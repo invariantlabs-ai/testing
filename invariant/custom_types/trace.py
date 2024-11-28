@@ -1,17 +1,55 @@
 """Defines an Invariant trace."""
 
-from typing import Any, Callable, Dict, List
+import copy
+from typing import Any, Callable, Dict, Generator, List
 
+import swarm
+from invariant.custom_types.invariant_dict import InvariantDict, InvariantValue
 from pydantic import BaseModel
 
-from invariant.custom_types.invariant_dict import InvariantDict, InvariantValue
 
+def iterate_tool_calls(
+    messages: list[dict],
+) -> Generator[tuple[list[str], dict], None, None]:
+    """Generator function to iterate over tool calls in a list of messages.
 
-def iterate_tool_calls(messages: list[dict]):
+    Yields:
+        tuple[list[str], dict]: A tuple containing:
+            - A list of strings representing the hierarchical address of the tool call
+              in the message. For example, `["1.tool_calls.0"]` indicates the first tool
+              call in the second message.
+            - The tool call data (a dictionary or object representing the tool call).
+
+    Example:
+        messages = [
+            {"role": "user", "content": "What's the weather?"},
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {
+                        "function": {
+                            "name": "weather_tool",
+                            "arguments": {"location": "NYC"}
+                        },
+                        "id": "call_1",
+                        "type": "function"
+                    }
+                ]
+            }
+        ]
+
+        for address, tool_call in iterate_tool_calls(messages):
+            print(address, tool_call)
+
+        Output:
+            ['1.tool_calls.0'] {'function': {'name': 'weather_tool', 'arguments': {'location':
+            'NYC'}}, 'id': 'call_1', 'type': 'function'}
+    """
     for msg_i, msg in enumerate(messages):
         if msg.get("role") != "assistant":
             continue
-        for tc_i, tc in enumerate(msg.get("tool_calls", [])):
+        tool_calls = msg.get("tool_calls") or []
+        for tc_i, tc in enumerate(tool_calls):
             yield ([f"{msg_i}.tool_calls.{tc_i}"], tc)
 
 
@@ -127,6 +165,23 @@ class Trace(BaseModel):
             timeout=timeout,
         )
         return cls(trace=response.json()["messages"], metadata=metadata)
+
+    @classmethod
+    def from_swarm(cls, response: swarm.types.Response, history: list[dict]) -> "Trace":
+        """
+        Creates a Trace instance from the current Swarm response and the history of
+        messages exchanged with the Swarm client.
+
+        Args:
+            response (swarm.types.Response): The Swarm response object containing messages.
+            history (list[dict]): The history of messages exchanged with the Swarm client.
+
+        Returns:
+            Trace: A Trace object with all the messages combined.
+        """
+        trace_messages = copy.deepcopy(history)
+        trace_messages.extend(response.messages or [])
+        return cls(trace=trace_messages)
 
     def messages(
         self, selector: int | None = None, **filterkwargs

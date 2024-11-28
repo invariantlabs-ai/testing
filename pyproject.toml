@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{ include = "invariant" }]
 
 [tool.poetry.dependencies]
-python = ">= 3.10"
+python = ">= 3.10, <4.0"
 pydantic = "^2.9.2"
 requests = "^2.32.3"
 nltk = "^3.9.1"
@@ -17,6 +17,7 @@ Pillow = "^10.0.0"
 beautifulsoup4 = "^4.12.3"
 invariant-sdk = "^0.0.4"
 diskcache = "^5.6.3"
+openai-swarm = "^0.1.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.3.3"
