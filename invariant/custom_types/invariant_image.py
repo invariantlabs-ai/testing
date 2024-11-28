@@ -1,11 +1,14 @@
 import base64
 import io
-from invariant_runner.custom_types.invariant_string import InvariantString
 from typing import Optional
-from invariant_runner.custom_types.invariant_bool import InvariantBool
-from invariant_runner.scorers.utils.llm import LLMClassifier
-from invariant_runner.scorers.utils.ocr import OCRDetector
+
 from PIL import Image
+
+from invariant.custom_types.invariant_bool import InvariantBool
+from invariant.custom_types.invariant_string import InvariantString
+from invariant.scorers.utils.llm import LLMClassifier
+from invariant.scorers.utils.ocr import OCRDetector
+
 
 class InvariantImage(InvariantString):
     """An invariant image."""
@@ -48,4 +51,3 @@ class InvariantImage(InvariantString):
         """Check if the value contains the given text using OCR."""
         res = OCRDetector().contains(self.image, text, case_sensitive, bbox)
         return InvariantBool(res, self.addresses)
-

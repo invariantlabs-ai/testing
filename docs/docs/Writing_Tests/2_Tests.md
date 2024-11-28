@@ -15,7 +15,7 @@ This chapter first discusses how _localized assertions_ work and then provides e
 A test case in `testing` looks a lot like a regular unit test, except that it always makes use of a `Trace` object and the corresponding `.as_context()` method. This is required to enable _localized assertions_, that maps assertions to specific ranges in the provided trace:
 
 ```python
-from invariant_runner.testing import assert_true, Trace
+from invariant.testing import assert_true, Trace
 
 def test_assert():
     # obtain some trace
@@ -44,7 +44,7 @@ def test_assert():
 To make hard (leading to test failure) assertions, you can use the `assert_true`, `assert_that`, and `assert_equals` functions. These functions are similar to the ones you might know from unit testing frameworks like `unittest` or `pytest`, but they add support for localization.
 
 ```python
-from invariant_runner.testing import assert_true, assert_equals, assert_that, Trace, IsSimilar
+from invariant.testing import assert_true, assert_equals, assert_that, Trace, IsSimilar
 
 def test_hard_assert():
     # obtain some trace
@@ -126,7 +126,7 @@ Next to hard assertions, `testing` also supports _soft assertions_ that do not l
 Instead, they are logged as warnings only and can be used to check (non-functional) agent properties that may not be critical to ensure functional correctness (e.g. number of tool calls, runtime, etc.), but are still important to monitor.
 
 ```python
-from invariant_runner.testing import expect_equals, Trace, IsSimilar
+from invariant.testing import expect_equals, Trace, IsSimilar
 
 def test_soft_assert():
     # obtain some trace

@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, List
 
 from pydantic import BaseModel
 
-from invariant_runner.custom_types.invariant_dict import InvariantDict, InvariantValue
+from invariant.custom_types.invariant_dict import InvariantDict, InvariantValue
 
 
 def iterate_tool_calls(messages: list[dict]):
@@ -64,7 +64,7 @@ class Trace(BaseModel):
     manager: Any = None
 
     def as_context(self):
-        from invariant_runner.manager import Manager
+        from invariant.manager import Manager
 
         if self.manager is None:
             self.manager = Manager(self)

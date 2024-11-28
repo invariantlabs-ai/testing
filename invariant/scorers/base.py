@@ -1,6 +1,6 @@
 from typing import Optional
 
-from invariant_runner.scorers.strings import embedding_similarity
+from invariant.scorers.strings import embedding_similarity
 
 
 class ApproxString(str):

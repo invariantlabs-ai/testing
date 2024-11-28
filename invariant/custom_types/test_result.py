@@ -1,8 +1,9 @@
 """Decribes the result class for the invariant runner."""
 
-from invariant_runner.custom_types.assertion_result import AssertionResult
-from invariant_runner.custom_types.trace import Trace
 from pydantic import BaseModel
+
+from invariant.custom_types.assertion_result import AssertionResult
+from invariant.custom_types.trace import Trace
 
 
 class TestResult(BaseModel):

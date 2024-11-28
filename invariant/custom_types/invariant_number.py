@@ -3,8 +3,8 @@
 from operator import eq, ge, gt, le, lt, ne
 from typing import Union
 
-from invariant_runner.custom_types.invariant_bool import InvariantBool
-from invariant_runner.custom_types.invariant_value import InvariantValue
+from invariant.custom_types.invariant_bool import InvariantBool
+from invariant.custom_types.invariant_value import InvariantValue
 
 
 class InvariantNumber(InvariantValue):
@@ -53,7 +53,9 @@ class InvariantNumber(InvariantValue):
     def __add__(self, other):
         """Add two numbers together."""
         if isinstance(other, InvariantNumber):
-            return InvariantNumber(self.value + other.value, self.addresses + other.addresses)
+            return InvariantNumber(
+                self.value + other.value, self.addresses + other.addresses
+            )
         return InvariantNumber(self.value + other, self.addresses)
 
     def __radd__(self, other):

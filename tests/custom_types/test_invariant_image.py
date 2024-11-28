@@ -1,7 +1,10 @@
 import base64
+
 import pytest
-from invariant_runner.custom_types.invariant_image import InvariantImage
-from invariant_runner.custom_types.invariant_string import InvariantString
+
+from invariant.custom_types.invariant_image import InvariantImage
+from invariant.custom_types.invariant_string import InvariantString
+
 
 def test_vision_classifier():
     with open("sample_tests/assets/Group_of_cats_resized.jpg", "rb") as image_file:
@@ -17,7 +20,7 @@ def test_vision_classifier():
 
 
 def test_ocr_detector():
-    from invariant_runner.scorers.utils.ocr import OCRDetector
+    from invariant.scorers.utils.ocr import OCRDetector
 
     if not OCRDetector.check_tesseract_installed():
         pytest.skip("Tesseract is not installed")
@@ -26,5 +29,7 @@ def test_ocr_detector():
 
     inv_img = InvariantImage(base64_image)
     assert inv_img.ocr_contains("agents")
-    assert inv_img.ocr_contains("making", bbox={"x1": 50, "y1": 10, "x2": 120, "y2": 40})
+    assert inv_img.ocr_contains(
+        "making", bbox={"x1": 50, "y1": 10, "x2": 120, "y2": 40}
+    )
     assert not inv_img.ocr_contains("LLM")

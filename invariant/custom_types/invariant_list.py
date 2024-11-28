@@ -3,9 +3,9 @@
 from collections.abc import Iterable
 from typing import Any, Callable, Union
 
-from invariant_runner.custom_types.invariant_bool import InvariantBool
-from invariant_runner.custom_types.invariant_number import InvariantNumber
-from invariant_runner.custom_types.invariant_value import InvariantValue
+from invariant.custom_types.invariant_bool import InvariantBool
+from invariant.custom_types.invariant_number import InvariantNumber
+from invariant.custom_types.invariant_value import InvariantValue
 
 
 def invariant_map(

@@ -3,11 +3,11 @@
 # to get terminal column width
 from typing import Any, Literal, Tuple
 
-from invariant_runner.custom_types.assertion_result import AssertionResult
-from invariant_runner.custom_types.invariant_bool import InvariantBool
-from invariant_runner.custom_types.invariant_value import InvariantValue
-from invariant_runner.custom_types.matchers import Matcher
-from invariant_runner.manager import Manager
+from invariant.custom_types.assertion_result import AssertionResult
+from invariant.custom_types.invariant_bool import InvariantBool
+from invariant.custom_types.invariant_value import InvariantValue
+from invariant.custom_types.matchers import Matcher
+from invariant.manager import Manager
 
 
 def get_caller_snippet(levels=1) -> Tuple[str, int]:

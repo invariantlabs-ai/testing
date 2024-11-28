@@ -2,7 +2,7 @@
 
 from typing import Union
 
-from invariant_runner.custom_types.invariant_value import InvariantValue
+from invariant.custom_types.invariant_value import InvariantValue
 
 
 class InvariantBool(InvariantValue):
@@ -18,19 +18,25 @@ class InvariantBool(InvariantValue):
     def __eq__(self, other: Union[bool, "InvariantBool"]) -> "InvariantBool":
         """Check if the boolean is equal to the given boolean."""
         if isinstance(other, InvariantBool):
-            return InvariantBool(self.value == other.value, self.addresses + other.addresses)
+            return InvariantBool(
+                self.value == other.value, self.addresses + other.addresses
+            )
         return InvariantBool(self.value == other, self.addresses)
 
     def __ne__(self, other: Union[bool, "InvariantBool"]) -> "InvariantBool":
         """Check if the boolean is not equal to the given boolean."""
         if isinstance(other, InvariantBool):
-            return InvariantBool(self.value != other.value, self.addresses + other.addresses)
+            return InvariantBool(
+                self.value != other.value, self.addresses + other.addresses
+            )
         return InvariantBool(self.value != other, self.addresses)
 
     def __and__(self, other: Union[bool, "InvariantBool"]) -> "InvariantBool":
         """Evaluate the bitwise AND (&) with the given boolean."""
         if isinstance(other, InvariantBool):
-            return InvariantBool(self.value and other.value, self.addresses + other.addresses)
+            return InvariantBool(
+                self.value and other.value, self.addresses + other.addresses
+            )
         return InvariantBool(self.value and other, self.addresses)
 
     def __rand__(self, other: bool) -> "InvariantBool":
@@ -40,7 +46,9 @@ class InvariantBool(InvariantValue):
     def __or__(self, other: Union[bool, "InvariantBool"]) -> "InvariantBool":
         """Evaluate the bitwise OR (|) with the given boolean."""
         if isinstance(other, InvariantBool):
-            return InvariantBool(self.value or other.value, self.addresses + other.addresses)
+            return InvariantBool(
+                self.value or other.value, self.addresses + other.addresses
+            )
         return InvariantBool(self.value or other, self.addresses)
 
     def __ror__(self, other: bool) -> "InvariantBool":

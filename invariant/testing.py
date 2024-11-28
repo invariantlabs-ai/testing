@@ -8,7 +8,13 @@ from .custom_types.assertions import (
     expect_that,
     expect_true,
 )
-from .custom_types.matchers import HasSubstring, IsSimilar, LambdaMatcher, Matcher
+from .custom_types.matchers import (
+    HasSubstring,
+    IsFactuallyEqual,
+    IsSimilar,
+    LambdaMatcher,
+    Matcher,
+)
 from .custom_types.trace import Trace
 
 # re-export trace and various assertion types
@@ -26,4 +32,5 @@ __all__ = [
     "LambdaMatcher",
     "HasSubstring",
     "IsSimilar",
+    "IsFactuallyEqual",
 ]

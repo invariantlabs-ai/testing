@@ -1,4 +1,4 @@
-from invariant_runner.scorers.moderation import ModerationAnalyzer
+from invariant.scorers.moderation import ModerationAnalyzer
 
 
 def test_moderation():

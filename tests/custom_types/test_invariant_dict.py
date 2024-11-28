@@ -1,9 +1,10 @@
 """Tests for the InvariantDict class."""
 
 import pytest
-from invariant_runner.custom_types.invariant_bool import InvariantBool
-from invariant_runner.custom_types.invariant_dict import InvariantDict
-from invariant_runner.custom_types.matchers import LambdaMatcher
+
+from invariant.custom_types.invariant_bool import InvariantBool
+from invariant.custom_types.invariant_dict import InvariantDict
+from invariant.testing import LambdaMatcher
 
 
 def test_invariant_dict_str():

@@ -3,7 +3,7 @@
 import os
 import shutil
 
-from invariant_runner.constants import (
+from invariant.constants import (
     INVARIANT_RUNNER_TEST_RESULTS_DIR,
     INVARIANT_TEST_RUNNER_TERMINAL_WIDTH_ENV_VAR,
 )

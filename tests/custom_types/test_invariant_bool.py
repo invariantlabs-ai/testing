@@ -1,7 +1,8 @@
 """Tests for the InvariantBool class."""
 
 import pytest
-from invariant_runner.custom_types.invariant_bool import InvariantBool
+
+from invariant.custom_types.invariant_bool import InvariantBool
 
 
 @pytest.mark.parametrize(

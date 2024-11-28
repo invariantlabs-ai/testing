@@ -9,8 +9,8 @@ from openai.types.chat.chat_completion import ChatCompletion
 from openai.types.chat.parsed_chat_completion import ParsedChatCompletion
 from pydantic import BaseModel
 
-from invariant_runner.cache.cache_manager import CacheManager
-from invariant_runner.custom_types.addresses import Range
+from invariant.cache.cache_manager import CacheManager
+from invariant.custom_types.addresses import Range
 
 PROMPT_TEMPLATE = """Your goal is to classify the text provided by the user
 using the following classification rule.

@@ -1,12 +1,11 @@
 """Test cases for the InvariantString class."""
 
-import base64
-
 import pytest
-from invariant_runner.custom_types.invariant_bool import InvariantBool
-from invariant_runner.custom_types.invariant_number import InvariantNumber
-from invariant_runner.custom_types.invariant_string import InvariantString
 from pytest import approx
+
+from invariant.custom_types.invariant_bool import InvariantBool
+from invariant.custom_types.invariant_number import InvariantNumber
+from invariant.custom_types.invariant_string import InvariantString
 
 
 def test_invariant_string_initialization():
@@ -246,6 +245,9 @@ def test_execute():
     assert "25" in res.value
     assert len(res.addresses) == 1 and res.addresses[0] == "messages.0.content:0-21"
 
-    code = InvariantString("""import numpy as np; print(np.array([1, 2, 3, 4])**2)""", ["messages.0.content"])
+    code = InvariantString(
+        """import numpy as np; print(np.array([1, 2, 3, 4])**2)""",
+        ["messages.0.content"],
+    )
     res = code.execute(detect_packages=True)
     assert res.contains("9") and res.contains("16")

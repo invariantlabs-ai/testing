@@ -23,7 +23,7 @@ To get started, first create a `tests/` folder in your project root. This folder
 Next, create a new file in `tests/` and name it `test_example.py` as shown below:
 
 ```python
-from invariant_runner.testing import Trace, assert_true
+from invariant.testing import Trace, assert_true
 
 def test_weather():
     # create a Trace object from your agent trajectory

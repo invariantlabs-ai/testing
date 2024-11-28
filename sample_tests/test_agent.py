@@ -2,15 +2,15 @@
 
 import pytest
 
-from invariant_runner.custom_types.assertions import (
+from invariant.manager import Manager
+from invariant.testing import (
+    HasSubstring,
+    Trace,
     assert_equals,
     assert_that,
     assert_true,
     expect_equals,
 )
-from invariant_runner.custom_types.matchers import HasSubstring
-from invariant_runner.custom_types.trace import Trace
-from invariant_runner.manager import Manager
 
 
 @pytest.fixture(name="trace_with_tool_calls")

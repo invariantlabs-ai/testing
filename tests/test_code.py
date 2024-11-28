@@ -1,4 +1,4 @@
-from invariant_runner.scorers.code import is_valid_json, is_valid_python
+from invariant.scorers.code import is_valid_json, is_valid_python
 
 
 def test_is_valid_json():

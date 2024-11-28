@@ -6,7 +6,8 @@ import tempfile
 import time
 
 import pytest
-from invariant_runner.cache.cache_manager import CacheManager
+
+from invariant.cache.cache_manager import CacheManager
 
 
 @pytest.fixture(name="cache_manager")
@@ -44,8 +45,7 @@ def test_cache_manager_generate_cache_key(cache_manager: CacheManager):
     """Test generating a consistent cache key based on request data."""
     data = {"param1": "value1", "param2": 2}
     cache_key = cache_manager.get_cache_key(data)
-    expected_key = hashlib.sha256(json.dumps(
-        data, sort_keys=True).encode()).hexdigest()
+    expected_key = hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()
     assert cache_key == expected_key
 
 

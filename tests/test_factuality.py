@@ -1,7 +1,5 @@
-from invariant_runner.custom_types.assertions import assert_false, assert_that
-from invariant_runner.custom_types.matchers import IsFactuallyEqual
-from invariant_runner.custom_types.trace import Trace
-from invariant_runner.manager import Manager
+from invariant.manager import Manager
+from invariant.testing import IsFactuallyEqual, Trace, assert_false, assert_that
 
 
 def test_is_factually_equal():

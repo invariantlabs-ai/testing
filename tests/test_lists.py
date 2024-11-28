@@ -1,8 +1,9 @@
-"""Tests for the invariant_runner module."""
+"""Tests for the invariant list functions."""
 
 import pytest
-from invariant_runner.custom_types.invariant_bool import InvariantBool
-from invariant_runner.custom_types.invariant_list import (
+
+from invariant.custom_types.invariant_bool import InvariantBool
+from invariant.custom_types.invariant_list import (
     invariant_all,
     invariant_any,
     invariant_count,
@@ -14,9 +15,9 @@ from invariant_runner.custom_types.invariant_list import (
     invariant_reduce,
     invariant_reduce_raw,
 )
-from invariant_runner.custom_types.invariant_number import InvariantNumber
-from invariant_runner.custom_types.invariant_string import InvariantString
-from invariant_runner.custom_types.trace import Trace
+from invariant.custom_types.invariant_number import InvariantNumber
+from invariant.custom_types.invariant_string import InvariantString
+from invariant.testing import Trace
 
 
 @pytest.fixture(name="message_list")

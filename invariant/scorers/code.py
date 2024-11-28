@@ -6,7 +6,7 @@ from typing import Tuple
 import openai
 from pydantic import BaseModel
 
-from invariant_runner.custom_types.addresses import Range
+from invariant.custom_types.addresses import Range
 
 
 def is_valid_json(text: str) -> Tuple[bool, int | None]:

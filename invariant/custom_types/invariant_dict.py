@@ -1,7 +1,7 @@
 """InvariantDict class definition"""
 
-from invariant_runner.custom_types.invariant_bool import InvariantBool
-from invariant_runner.custom_types.invariant_value import InvariantValue
+from invariant.custom_types.invariant_bool import InvariantBool
+from invariant.custom_types.invariant_value import InvariantValue
 
 
 class InvariantDict:

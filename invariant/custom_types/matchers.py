@@ -3,8 +3,8 @@
 from enum import StrEnum
 from typing import Any
 
-from invariant_runner.scorers.strings import embedding_similarity, levenshtein
-from invariant_runner.scorers.utils.llm import LLMClassifier
+from invariant.scorers.strings import embedding_similarity, levenshtein
+from invariant.scorers.utils.llm import LLMClassifier
 
 
 class Matcher:

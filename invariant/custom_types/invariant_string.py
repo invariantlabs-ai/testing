@@ -9,13 +9,13 @@ from typing import Any, Union
 
 from _pytest.python_api import ApproxBase
 
-from invariant_runner.custom_types.invariant_bool import InvariantBool
-from invariant_runner.custom_types.invariant_number import InvariantNumber
-from invariant_runner.custom_types.invariant_value import InvariantValue
-from invariant_runner.scorers.code import execute, is_valid_json, is_valid_python
-from invariant_runner.scorers.moderation import ModerationAnalyzer
-from invariant_runner.scorers.strings import embedding_similarity, levenshtein
-from invariant_runner.scorers.utils.llm import LLMClassifier, LLMDetector
+from invariant.custom_types.invariant_bool import InvariantBool
+from invariant.custom_types.invariant_number import InvariantNumber
+from invariant.custom_types.invariant_value import InvariantValue
+from invariant.scorers.code import execute, is_valid_json, is_valid_python
+from invariant.scorers.moderation import ModerationAnalyzer
+from invariant.scorers.strings import embedding_similarity, levenshtein
+from invariant.scorers.utils.llm import LLMClassifier, LLMDetector
 
 
 class InvariantString(InvariantValue):
