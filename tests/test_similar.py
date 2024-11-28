@@ -1,6 +1,5 @@
 # get Failed exception from pytest
 
-from invariant.manager import Manager
 from invariant.testing import IsSimilar, Trace, assert_that
 
 from .testutils import should_fail_with
@@ -10,7 +9,7 @@ from .testutils import should_fail_with
 def test_is_similar_levenshtein():
     # not passing metrics parameter, default using Levenshtein metric or pass IsSimilar.LEVENSHTEIN
     trace = Trace(trace=[{"role": "user", "content": "Hello there"}])
-    with Manager(trace) as _:
+    with trace.as_context():
         # test case: expected value is longer than actual value
         assert_that(trace.messages()[0]["content"], IsSimilar("hello where", 0.5))
 
@@ -19,7 +18,7 @@ def test_is_similar_levenshtein():
 def test_is_similar_levenshtein_1():
     # not passing metrics parameter, default using Levenshtein metric or pass IsSimilar.LEVENSHTEIN
     trace = Trace(trace=[{"role": "user", "content": "Hello there"}])
-    with Manager(trace) as _:
+    with trace.as_context():
         # test case: expected value is longer than actual value
         assert_that(trace.messages()[0]["content"], IsSimilar("hello where", 0.5))
 
@@ -28,7 +27,7 @@ def test_is_similar_levenshtein_1():
 def test_is_similar_levenshtein_2():
     # not passing metrics parameter, default using Levenshtein metric or pass IsSimilar.LEVENSHTEIN
     trace = Trace(trace=[{"role": "user", "content": "Hello there"}])
-    with Manager(trace) as _:
+    with trace.as_context():
         # test case: expected value is longer than actual value
         assert_that(trace.messages()[0]["content"], IsSimilar("hello where", 0.5))
 
@@ -46,7 +45,7 @@ def test_is_similar_levenshtein_2():
 def test_is_similar_levenshtein_3():
     # not passing metrics parameter, default using Levenshtein metric or pass IsSimilar.LEVENSHTEIN
     trace = Trace(trace=[{"role": "user", "content": "Hello there"}])
-    with Manager(trace) as _:
+    with trace.as_context():
         # test case: expected value is shorter than actual value, empty
         assert_that(trace.messages()[0]["content"], IsSimilar("hello", 0.8))
         assert_that(
@@ -59,7 +58,7 @@ def test_is_similar_levenshtein_3():
 def test_is_similar_levenshtein_4():
     # not passing metrics parameter, default using Levenshtein metric or pass IsSimilar.LEVENSHTEIN
     trace = Trace(trace=[{"role": "user", "content": "Hello there"}])
-    with Manager(trace) as _:
+    with trace.as_context():
         # test case: expected value is shorter than actual value, empty
         assert_that(trace.messages()[0]["content"], IsSimilar("hello", 0.8))
         assert_that(
@@ -74,7 +73,7 @@ def test_is_similar_levenshtein_4():
 def test_is_similar_levenshtein_5():
     # not passing metrics parameter, default using Levenshtein metric or pass IsSimilar.LEVENSHTEIN
     trace = Trace(trace=[{"role": "user", "content": "Hello there"}])
-    with Manager(trace) as _:
+    with trace.as_context():
         # test case: expected value is the same length as actual value
         assert_that(
             trace.messages()[0]["content"],
@@ -90,14 +89,14 @@ def test_is_similar_levenshtein_5():
 def test_is_similar_levenshtein_6():
     # not passing metrics parameter, default using Levenshtein metric or pass IsSimilar.LEVENSHTEIN
     trace = Trace(trace=[{"role": "user", "content": "Hello there"}])
-    with Manager(trace) as _:
+    with trace.as_context():
         assert_that(trace.messages()[0]["content"], IsSimilar("iiiii THERE", 0.5))
 
 
 def test_is_similar_embedding_passing():
     # pass IsSimilar.EMBEDDING as parameter
     trace = Trace(trace=[{"role": "user", "content": "Hello there"}])
-    with Manager(trace) as _:
+    with trace.as_context():
         # test case: similar meaning
         assert_that(
             trace.messages()[0]["content"],
@@ -122,7 +121,7 @@ def test_is_similar_embedding_passing():
 def test_is_similar_embedding_1():
     # pass IsSimilar.EMBEDDING as parameter
     trace = Trace(trace=[{"role": "user", "content": "Hello there"}])
-    with Manager(trace) as _:
+    with trace.as_context():
         # test case: unrelated meaning and different spell
         assert_that(
             trace.messages()[0]["content"],
@@ -134,7 +133,7 @@ def test_is_similar_embedding_1():
 def test_is_similar_embedding_2():
     # pass IsSimilar.EMBEDDING as parameter
     trace = Trace(trace=[{"role": "user", "content": "Hello there"}])
-    with Manager(trace) as _:
+    with trace.as_context():
         assert_that(
             trace.messages()[0]["content"],
             IsSimilar("I am fine", 0.5, IsSimilar.EMBEDDING),  # fails

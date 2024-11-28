@@ -2,7 +2,6 @@
 
 import pytest
 
-from invariant.manager import Manager
 from invariant.testing import (
     HasSubstring,
     Trace,
@@ -62,7 +61,7 @@ def test_another_agent_response():
     """Test another agent response."""
     trace = Trace(trace=[{"role": "user", "content": "Hello there"}])
 
-    with Manager(trace):
+    with trace.as_context():
         expect_equals(
             "Hello three",
             trace.messages()[0]["content"],
@@ -216,7 +215,7 @@ def test_big_trace(big_trace: Trace):
 
 def test_trace_rules(trace_with_tool_calls: Trace):
     """Test trace rules."""
-    with Manager(trace_with_tool_calls):
+    with trace_with_tool_calls.as_context():
         tool_calls_with_greet = trace_with_tool_calls.tool_calls(
             name=lambda n: n == "greet"
         )
@@ -297,7 +296,7 @@ def test_custom_trace():
             },
         ]
     )
-    with Manager(trace):
+    with trace.as_context():
         assert_true(trace.messages(role="assistant")[0]["sender"] == "Agent A")
 
         # assert 3 lines in the last message
@@ -343,7 +342,7 @@ def test_get_test_name_and_parameters_from_request(
     request, name, bool1, trace_with_tool_calls
 ):
     """Test get_test_name_and_parameters."""
-    with Manager(trace_with_tool_calls):
+    with trace_with_tool_calls.as_context():
         pass
 
 
@@ -353,5 +352,5 @@ def test_get_test_name_and_parameters_from_request(
 )
 def test_get_test_name_and_parameters_from_env(name, bool1, trace_with_tool_calls):
     """Test get_test_name_and_parameters."""
-    with Manager(trace_with_tool_calls):
+    with trace_with_tool_calls.as_context():
         pass

@@ -1,4 +1,3 @@
-from invariant.manager import Manager
 from invariant.testing import IsFactuallyEqual, Trace, assert_false, assert_that
 
 
@@ -7,7 +6,7 @@ def test_is_factually_equal():
 
     # Test case: super strict aggrement
     trace = Trace(trace=[{"role": "user", "content": "Trump"}])
-    with Manager(trace) as _:
+    with trace.as_context():
         expected_output = "Trump"
         assert_that(
             trace.messages()[0]["content"], IsFactuallyEqual(expected_output, question)
@@ -22,7 +21,7 @@ def test_is_factually_equal():
 
     # Test case: disaaggrement
     trace = Trace(trace=[{"role": "user", "content": "Harris"}])
-    with Manager(trace) as _:
+    with trace.as_context():
         expected_output = "Trump"
         assert_false(
             trace.messages()[0]["content"].matches(
@@ -46,7 +45,7 @@ def test_is_factually_equal():
             }
         ]
     )
-    with Manager(trace) as _:
+    with trace.as_context():
         expected_output = "Isao Takahata"
         # under strict aggrement, the output is not close to the expected output (only 1/4 directors are correct)
         assert_false(
@@ -79,7 +78,7 @@ def test_is_factually_equal():
             }
         ]
     )
-    with Manager(trace) as _:
+    with trace.as_context():
         expected_output = "Akira Kurosawa, Yasujiro Ozu,Hayao Miyazaki,Kenji Mizoguchi,Hirokazu Kore-eda,Takeshi Kitano,Masaki Kobayashi,Isao Takahata"
         assert_that(
             trace.messages()[0]["content"],

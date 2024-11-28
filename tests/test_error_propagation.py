@@ -1,6 +1,5 @@
 import pytest
 
-from invariant.manager import Manager
 from invariant.testing import Trace
 
 
@@ -48,5 +47,5 @@ def trace_with_tool_calls_fixture():
 def test_trace_complex_agent(trace_with_tool_calls: Trace):
     # make sure the context manager does not hide the exception
     with pytest.raises(NotImplementedError):
-        with Manager(trace_with_tool_calls):
+        with trace_with_tool_calls.as_context():
             raise NotImplementedError("Not implemented")
