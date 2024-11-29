@@ -11,6 +11,7 @@ class InvariantValue:
     """Describes an invariant value in a test."""
 
     def __init__(self, value: Any, addresses: list[str] = None):
+        """Initialize an InvariantValue with a value and a list of addresses."""
         if addresses is not None and not all(
             isinstance(addr, str) for addr in addresses
         ):
@@ -33,6 +34,7 @@ class InvariantValue:
         from .invariant_dict import InvariantDict
         from .invariant_number import InvariantNumber
         from .invariant_string import InvariantString
+        from .invariant_image import InvariantImage
 
         if isinstance(value, dict):
             if not isinstance(address, list):
@@ -47,6 +49,8 @@ class InvariantValue:
             return InvariantBool(value, address)
         elif isinstance(value, (int, float)):
             return InvariantNumber(value, address)
+        elif isinstance(value, str) and value.startswith("local_base64_img:"):
+            return InvariantImage(value, address)
         elif isinstance(value, str):
             return InvariantString(value, address)
         return InvariantValue(value, address)
@@ -71,9 +75,11 @@ class InvariantValue:
         return InvariantBool(cmp_result, self.addresses)
 
     def __str__(self):
+        """Return a readable string representation of the invariant value."""
         return str(self.value) + " at " + " -> ".join(self.addresses)
 
     def __repr__(self):
+        """Return a string representation of the invariant value."""
         return str(self)
 
     def __bool__(self) -> bool:

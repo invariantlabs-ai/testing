@@ -1,3 +1,4 @@
+"""Scoring functions for content that contains code."""
 import json
 import subprocess
 import tempfile
@@ -30,10 +31,8 @@ def is_valid_python(text: str) -> Tuple[bool, int | None]:
 
 
 def execute(text: str, detect_packages: bool = False) -> str:
-    class Dependencies(BaseModel):
-        dependencies: list[str]
-
     """Executes a string of Python code and returns the standard output.
+
     Optionally, this function can also detect the dependencies of the code using an LLM and append them as a header to the code.
     The code runs inside of a docker container and uses uv package manager to quickly install the dependencies.
 
@@ -41,13 +40,16 @@ def execute(text: str, detect_packages: bool = False) -> str:
         text (str): The Python code to execute.
         detect_packages (bool): Whether to detect the dependencies of the code.
     """
+    class Dependencies(BaseModel):
+        dependencies: list[str]
+
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         file_path = temp_file.name
         with open(file_path, "w") as f:
             f.write(text)
 
     if detect_packages:
-        prompt = f"""Extract the dependencies necessary to run the following python code:\n\n{
+        prompt = f"""Extract the dependencies necessary to run the following python code (either include concrete versions, e.g. 1.0 or do not write versions at all):\n\n{
             text}"""
         client = openai.OpenAI()
         response = client.beta.chat.completions.parse(
@@ -69,7 +71,6 @@ def execute(text: str, detect_packages: bool = False) -> str:
     cmd = [
         "docker",
         "run",
-        "-it",
         "--rm",
         "-v",
         f"{file_path}:/usr/src/app/script.py:ro",

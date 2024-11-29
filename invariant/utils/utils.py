@@ -1,5 +1,4 @@
 """Utility functions for the invariant runner."""
-
 import os
 import shutil
 
