@@ -1,11 +1,12 @@
 """Defines an Invariant trace."""
 
 import copy
+import swarm
 from typing import Any, Callable, Dict, Generator, List
 
-import swarm
-from invariant.custom_types.invariant_dict import InvariantDict, InvariantValue
 from pydantic import BaseModel
+from invariant.utils.explorer import from_explorer
+from invariant.custom_types.invariant_dict import InvariantDict, InvariantValue
 
 
 def iterate_tool_calls(
@@ -126,45 +127,8 @@ class Trace(BaseModel):
 
         :return: A Trace object with the loaded trace.
         """
-        import requests
-
-        metadata = {
-            "id": identifier_or_id,
-        }
-        timeout = 5  # connect and read timeouts.
-
-        if index is not None:
-            username, dataset = identifier_or_id.split("/")
-
-            trace_metadata = requests.get(
-                url=f"{explorer_endpoint}/api/v1/dataset/byuser/{username}/{dataset}/traces?indices={index}",
-                timeout=timeout,
-            )
-            if len(trace_metadata.json()) == 0:
-                raise ValueError(
-                    "No trace with the specified index found for the <username>/<dataset> pair."
-                )
-            identifier_or_id = trace_metadata.json()[0]["id"]
-
-            metadata.update(
-                {
-                    "trace_id": identifier_or_id,
-                    "dataset": dataset,
-                    "username": username,
-                }
-            )
-        else:
-            if "/" in identifier_or_id:
-                raise ValueError(
-                    "Please provide the index of the trace to select from the <username>/<dataset> pair."
-                )
-
-        print(f"{explorer_endpoint}/api/v1/trace/{identifier_or_id}?annotated=1")
-        response = requests.get(
-            url=f"{explorer_endpoint}/api/v1/trace/{identifier_or_id}?annotated=1",
-            timeout=timeout,
-        )
-        return cls(trace=response.json()["messages"], metadata=metadata)
+        messages, metadata = from_explorer(identifier_or_id, index, explorer_endpoint)
+        return cls(trace=messages, metadata=metadata)
 
     @classmethod
     def from_swarm(cls, response: swarm.types.Response, history: list[dict]) -> "Trace":

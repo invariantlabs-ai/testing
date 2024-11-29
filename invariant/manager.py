@@ -15,7 +15,7 @@ from invariant_sdk.client import Client as InvariantClient
 from invariant_sdk.types.push_traces import PushTracesResponse
 from pydantic import ValidationError
 
-from invariant import utils
+from invariant.utils import utils
 from invariant.config import Config
 from invariant.constants import INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR
 from invariant.custom_types.test_result import AssertionResult, TestResult

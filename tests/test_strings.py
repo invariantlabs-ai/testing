@@ -95,16 +95,15 @@ def test_vision_classifier():
     reason="May not have tesseract installed",
 )
 def test_OCRDetector():
-    # Load test image
-    with open("sample_tests/assets/inv_labs.png", "rb") as image_file:
-        base64_image = base64.b64encode(image_file.read()).decode("utf-8")
+    from PIL import Image
+    image = Image.open("sample_tests/assets/inv_labs.png")
 
     # Test case-insensitive detection
     ocr = OCRDetector()
-    assert ocr.contains(base64_image, "agents") == True
+    assert ocr.contains(image, "agents") == True
     assert (
         ocr.contains(
-            base64_image, "making", bbox={"x1": 50, "y1": 10, "x2": 120, "y2": 40}
+            image, "making", bbox={"x1": 50, "y1": 10, "x2": 120, "y2": 40}
         )
         == True
     )
