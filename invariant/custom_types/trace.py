@@ -1,5 +1,6 @@
 """Defines an Invariant trace."""
 
+from __future__ import annotations
 import copy
 import swarm
 from typing import Any, Callable, Dict, Generator, List
@@ -108,6 +109,16 @@ class Trace(BaseModel):
         if self.manager is None:
             self.manager = Manager(self)
         return self.manager
+
+    def run_assertions(self, assertions: list[Callable[Trace, Any]]):
+        """Runs a list of assertions on the trace. Assertions are run by providing a list of functions,
+        each taking Trace object as a single argument.
+
+        Args:
+            assertions: A list of functions taking Trace as a single argument
+        """
+        for assertion in assertions:
+            assertion(self)
 
     @classmethod
     def from_explorer(

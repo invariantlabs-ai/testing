@@ -1,5 +1,6 @@
-"""
-A JSON formatter, that supports pretty-printing of JSON objects
+"""A JSON formatter for highlighting parts of the trace in the pytest output.
+
+It supports pretty-printing of JSON objects
 in a format, where non-highlighted lines are commented out using
 Python-style '#' comments.
 
@@ -10,10 +11,11 @@ object in the output for context.
 
 import json
 
+MAX_LEN = 1000
+
 
 def format_trace(json_obj, highlights=[]):
-    """
-    Pretty-print a JSON-like object with the given highlights.
+    """Pretty-print a JSON-like object with the given highlights.
 
     JSON-like means Python objects that can be serialized to JSON (dict, list, str, int, etc.).
 
@@ -53,11 +55,17 @@ def format_trace(json_obj, highlights=[]):
 
 
 def strip_comment(line):
+    """Replace the starting comment in a line with a space."""
     if line.lstrip().startswith("#"):
-        # replace first occurence of # with a space
         return True, line.replace("#", " ", 1)
     return False, line
 
+def _format_str(s: str):
+    if s.startswith("local_base64_img"):
+        return "<base64_image>"
+    elif len(s) > MAX_LEN:
+        return s[:MAX_LEN//2] + "..." + s[-MAX_LEN//2:]
+    return s
 
 def _format_trace(json_obj, indent="", path=[], highlights=[]):
     """Format a JSON object as a string."""
@@ -93,6 +101,8 @@ def _format_trace(json_obj, indent="", path=[], highlights=[]):
             + f"{indent}]"
             + (highlight_line if is_highlighted else "")
         )
+    elif type(json_obj) is str:
+        value_repr = json.dumps(_format_str(json_obj), ensure_ascii=False)
     else:
         value_repr = json.dumps(json_obj, ensure_ascii=False)
 
