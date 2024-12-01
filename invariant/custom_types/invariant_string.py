@@ -208,6 +208,14 @@ class InvariantString(InvariantValue):
         """Check if the value contains the given pattern."""
         return self.contains(pattern)
 
+    def match(self, pattern: str, group_id: int | str = 0) -> InvariantString:
+        """Match the value against the given regex pattern and return the matched group."""
+        match = re.search(pattern, self.value)
+        if match is None:
+            return None
+        start, end = match.span(group_id)
+        return InvariantString(match.group(group_id), self._concat_addresses([f"{start}-{end}"]))
+
     def is_similar(self, other: str, threshold: float = 0.5) -> InvariantBool:
         """Check if the value is similar to the given string using cosine similarity."""
         if not isinstance(other, str):

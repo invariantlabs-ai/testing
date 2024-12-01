@@ -1,3 +1,4 @@
+"""Helper functions for searching around collections that contain invariant values."""
 from collections.abc import Iterable
 from typing import Any, Callable, Union
 
@@ -22,8 +23,8 @@ def reduce_raw(
     initial_value: Any,
     iterable: Iterable[InvariantValue],
 ) -> Any:
-    """
-    Reduce the list instance to a single value using a function and disregarding address information.
+    """Reduce the list instance to a single value using a function and disregarding address information.
+
     Use this method instead of 'reduce' when the 'func' is not compatible with 'InvariantValue'.
     """
     # Strip address information from values
@@ -66,6 +67,25 @@ def count(
             ),
             iterable,
         )
+    )
+
+def match(pattern: str, iterable: Iterable[InvariantValue], group_id: int | str = 0) -> list[InvariantValue]:
+    """Match the value against the given regex pattern and return the matched group.
+
+    The function calls .match() on each element of the iterable that has .match() function.
+    
+    Args:
+        pattern: The regex pattern to match against.
+        iterable: The iterable of InvariantValue objects to match against.
+        group_id: The group ID to return during the match.
+    """
+    return reduce(
+        lambda a, b: a + b,
+        [],
+        map(
+            lambda a: [g] if (g := a.match(pattern, group_id)) else [],
+            filter(lambda a: getattr(a, "match", None) and callable(a.match), iterable),
+        ),
     )
 
 

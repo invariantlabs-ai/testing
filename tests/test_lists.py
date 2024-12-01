@@ -220,3 +220,16 @@ def test_invariant_max():
     values = [InvariantNumber(3), InvariantNumber(1), InvariantNumber(2)]
     result = F.max(values)
     assert result == InvariantNumber(3)
+
+def test_match():
+    """Test the match helper."""
+    values = [
+        InvariantString("hi abc", "m0"),
+        InvariantNumber(1, "m1"),
+        InvariantString("a", "m2"),
+        InvariantString("ghi", "m3"),
+    ]
+    result = F.match("a.*", values)
+    assert len(result) == 2
+    assert result[0].value == "abc" and result[0].addresses == ["m0:3-6"]
+    assert result[1].value == "a" and result[1].addresses == ["m2:0-1"]
