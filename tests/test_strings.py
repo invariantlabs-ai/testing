@@ -6,7 +6,7 @@ from invariant.scorers.base import approx
 from invariant.scorers.strings import *
 from invariant.scorers.utils.llm import LLMClassifier, LLMDetector
 from invariant.scorers.utils.ocr import OCRDetector
-
+from invariant.utils.packages import is_program_installed
 
 def test_levenshtein():
     # Test empty strings
@@ -91,7 +91,7 @@ def test_vision_classifier():
 
 
 @pytest.mark.skipif(
-    not OCRDetector.check_tesseract_installed(),
+    not is_program_installed("tesseract"),
     reason="May not have tesseract installed",
 )
 def test_OCRDetector():

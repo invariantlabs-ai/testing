@@ -6,7 +6,7 @@ from pytest import approx
 from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_number import InvariantNumber
 from invariant.custom_types.invariant_string import InvariantString
-
+from invariant.utils.packages import is_program_installed
 
 def test_invariant_string_initialization():
     """Test initialization of InvariantString."""
@@ -246,7 +246,10 @@ def test_extract():
     assert res[3] == "pears" and res[3].addresses[0] == "message.0.content:104-109"
 
 
-@pytest.mark.skip(reason="Skip for now, needs docker")
+@pytest.mark.skipif(
+    not is_program_installed("docker"),
+    reason="Skip for now, needs docker"
+)
 def test_execute():
     """Test the code execution transformer of InvariantString."""
     code = InvariantString("""def f(n):\treturn n**2""", ["messages.0.content"])
