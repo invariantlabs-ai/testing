@@ -5,9 +5,10 @@ from __future__ import annotations
 import copy
 from typing import Any, Callable, Dict, Generator, List
 
+from pydantic import BaseModel
+
 from invariant.custom_types.invariant_dict import InvariantDict, InvariantValue
 from invariant.utils.explorer import from_explorer
-from pydantic import BaseModel
 
 
 def iterate_tool_calls(
@@ -71,8 +72,7 @@ def match_keyword_filter_on_tool_call(
 def match_keyword_filter(
     kwname: str, kwvalue: str | int | Callable, value: InvariantValue | Any
 ) -> bool:
-    """
-    Match a keyword filter.
+    """Match a keyword filter.
 
     A keyword filter such as name='value' can be one of the following:
     - a string or integer value to compare against exactly
@@ -127,8 +127,7 @@ class Trace(BaseModel):
         index: int | None = None,
         explorer_endpoint: str = "https://explorer.invariantlabs.ai",
     ) -> "Trace":
-        """
-        Loads a public trace from the Explorer (https://explorer.invariantlabs.ai).
+        """Loads a public trace from the Explorer (https://explorer.invariantlabs.ai).
 
         The identifier_or_id can be either a trace ID or a <username>/<dataset> pair, in which case
         the index of the trace to load must be provided.
@@ -246,17 +245,6 @@ class Trace(BaseModel):
                 InvariantDict(tc, tc_address)
                 for tc_address, tc in iterate_tool_calls(self.trace)
             ]
-
-    def to_python(self):
-        """
-        Returns a snippet of Python code construct that can be used
-        to recreate the trace in a Python script.
-        """
-        return (
-            "Trace(trace=[\n"
-            + ",\n".join("  " + str(msg) for msg in self.trace)
-            + "\n])"
-        )
 
     def __str__(self):
         return "\n".join(str(msg) for msg in self.trace)
