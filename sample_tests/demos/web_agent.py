@@ -143,5 +143,5 @@ def test_fibonacci():
 
         tool_calls = trace.tool_calls({"name": "str_replace_editor", "arguments.command": "create"})
         for tc in tool_calls:
-            res = tc["function"]["arguments"]["file_text"].execute_contains("144", "print(compute_fibonacci(12))")
-            assert_true(res, "Execution output does not contain 144")
+            res = tc["function"]["arguments"]["file_text"].execute("print(compute_fibonacci(12))")
+            assert_true(res.contains("144"), "Execution output does not contain 144")

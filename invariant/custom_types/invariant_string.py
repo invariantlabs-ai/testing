@@ -191,9 +191,6 @@ class InvariantString(InvariantValue):
         if isinstance(pattern, InvariantString):
             pattern = pattern.value
         new_addresses = []
-        
-        if "144" in pattern:
-            breakpoint()
         for match in re.finditer(pattern, self.value):
             start, end = match.span()
             new_addresses.append(f"{start}-{end}")
@@ -281,16 +278,14 @@ class InvariantString(InvariantValue):
             ret.append(InvariantString(substr, self._concat_addresses([str(r)])))
         return ret
 
-    def execute_contains(
-        self, pattern: str, suffix_code: str = "", detect_packages: bool = False
+    def execute(
+        self, suffix_code: str = "", detect_packages: bool = False
     ) -> InvariantString:
         """Execute the value as Python code and return the standard output as InvariantString.
 
         Args:
-            pattern (str): The pattern to check for in the output.
             suffix_code (str): The Python code to append to the value before execution.
             detect_packages (bool): Whether to detect the dependencies of the code.
         """
         res = execute(self.value + "\n" + suffix_code, detect_packages)
-        has_pattern = re.search(pattern, res) is not None
-        return InvariantBool(has_pattern, self.addresses)
+        return InvariantString(res, self.addresses)
