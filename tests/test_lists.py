@@ -221,15 +221,42 @@ def test_invariant_max():
     result = F.max(values)
     assert result == InvariantNumber(3)
 
+
 def test_match():
     """Test the match helper."""
     values = [
-        InvariantString("hi abc", "m0"),
-        InvariantNumber(1, "m1"),
-        InvariantString("a", "m2"),
-        InvariantString("ghi", "m3"),
+        InvariantString("hi abc", ["m0"]),
+        InvariantNumber(1, ["m1"]),
+        InvariantString("a", ["m2"]),
+        InvariantString("ghi", ["m3"]),
     ]
     result = F.match("a.*", values)
     assert len(result) == 2
     assert result[0].value == "abc" and result[0].addresses == ["m0:3-6"]
     assert result[1].value == "a" and result[1].addresses == ["m2:0-1"]
+
+
+def test_len_helper_returns_correct_length(invariant_number_list: list):
+    """Test that the len function returns the correct length."""
+    result = F.len(invariant_number_list)
+    assert result == InvariantNumber(3)
+
+
+def test_len_helper_maintains_addresses(invariant_number_list: list):
+    """Test that the len function maintains addresses."""
+    result = F.len(invariant_number_list)
+    assert result.addresses == ["0", "1", "2"]
+    assert len(result.addresses) == 3
+
+
+def test_len_helper_returns_invariant_number(invariant_number_list: list):
+    """Test that the len function returns an InvariantNumber object."""
+    result = F.len(invariant_number_list)
+    assert isinstance(result, InvariantNumber)
+
+
+def test_len_helper_works_without_addresses():
+    """Test that the len function works without addresses."""
+    result = F.len([InvariantNumber(1), InvariantNumber(2), InvariantNumber(3)])
+    assert result == InvariantNumber(3)
+    assert result.addresses == []

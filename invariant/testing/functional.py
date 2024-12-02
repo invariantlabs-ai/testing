@@ -9,6 +9,7 @@ from invariant.custom_types.invariant_value import InvariantValue
 # Import built-in functions to avoid shadowing
 from builtins import max as builtin_max
 from builtins import min as builtin_min
+from builtins import len as builtin_len
 
 
 def map(
@@ -134,3 +135,10 @@ def min(iterable: Iterable[InvariantValue]) -> InvariantValue:
 def max(iterable: Iterable[InvariantValue]) -> InvariantValue:
     """Return the maximum value in the list."""
     return builtin_max(iterable, key=lambda x: x.value)
+
+
+def len(iterable: Iterable[InvariantValue]) -> InvariantNumber:
+    """Return the length of the list."""
+    return InvariantNumber(
+        builtin_len(iterable), [addr for item in iterable for addr in item.addresses]
+    )
