@@ -141,31 +141,6 @@ class Trace(BaseModel):
         messages, metadata = from_explorer(identifier_or_id, index, explorer_endpoint)
         return cls(trace=messages, metadata=metadata)
 
-    @classmethod
-    def from_swarm(
-        cls, response: "swarm.types.Response", history: list[dict]
-    ) -> "Trace":
-        """
-        Creates a Trace instance from the current Swarm response and the history of
-        messages exchanged with the Swarm client.
-
-        Args:
-            response (swarm.types.Response): The Swarm response object containing messages.
-            history (list[dict]): The history of messages exchanged with the Swarm client.
-
-        Returns:
-            Trace: A Trace object with all the messages combined.
-        """
-        from swarm.types import Response  # pylint: disable=import-outside-toplevel
-
-        assert isinstance(response, Response)
-        assert isinstance(history, list)
-        assert all(isinstance(msg, dict) for msg in history)
-
-        trace_messages = copy.deepcopy(history)
-        trace_messages.extend(response.messages or [])
-        return cls(trace=trace_messages)
-
     def messages(
         self, selector: int | None = None, **filterkwargs
     ) -> list[InvariantDict]:
