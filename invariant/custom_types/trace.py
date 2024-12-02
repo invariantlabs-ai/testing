@@ -95,13 +95,17 @@ def match_keyword_filter(
 class Trace(BaseModel):
     """Defines an Invariant trace."""
 
-    trace: List[Dict]
+    _trace: List[Dict]
     metadata: Dict[str, Any] | None = None
 
     # Active Manager that is running with this trace as context
     # (e.g. with Trace(...) as trace: ... )
     # If this is already assigned, the trace is currently being used in a context manager already and should not be re-used.
     manager: Any = None
+
+    def __init__(self, trace: List[Dict], metadata: Dict[str, Any] | None = None, **kwargs):
+        super().__init__(metadata=metadata, **kwargs)
+        self._trace = trace
 
     def as_context(self):
         from invariant.manager import Manager
@@ -146,24 +150,24 @@ class Trace(BaseModel):
     ) -> list[InvariantDict]:
         """Return the messages in the trace."""
         if isinstance(selector, int):
-            return InvariantDict(self.trace[selector], f"{selector}")
+            return InvariantDict(self._trace[selector], f"{selector}")
         if len(filterkwargs) > 0:
             return [
                 InvariantDict(message, [f"{i}"])
-                for i, message in enumerate(self.trace)
+                for i, message in enumerate(self._trace)
                 if all(
                     match_keyword_filter(kwname, kwvalue, message.get(kwname))
                     for kwname, kwvalue in filterkwargs.items()
                 )
             ]
         return [
-            InvariantDict(message, [f"{i}"]) for i, message in enumerate(self.trace)
+            InvariantDict(message, [f"{i}"]) for i, message in enumerate(self._trace)
         ]
 
     def tool_pairs(self) -> list[tuple[InvariantDict, InvariantDict]]:
         """Returns the list of tuples of (tool_call, tool_output)."""
         res = []
-        for msg_idx, msg in enumerate(self.trace):
+        for msg_idx, msg in enumerate(self._trace):
             if msg.get("role") != "assistant":
                 continue
             for tc_idx, tc in enumerate(msg.get("tool_calls", [])):
@@ -177,7 +181,7 @@ class Trace(BaseModel):
 
         matched_ids = set()
         # First, find all tool outputs that have the same id as a tool call
-        for msg_idx, msg in enumerate(self.trace):
+        for msg_idx, msg in enumerate(self._trace):
             if msg.get("role") != "tool" or "id" not in msg:
                 continue
             for i, res_pair in enumerate(res):
@@ -188,7 +192,7 @@ class Trace(BaseModel):
         res = sorted(res, key=lambda x: x[0])
 
         # For the remaining tool outputs, assign them to the previous unmatched tool call
-        for msg_idx, msg in enumerate(self.trace):
+        for msg_idx, msg in enumerate(self._trace):
             if msg.get("role") != "tool":
                 continue
             if msg.get("id") in matched_ids:
@@ -212,7 +216,7 @@ class Trace(BaseModel):
     ) -> list[InvariantDict] | InvariantDict:
         """Return the tool calls in the trace."""
         if isinstance(selector, int):
-            for i, (tc_address, tc) in enumerate(iterate_tool_calls(self.trace)):
+            for i, (tc_address, tc) in enumerate(iterate_tool_calls(self._trace)):
                 if i == selector:
                     return InvariantDict(tc, tc_address)
         elif isinstance(selector, dict):
@@ -224,7 +228,7 @@ class Trace(BaseModel):
 
             return [
                 InvariantDict(tc, tc_address)
-                for tc_address, tc in iterate_tool_calls(self.trace)
+                for tc_address, tc in iterate_tool_calls(self._trace)
                 if all(
                     find_value(tc["function"], kwname) == kwvalue
                     for kwname, kwvalue in selector.items()
@@ -233,7 +237,7 @@ class Trace(BaseModel):
         elif len(filterkwargs) > 0:
             return [
                 InvariantDict(tc, tc_address)
-                for tc_address, tc in iterate_tool_calls(self.trace)
+                for tc_address, tc in iterate_tool_calls(self._trace)
                 if all(
                     match_keyword_filter_on_tool_call(
                         kwname, kwvalue, tc.get(kwname), tc
@@ -244,7 +248,7 @@ class Trace(BaseModel):
         else:
             return [
                 InvariantDict(tc, tc_address)
-                for tc_address, tc in iterate_tool_calls(self.trace)
+                for tc_address, tc in iterate_tool_calls(self._trace)
             ]
 
     def to_python(self):
@@ -254,9 +258,9 @@ class Trace(BaseModel):
         """
         return (
             "Trace(trace=[\n"
-            + ",\n".join("  " + str(msg) for msg in self.trace)
+            + ",\n".join("  " + str(msg) for msg in self._trace)
             + "\n])"
         )
 
     def __str__(self):
-        return "\n".join(str(msg) for msg in self.trace)
+        return "\n".join(str(msg) for msg in self._trace)

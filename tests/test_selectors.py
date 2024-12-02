@@ -63,11 +63,11 @@ def trace_with_tool_calls():
 
 
 def test_messages_list_select(trace: Trace):
-    assert trace.messages()[1]["content"].value == trace.trace[1]["content"]
+    assert trace.messages()[1]["content"].value == trace._trace[1]["content"]
 
 
 def tests_messages_index_select(trace: Trace):
-    assert trace.messages(1)["content"].value == trace.trace[1]["content"]
+    assert trace.messages(1)["content"].value == trace._trace[1]["content"]
 
 
 def test_messages_filter(trace: Trace):
