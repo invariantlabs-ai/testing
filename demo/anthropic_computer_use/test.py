@@ -73,3 +73,12 @@ def test_not_cheating():
         bash_calls = trace.tool_calls({"name":"bash"})
         for bash_call in bash_calls:
             it.assert_true("echo" not in bash_call.get("command"), "No echo commands in bash calls")
+
+def test_no_unneccesary_installs():
+    with trace.as_context():
+        bash_calls = trace.tool_calls({"name":"bash"})
+        for bash_call in bash_calls:
+            it.assert_true("apt" not in bash_call.get("command") and "install" not in bash_call.get("command"), "No need to install anything", assertion_type='SOFT')
+
+
+# TODO images don't show correctly in explorer
