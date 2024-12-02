@@ -4,7 +4,7 @@ import contextvars
 from functools import wraps
 
 
-def isolated_context(func):
+def traced(func):
     """Decorator to run a function in an isolated context."""
 
     @wraps(func)
