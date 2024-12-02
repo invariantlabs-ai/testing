@@ -47,6 +47,7 @@ else:
     trace = get_trace(trace_id)
     json.dump(trace, open(path, 'w'))
 trace = it.Trace(trace=trace)
+# TODO use from_explorer
 
 
 def test_flow():
@@ -79,7 +80,7 @@ def test_no_unneccesary_installs():
     with trace.as_context():
         bash_calls = trace.tool_calls({"name":"bash"})
         for bash_call in bash_calls:
-            it.assert_true("apt" not in bash_call.get("command") and "install" not in bash_call.get("command"), "No need to install anything", assertion_type='SOFT')
+            it.expect_true("apt" not in bash_call.get("command") and "install" not in bash_call.get("command"), "No need to install anything")
 
 
 # TODO images don't show correctly in explorer
