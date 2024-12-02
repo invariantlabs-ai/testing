@@ -260,13 +260,13 @@ def test_extract():
 def test_execute():
     """Test the code execution transformer of InvariantString."""
     code = InvariantString("""def f(n):\treturn n**2""", ["messages.0.content"])
-    res = code.execute("print(f(5))")
-    assert "25" in res.value
+    res = code.execute_contains("25", "print(f(5))")
+    assert res
     assert len(res.addresses) == 1 and res.addresses[0] == "messages.0.content:0-21"
 
     code = InvariantString(
         """import numpy as np; print(np.array([1, 2, 3, 4])**2)""",
         ["messages.0.content"],
     )
-    res = code.execute(detect_packages=True)
-    assert res.contains("9") and res.contains("16")
+    assert code.execute_contains("9", detect_packages=True)
+    assert code.execute_contains("16", detect_packages=True)
