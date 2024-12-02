@@ -353,3 +353,21 @@ def test_get_test_name_and_parameters_from_env(name, bool1, trace_with_tool_call
     """Test get_test_name_and_parameters."""
     with trace_with_tool_calls.as_context():
         pass
+
+
+def test_something():
+    """Test something."""
+    # create a Trace object from your agent trajectory
+    trace = Trace(
+        trace=[
+            {"role": "user", "content": "What is the weather like in Paris?"},
+            {"role": "agent", "content": "The weather in Paris is 75°F and sunny."},
+        ]
+    )
+
+    # make assertions about the agent's behavior
+    with trace.as_context():
+        assert_true(
+            trace.messages()[-1]["content"].contains("Pariss"),
+            "The agent should respond about Paris",
+        )
