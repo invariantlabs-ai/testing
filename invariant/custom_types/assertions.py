@@ -1,7 +1,5 @@
 """Defines the expect functions."""
 
-import json
-import os
 from typing import Any, Literal, Tuple
 
 from invariant.custom_types.assertion_result import AssertionResult

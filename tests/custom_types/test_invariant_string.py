@@ -1,12 +1,12 @@
 """Test cases for the InvariantString class."""
 
 import pytest
-from pytest import approx
-
 from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_number import InvariantNumber
 from invariant.custom_types.invariant_string import InvariantString
 from invariant.utils.packages import is_program_installed
+from pytest import approx
+
 
 def test_invariant_string_initialization():
     """Test initialization of InvariantString."""
@@ -150,14 +150,22 @@ def test_contains():
     assert not InvariantString("hello", [""]).contains("\\d")
     assert InvariantString("hello").contains(InvariantString("el"))
 
+
 def test_match():
     """Test the match transformer of InvariantString."""
-    res = InvariantString("Dataset: demo\nAuthor: demo-agent", [""]).match("Dataset: (.*)", 1)
+    res = InvariantString("Dataset: demo\nAuthor: demo-agent", [""]).match(
+        "Dataset: (.*)", 1
+    )
     assert res.value == "demo" and res.addresses == [":9-13"]
-    res = InvariantString("Dataset: demo\nAuthor: demo-agent", [""]).match("Author: (?P<author>.*)", "author")
+    res = InvariantString("Dataset: demo\nAuthor: demo-agent", [""]).match(
+        "Author: (?P<author>.*)", "author"
+    )
     assert res.value == "demo-agent" and res.addresses == [":22-32"]
-    res = InvariantString("My e-mail is abc@def.com, and yours?", [""]).match("[a-z\\.]*@[a-z\\.]*", 0)
+    res = InvariantString("My e-mail is abc@def.com, and yours?", [""]).match(
+        "[a-z\\.]*@[a-z\\.]*", 0
+    )
     assert res.value == "abc@def.com" and res.addresses == [":13-24"]
+
 
 def test_levenshtein():
     """Test the levenshtein transformer of InvariantString."""
@@ -247,8 +255,7 @@ def test_extract():
 
 
 @pytest.mark.skipif(
-    not is_program_installed("docker"),
-    reason="Skip for now, needs docker"
+    not is_program_installed("docker"), reason="Skip for now, needs docker"
 )
 def test_execute():
     """Test the code execution transformer of InvariantString."""

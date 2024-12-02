@@ -233,7 +233,7 @@ def test_trace_rules(trace_with_tool_calls: Trace):
         )
 
         assistant_messages = trace_with_tool_calls.messages(role="assistant")
-        assert assistant_messages.len() == 2
+        assert len(assistant_messages) == 2
         assert_equals(
             "Hello there",
             assistant_messages[0]["content"],
@@ -368,6 +368,6 @@ def test_something():
     # make assertions about the agent's behavior
     with trace.as_context():
         assert_true(
-            trace.messages()[-1]["content"].contains("Pariss"),
+            trace.messages()[-1]["content"].contains("Paris"),
             "The agent should respond about Paris",
         )

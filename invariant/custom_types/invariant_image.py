@@ -1,13 +1,14 @@
+""" A custom type for an invariant image. """
+
 import base64
 import io
 from typing import Optional
-
-from PIL import Image
 
 from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_string import InvariantString
 from invariant.scorers.utils.llm import LLMClassifier
 from invariant.scorers.utils.ocr import OCRDetector
+from PIL import Image
 
 
 class InvariantImage(InvariantString):

@@ -60,12 +60,14 @@ def strip_comment(line):
         return True, line.replace("#", " ", 1)
     return False, line
 
+
 def _format_str(s: str):
     if s.startswith("local_base64_img"):
         return "<base64_image>"
     elif len(s) > MAX_LEN:
-        return s[:MAX_LEN//2] + "..." + s[-MAX_LEN//2:]
+        return s[: MAX_LEN // 2] + "..." + s[-MAX_LEN // 2 :]
     return s
+
 
 def _format_trace(json_obj, indent="", path=[], highlights=[]):
     """Format a JSON object as a string."""

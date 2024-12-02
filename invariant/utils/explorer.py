@@ -1,22 +1,30 @@
+"""Utility functions to interact with the Invariant Explorer."""
+
 import base64
+
 import requests
 
-def _get_image(local_img_path: str, explorer_endpoint: str = "https://explorer.invariantlabs.ai") -> str:
+
+def _get_image(
+    local_img_path: str, explorer_endpoint: str = "https://explorer.invariantlabs.ai"
+) -> str:
     """Get the base64 encoded image from the local_img_path.
-    
+
     Args:
         local_img_path: The path to the image in the local filesystem.
     """
-    path_parts = local_img_path.split('/')
+    path_parts = local_img_path.split("/")
     dataset_id = path_parts[-3]
     trace_id = path_parts[-2]
-    image_id = path_parts[-1].split('.')[0]
+    image_id = path_parts[-1].split(".")[0]
 
     response = requests.get(
         f"{explorer_endpoint}/api/v1/trace/image/{dataset_id}/{trace_id}/{image_id}",
     )
     if response.status_code != 200:
-        raise ValueError(f"Error getting image {local_img_path} from Explorer: {response.status_code}")
+        raise ValueError(
+            f"Error getting image {local_img_path} from Explorer: {response.status_code}"
+        )
     return base64.b64encode(response.content).decode("utf-8")
 
 
