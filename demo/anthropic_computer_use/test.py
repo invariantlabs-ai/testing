@@ -2,13 +2,14 @@ import json
 from pathlib import Path
 import requests
 import invariant.testing as it
-
-jwt_token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJGdzBJMnRITUk5cGxzdklJaHVuV1FJUU1fY3ZEZnVZVEhrS0k1OTQ1ZXZBIn0.eyJleHAiOjE3MzMwNjU0MTQsImlhdCI6MTczMzA2NTExNCwiYXV0aF90aW1lIjoxNzMzMDU3MTQxLCJqdGkiOiIzNjM3NjhmNS0yNDA4LTQzYjMtOWJmMi05Njg4NTU5OGYxOTYiLCJpc3MiOiJodHRwczovL2F1dGguaW52YXJpYW50bGFicy5haS9yZWFsbXMvaW52YXJpYW50LXB1YmxpYyIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJmNjZiNDVjMy03ZWJjLTRlMmEtYmQ1Ny0wMzFhMTg4MzgzOGEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJpbnZhcmlhbnQtZXhwbG9yZXIiLCJzZXNzaW9uX3N0YXRlIjoiODJhZGNiNGItZmVjYy00MGJmLThmMTEtZjU3ODgwZmQ0MDgzIiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyJodHRwczovL2V4cGxvcmVyLmludmFyaWFudGxhYnMuYWkiLCJodHRwczovL3ByZXZpZXctZXhwbG9yZXIuaW52YXJpYW50bGFicy5haSJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJkZWZhdWx0LXJvbGVzLWludmFyaWFudC1wdWJsaWMiLCJ1bWFfYXV0aG9yaXphdGlvbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoib3BlbmlkIGVtYWlsIHByb2ZpbGUiLCJzaWQiOiI4MmFkY2I0Yi1mZWNjLTQwYmYtOGYxMS1mNTc4ODBmZDQwODMiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsIm5hbWUiOiJNYXJjIEZpc2NoZXIiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ2aWVoemV1ZyIsImdpdmVuX25hbWUiOiJNYXJjIiwiZmFtaWx5X25hbWUiOiJGaXNjaGVyIiwiZW1haWwiOiJtYWlsQG1hcmNmaXNjaGVyLmF0In0.gcEWb6WxZlpRtllotcejOMuGUd10cLICmC_CX3v0LvNPUca0fENLTVbYCKR5aIeR6lGo6xSmDfYylcFf2TnKM8cwlF8K95x17WQ5cYgc6LVKGKA6zVa3ILekDC2vkI_C_wmYobxmaWfzwN5Pnq4gkxIY2fHTxdw-d_bSD1HOKxNeu8M76e4OAoux1tXkaN7wPdyKPNpuNi3vZUkaIHjiPk-PE9JN_PxBQuHe7bOsxOThZH6v-ZcLqcS5hNgv7A7C4fhL2dmSQdpbHc08XaY5x4kzcKqolwOiZdewbV2273dPpZkklByZ9EUvqhywLF7_8ANM1GAohX7EftcUDWPLUQ"
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 def get_trace(trace_id: str) -> list[dict]:
     response = requests.get(
         f"https://explorer.invariantlabs.ai/api/v1/trace/{trace_id}?annotated=false",
-        headers={"accept": "application/json", "Authorization": f"Bearer {jwt_token}"},
+        headers={"accept": "application/json", "Authorization": f"Bearer {os.getenv('JWT_TOKEN')}"},
         verify=False,
     )
     messages = response.json()["messages"]
@@ -32,7 +33,7 @@ def get_image(local_img_path: str) -> str:
     # Make request to get image
     response = requests.get(
         f"https://explorer.invariantlabs.ai/api/v1/trace/image/{dataset_id}/{trace_id}/{image_id}",
-        headers={"accept": "application/json", "Authorization": f"Bearer {jwt_token}"},
+        headers={"accept": "application/json", "Authorization": f"Bearer {os.getenv('JWT_TOKEN')}"},
         verify=False
     )
     return base64.b64encode(response.content).decode("utf-8")
