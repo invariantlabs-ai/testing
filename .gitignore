@@ -5,3 +5,4 @@ htmlcov
 .invariant
 .env
 test_tmp.py
+demo/anthropic_computer_use/*.json
