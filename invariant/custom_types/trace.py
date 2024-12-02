@@ -106,6 +106,22 @@ class Trace(BaseModel):
     def __init__(self, trace: List[Dict], metadata: Dict[str, Any] | None = None, **kwargs):
         super().__init__(metadata=metadata, **kwargs)
         self._trace = trace
+        self._messages = self._format_and_get_all_messages()
+
+    def __next__(self):
+        return self._messages
+
+    def __iter__(self):
+        return self
+
+    def __str__(self):
+        return "\n".join(str(msg) for msg in self._trace)
+
+    def _format_and_get_all_messages(self) -> list[InvariantDict]:
+        """Return all messages in the trace as InvariantDict objects."""
+        return [
+            InvariantDict(message, [str(i)]) for i, message in enumerate(self._trace)
+        ]
 
     def as_context(self):
         from invariant.manager import Manager
@@ -160,9 +176,7 @@ class Trace(BaseModel):
                     for kwname, kwvalue in filterkwargs.items()
                 )
             ]
-        return [
-            InvariantDict(message, [f"{i}"]) for i, message in enumerate(self._trace)
-        ]
+        return self._messages
 
     def tool_pairs(self) -> list[tuple[InvariantDict, InvariantDict]]:
         """Returns the list of tuples of (tool_call, tool_output)."""
@@ -261,6 +275,3 @@ class Trace(BaseModel):
             + ",\n".join("  " + str(msg) for msg in self._trace)
             + "\n])"
         )
-
-    def __str__(self):
-        return "\n".join(str(msg) for msg in self._trace)
