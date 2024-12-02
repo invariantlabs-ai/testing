@@ -1,13 +1,13 @@
 """Defines an Invariant trace."""
 
 from __future__ import annotations
+
 import copy
-import swarm
 from typing import Any, Callable, Dict, Generator, List
 
-from pydantic import BaseModel
-from invariant.utils.explorer import from_explorer
 from invariant.custom_types.invariant_dict import InvariantDict, InvariantValue
+from invariant.utils.explorer import from_explorer
+from pydantic import BaseModel
 
 
 def iterate_tool_calls(
@@ -142,7 +142,9 @@ class Trace(BaseModel):
         return cls(trace=messages, metadata=metadata)
 
     @classmethod
-    def from_swarm(cls, response: swarm.types.Response, history: list[dict]) -> "Trace":
+    def from_swarm(
+        cls, response: "swarm.types.Response", history: list[dict]
+    ) -> "Trace":
         """
         Creates a Trace instance from the current Swarm response and the history of
         messages exchanged with the Swarm client.
@@ -154,6 +156,12 @@ class Trace(BaseModel):
         Returns:
             Trace: A Trace object with all the messages combined.
         """
+        from swarm.types import Response  # pylint: disable=import-outside-toplevel
+
+        assert isinstance(response, Response)
+        assert isinstance(history, list)
+        assert all(isinstance(msg, dict) for msg in history)
+
         trace_messages = copy.deepcopy(history)
         trace_messages.extend(response.messages or [])
         return cls(trace=trace_messages)
