@@ -1,7 +1,7 @@
 """Tests for the capital_finder_agent"""
 
 import pytest
-from invariant.testing import SwarmWrapper, assert_equals, assert_true, isolated_context
+from invariant.testing import SwarmWrapper, assert_equals, assert_true, traced
 from swarm import Swarm
 
 from .capital_finder_agent import create_agent
@@ -13,7 +13,7 @@ def fixture_swarm_wrapper():
     return SwarmWrapper(Swarm())
 
 
-@isolated_context
+@traced
 def test_capital_finder_agent_when_capital_found(swarm_wrapper):
     """Test the capital finder agent when the capital is found."""
     agent = create_agent()
@@ -34,7 +34,7 @@ def test_capital_finder_agent_when_capital_found(swarm_wrapper):
         assert_true("Paris" in trace.messages(-1)["content"])
 
 
-@isolated_context
+@traced
 def test_capital_finder_agent_when_capital_not_found(swarm_wrapper):
     """Test the capital finder agent when the capital is found."""
     agent = create_agent()
