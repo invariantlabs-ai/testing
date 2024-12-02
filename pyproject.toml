@@ -17,11 +17,11 @@ Pillow = "^10.0.0"
 beautifulsoup4 = "^4.12.3"
 invariant-sdk = "^0.0.4"
 diskcache = "^5.6.3"
-openai-swarm = "^0.1.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.3.3"
 pytest-cov = "^5.0.0"
+openai-swarm = "^0.1.1"
 
 [build-system]
 requires = ["poetry-core"]

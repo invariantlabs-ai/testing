@@ -1,11 +1,9 @@
 """Detect text in images using Tesseract OCR."""
-import base64
-import io
 import subprocess
 import tempfile
+from invariant.utils.packages import is_program_installed
 from typing import Any, Dict, Optional
 from PIL import Image
-
 
 class OCRDetector:
     """Detect text in images using Tesseract OCR."""
@@ -39,8 +37,8 @@ class OCRDetector:
         Returns:
             bool: True if expected text was found, False otherwise
         """
-        if not OCRDetector.check_tesseract_installed():
-            raise RuntimeError("Tesseract is not installed")
+        if not is_program_installed("tesseract"):
+            raise RuntimeError("Please install tesseract to use the contains function for images.")
 
         # Save image to temporary file
         with tempfile.NamedTemporaryFile(suffix='.png') as temp_img:
