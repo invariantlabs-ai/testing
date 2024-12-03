@@ -6,49 +6,8 @@ from dotenv import load_dotenv
 import os
 load_dotenv()
 
-def get_trace(trace_id: str) -> list[dict]:
-    response = requests.get(
-        f"https://explorer.invariantlabs.ai/api/v1/trace/{trace_id}?annotated=false",
-        headers={"accept": "application/json", "Authorization": f"Bearer {os.getenv('JWT_TOKEN')}"},
-        verify=False,
-    )
-    messages = response.json()["messages"]
-    for msg in messages:
-        content = msg.get("content")
-        if isinstance(content, str) and content.startswith("local_img_link:"):
-            img = get_image(content)
-            msg["content"] = img
-    return messages
-
-
-def get_image(local_img_path: str) -> str:
-    import base64
-    
-    # Extract components from path
-    path_parts = local_img_path.split('/')
-    dataset_id = path_parts[-3]
-    trace_id = path_parts[-2]
-    image_id = path_parts[-1].split('.')[0]
-
-    # Make request to get image
-    response = requests.get(
-        f"https://explorer.invariantlabs.ai/api/v1/trace/image/{dataset_id}/{trace_id}/{image_id}",
-        headers={"accept": "application/json", "Authorization": f"Bearer {os.getenv('JWT_TOKEN')}"},
-        verify=False
-    )
-    return base64.b64encode(response.content).decode("utf-8")
-
 trace_id = "9fb90e2a-66dd-49d3-9561-9b6cae7e2082" 
-path = Path(__file__).parent.joinpath(f"{trace_id}.json")
-if path.exists():
-    with open(path, 'r') as f:
-        trace = json.load(f)
-else:
-    trace = get_trace(trace_id)
-    json.dump(trace, open(path, 'w'))
-trace = it.Trace(trace=trace)
-# TODO use from_explorer
-
+trace = it.Trace.from_explorer(trace_id)
 
 def test_flow():
     with trace.as_context():
