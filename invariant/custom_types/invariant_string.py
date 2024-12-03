@@ -191,9 +191,7 @@ class InvariantString(InvariantValue):
         if isinstance(pattern, InvariantString):
             pattern = pattern.value
         new_addresses = []
-        
-        if "144" in pattern:
-            breakpoint()
+
         for match in re.finditer(pattern, self.value):
             start, end = match.span()
             new_addresses.append(f"{start}-{end}")
