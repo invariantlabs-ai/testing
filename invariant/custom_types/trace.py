@@ -6,10 +6,13 @@ import copy
 import json
 from typing import Any, Callable, Dict, Generator, List
 
+from invariant_sdk.client import Client as InvariantClient
+from invariant_sdk.types.push_traces import PushTracesResponse
 from pydantic import BaseModel
 
 from invariant.custom_types.invariant_dict import InvariantDict, InvariantValue
 from invariant.utils.explorer import from_explorer
+from invariant.utils.utils import ssl_verification_enabled
 
 
 def iterate_tool_calls(
@@ -208,6 +211,7 @@ class Trace(BaseModel):
                 if i == selector:
                     return InvariantDict(tc, tc_address)
         elif isinstance(selector, dict):
+
             def find_value(d, path):
                 for k in path.split("."):
                     if type(d) == str and type(k) == str:
@@ -241,6 +245,29 @@ class Trace(BaseModel):
                 InvariantDict(tc, tc_address)
                 for tc_address, tc in iterate_tool_calls(self.trace)
             ]
+
+    def push_to_explorer(
+        self,
+        client: InvariantClient | None = None,
+        dataset_name: None | str = None,
+    ) -> PushTracesResponse:
+        """Pushes the trace to the explorer.
+
+        :param client: The client used to push. If None a standard invariant_sdk client is initialized.
+        :param dataset_name: The name of the dataset to witch the trace would be approved.
+
+        :return: response of push trace request.
+        """
+        if client is None:
+            client = InvariantClient()
+
+        return client.create_request_and_push_trace(
+            messages=[self.trace],
+            annotations=[],
+            metadata=[self.metadata if self.metadata is not None else {}],
+            dataset=dataset_name,
+            request_kwargs={"verify": ssl_verification_enabled()},
+        )
 
     def __str__(self):
         return "\n".join(str(msg) for msg in self.trace)
