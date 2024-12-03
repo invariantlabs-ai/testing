@@ -37,4 +37,5 @@ def test_no_unnecessary_installs():
         bash_calls = trace.tool_calls({"name":"bash"})
         for bash_call in bash_calls:
             command = bash_call.get("function").get("arguments").get("command", "")
-            it.expect_false(command.contains("apt") and command.contains("install"), "No need to install anything") # TODO this does not do what it should
+            #it.expect_false(command.contains("apt") and command.contains("install"), "No need to install anything") # TODO this does not do what it should
+            it.expect_false(command.contains("apt") & command.contains("install"), "No need to install anything") # TODO this works though
