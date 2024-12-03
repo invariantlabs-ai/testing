@@ -211,11 +211,6 @@ def test_tool_calls_filter_name_callable_2(trace_with_tool_calls: Trace):
     assert len(tool_calls) == 2
 
 
-# TODO: Implement
-def test_trace_is_iterable(trace: Trace):
-    pass
-
-
 def test_filter_on_image_returns_correct_number(trace_with_images: Trace):
     images = trace_with_images.messages(data_type="image")
     assert len(images) == 2
@@ -238,3 +233,20 @@ def test_filter_on_image_returns_correct_image(trace_with_images: Trace):
 
     images = trace_with_images.tool_calls(data_type="image")
     assert len(images) == 0
+
+
+@pytest.mark.parametrize(
+    "tool_id",
+    ["tool_1", "tool_2"]
+)
+def test_filter_on_images_works_with_kw_selector(trace_with_images, tool_id):
+    images = trace_with_images.tool_outputs(data_type="image", id=tool_id)
+    assert images[0]["id"] == tool_id
+
+@pytest.mark.parametrize(
+    "tool_id",
+    ["tool_1", "tool_2"]
+)
+def test_filter_on_images_works_with_dict_selector(trace_with_images, tool_id):
+    images = trace_with_images.tool_outputs(data_type="image", selector={"id": tool_id})
+    assert images[0]["id"] == tool_id
