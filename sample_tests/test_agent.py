@@ -233,7 +233,7 @@ def test_trace_rules(trace_with_tool_calls: Trace):
         )
 
         assistant_messages = trace_with_tool_calls.messages(role="assistant")
-        assert assistant_messages.len() == 2
+        assert len(assistant_messages) == 2
         assert_equals(
             "Hello there",
             assistant_messages[0]["content"],
@@ -353,3 +353,21 @@ def test_get_test_name_and_parameters_from_env(name, bool1, trace_with_tool_call
     """Test get_test_name_and_parameters."""
     with trace_with_tool_calls.as_context():
         pass
+
+
+def test_something():
+    """Test something."""
+    # create a Trace object from your agent trajectory
+    trace = Trace(
+        trace=[
+            {"role": "user", "content": "What is the weather like in Paris?"},
+            {"role": "agent", "content": "The weather in Paris is 75°F and sunny."},
+        ]
+    )
+
+    # make assertions about the agent's behavior
+    with trace.as_context():
+        assert_true(
+            trace.messages()[-1]["content"].contains("Paris"),
+            "The agent should respond about Paris",
+        )

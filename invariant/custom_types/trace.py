@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+import copy
+import json
 from typing import Any, Callable, Dict, Generator, List
+
+from invariant_sdk.client import Client as InvariantClient
+from invariant_sdk.types.push_traces import PushTracesResponse
+from pydantic import BaseModel
 
 from invariant.custom_types.invariant_dict import InvariantDict, InvariantValue
 from invariant.custom_types.matchers import Matcher, ContainsImage
 from invariant.utils.explorer import from_explorer
-from pydantic import BaseModel
+from invariant.utils.utils import ssl_verification_enabled
 
 
 def iterate_tool_calls(
@@ -109,8 +115,7 @@ def match_keyword_filter_on_tool_call(
 def match_keyword_filter(
     kwname: str, kwvalue: str | int | Callable, value: InvariantValue | Any, message: dict
 ) -> bool:
-    """
-    Match a keyword filter.
+    """Match a keyword filter.
 
     A keyword filter such as name='value' can be one of the following:
     - a string or integer value to compare against exactly
@@ -189,14 +194,28 @@ class Trace(BaseModel):
             assertion(self)
 
     @classmethod
+    def from_swarm(cls, history: list[dict]) -> "Trace":
+        """Creates a Trace instance from the history of messages exchanged with the Swarm client.
+
+        Args:
+            history (list[dict]): The history of messages exchanged with the Swarm client.
+
+        Returns:
+            Trace: A Trace object with all the messages combined.
+        """
+        assert isinstance(history, list)
+        assert all(isinstance(msg, dict) for msg in history)
+        trace_messages = copy.deepcopy(history)
+        return cls(trace=trace_messages)
+
+    @classmethod
     def from_explorer(
         cls,
         identifier_or_id: str,
         index: int | None = None,
         explorer_endpoint: str = "https://explorer.invariantlabs.ai",
     ) -> "Trace":
-        """
-        Loads a public trace from the Explorer (https://explorer.invariantlabs.ai).
+        """Loads a public trace from the Explorer (https://explorer.invariantlabs.ai).
 
         The identifier_or_id can be either a trace ID or a <username>/<dataset> pair, in which case
         the index of the trace to load must be provided.
@@ -398,17 +417,9 @@ class Trace(BaseModel):
     def tool_pairs(self) -> list[tuple[InvariantDict, InvariantDict]]:
         """Returns the list of tuples of (tool_call, tool_output)."""
         res = []
-        for msg_idx, msg in enumerate(self.trace):
-            if msg.get("role") != "assistant":
-                continue
-            for tc_idx, tc in enumerate(msg.get("tool_calls", [])):
-                res.append(
-                    (
-                        msg_idx,
-                        InvariantDict(tc, [f"{msg_idx}.tool_calls.{tc_idx}"]),
-                        None,
-                    )
-                )
+        for tc_address, tc in iterate_tool_calls(self.trace):
+            msg_idx = int(tc_address[0].split(".")[0])
+            res.append((msg_idx, InvariantDict(tc, tc_address), None))
 
         matched_ids = set()
         # First, find all tool outputs that have the same id as a tool call
@@ -450,9 +461,69 @@ class Trace(BaseModel):
         Returns:
             str: The Python string representing the trace.
 
+    def tool_calls(
+        self, selector: int | None = None, **filterkwargs
+    ) -> list[InvariantDict] | InvariantDict:
+        """Return the tool calls in the trace."""
+        if isinstance(selector, int):
+            for i, (tc_address, tc) in enumerate(iterate_tool_calls(self.trace)):
+                if i == selector:
+                    return InvariantDict(tc, tc_address)
+        elif isinstance(selector, dict):
+
+            def find_value(d, path):
+                for k in path.split("."):
+                    if type(d) == str and type(k) == str:
+                        d = json.loads(d)
+                    if k not in d:
+                        return None
+                    d = d[k]
+                return d
+
+            return [
+                InvariantDict(tc, tc_address)
+                for tc_address, tc in iterate_tool_calls(self.trace)
+                if all(
+                    find_value(tc["function"], kwname) == kwvalue
+                    for kwname, kwvalue in selector.items()
+                )
+            ]
+        elif len(filterkwargs) > 0:
+            return [
+                InvariantDict(tc, tc_address)
+                for tc_address, tc in iterate_tool_calls(self.trace)
+                if all(
+                    match_keyword_filter_on_tool_call(
+                        kwname, kwvalue, tc.get(kwname), tc
+                    )
+                    for kwname, kwvalue in filterkwargs.items()
+                )
+            ]
+        else:
+            return [
+                InvariantDict(tc, tc_address)
+                for tc_address, tc in iterate_tool_calls(self.trace)
+            ]
+
+    def push_to_explorer(
+        self,
+        client: InvariantClient | None = None,
+        dataset_name: None | str = None,
+    ) -> PushTracesResponse:
+        """Pushes the trace to the explorer.
+
+        :param client: The client used to push. If None a standard invariant_sdk client is initialized.
+        :param dataset_name: The name of the dataset to witch the trace would be approved.
+
+        :return: response of push trace request.
         """
-        return (
-            "Trace(trace=[\n"
-            + ",\n".join("  " + str(msg) for msg in self.trace)
-            + "\n])"
+        if client is None:
+            client = InvariantClient()
+
+        return client.create_request_and_push_trace(
+            messages=[self.trace],
+            annotations=[],
+            metadata=[self.metadata if self.metadata is not None else {}],
+            dataset=dataset_name,
+            request_kwargs={"verify": ssl_verification_enabled()},
         )

@@ -1,6 +1,5 @@
 """Defines the expect functions."""
 
-# to get terminal column width
 from typing import Any, Literal, Tuple
 
 from invariant.custom_types.assertion_result import AssertionResult
@@ -23,8 +22,13 @@ def get_caller_snippet(levels=1) -> Tuple[str, int]:
     for _ in range(levels):
         caller_frame = caller_frame.f_back
     fct = inspect.getframeinfo(caller_frame)
-    caller_code = inspect.getsourcelines(caller_frame.f_code)[0]
-    line_in_caller = fct.lineno - caller_frame.f_code.co_firstlineno
+    # Check if called from the module level (not from a def)
+    if fct.function == "<module>":
+        caller_code = fct.code_context
+        line_in_caller = 0
+    else:
+        caller_code = inspect.getsourcelines(caller_frame.f_code)[0]
+        line_in_caller = fct.lineno - caller_frame.f_code.co_firstlineno
     marked_line = (
         caller_code[line_in_caller][1:]
         if caller_code[line_in_caller].startswith(" ")
@@ -133,7 +137,7 @@ def assert_true(
     assertion_type: Literal["SOFT", "HARD"] = "HARD",
     stacklevels: int = 1,
 ):
-    """Expect the actual_value InvariantBool to be true."""
+    """Expect the actual_value to be true."""
     ctx = Manager.current()
     if isinstance(actual_value, InvariantBool):
         comparison_result = actual_value.value
@@ -156,10 +160,10 @@ def assert_true(
 
 
 def expect_true(
-    actual_value: InvariantBool,
+    actual_value: InvariantBool | bool,
     message: str = None,
 ):
-    """Expect the actual_value InvariantBool to be true. This is a soft assertion."""
+    """Expect the actual_value to be true. This is a soft assertion."""
     assert_true(
         actual_value,
         message,
@@ -169,21 +173,26 @@ def expect_true(
 
 
 def assert_false(
-    actual_value: InvariantBool,
+    actual_value: InvariantBool | bool,
     message: str = None,
     assertion_type: Literal["SOFT", "HARD"] = "HARD",
     stacklevels: int = 1,
 ):
-    """Expect the actual_value InvariantBool to be false."""
+    """Expect the actual_value to be false."""
     ctx = Manager.current()
-    comparison_result = not actual_value.value
+    if isinstance(actual_value, InvariantBool):
+        comparison_result = not actual_value.value
+        addresses = actual_value.addresses
+    else:
+        comparison_result = not actual_value
+        addresses = []
 
     test, testline = get_caller_snippet(levels=stacklevels)
 
     assertion = AssertionResult(
         passed=comparison_result,
         type=assertion_type,
-        addresses=actual_value.addresses,
+        addresses=addresses,
         message=message,
         test=test,
         test_line=testline,
@@ -192,10 +201,10 @@ def assert_false(
 
 
 def expect_false(
-    actual_value: InvariantBool,
+    actual_value: InvariantBool | bool,
     message: str = None,
 ):
-    """Expect the actual_value InvariantBool to be false. This is a soft assertion."""
+    """Expect the actual_value to be false. This is a soft assertion."""
     assert_false(
         actual_value,
         message,

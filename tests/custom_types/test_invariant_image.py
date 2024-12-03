@@ -1,12 +1,15 @@
+""" Tests for the InvariantImage class. """
+
 import base64
 
 import pytest
-
 from invariant.custom_types.invariant_image import InvariantImage
 from invariant.custom_types.invariant_string import InvariantString
 from invariant.utils.packages import is_program_installed
 
+
 def test_vision_classifier():
+    """Test the vision classifier."""
     with open("sample_tests/assets/Group_of_cats_resized.jpg", "rb") as image_file:
         base64_image = base64.b64encode(image_file.read()).decode("utf-8")
     img = InvariantImage(base64_image)
@@ -18,11 +21,12 @@ def test_vision_classifier():
     )
     assert isinstance(res, InvariantString) and res.value == "3"
 
+
 @pytest.mark.skipif(
-    not is_program_installed("tesseract"),
-    reason="Skip for now, needs tesseract"
+    not is_program_installed("tesseract"), reason="Skip for now, needs tesseract"
 )
 def test_ocr_detector():
+    """Test the OCR detector."""
     with open("sample_tests/assets/inv_labs.png", "rb") as image_file:
         base64_image = base64.b64encode(image_file.read()).decode("utf-8")
 

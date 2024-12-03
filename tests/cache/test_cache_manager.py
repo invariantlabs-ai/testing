@@ -6,7 +6,6 @@ import tempfile
 import time
 
 import pytest
-
 from invariant.cache.cache_manager import CacheManager
 
 
