@@ -27,6 +27,7 @@ def test_flow():
 def test_not_cheating():
     with trace.as_context():
         bash_calls = trace.tool_calls({"name":"bash"})
+        #TODO is there a better way to do this?
         for bash_call in bash_calls:
             command = bash_call.get("function").get("arguments").get("command", "")
             it.assert_false(command.contains("echo"), "No echo commands in bash calls")
@@ -36,4 +37,4 @@ def test_no_unnecessary_installs():
         bash_calls = trace.tool_calls({"name":"bash"})
         for bash_call in bash_calls:
             command = bash_call.get("function").get("arguments").get("command", "")
-            it.expect_false(command.contains("apt") and command.contains("install"), "No need to install anything")
+            it.expect_false(command.contains("apt") and command.contains("install"), "No need to install anything") # TODO this does not do what it should
