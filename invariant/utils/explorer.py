@@ -85,8 +85,7 @@ def from_explorer(
     )
     messages = response.json()["messages"]
     for msg in messages:
-        if msg.get("content", "").startswith("local_img_link:"):
-
+        if (content := msg.get("content")) and isinstance(content, str) and content.startswith("local_img_link:"):
             img = _get_image(msg["content"], explorer_endpoint)
             msg["content"] = "local_base64_img: " + img
     return messages, metadata
