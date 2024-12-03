@@ -1,19 +1,18 @@
-"""
-Tests different modes of using the library.
-"""
+"""Tests different modes of using the library."""
 
 import io
 import subprocess
 import tempfile
 
 
-# ignored in pytest
 class TestWorkspace:
+    """A temporary workspace for running tests."""
+
     def __init__(self, files):
         self.files = files
         self.workspace = tempfile.TemporaryDirectory(prefix="invariant_runner_test_")
         for filename, contents in files.items():
-            with open(f"{self.workspace.name}/{filename}", "w") as f:
+            with open(f"{self.workspace.name}/{filename}", "w", encoding="utf-8") as f:
                 f.write(contents)
 
     def __enter__(self):
@@ -23,6 +22,7 @@ class TestWorkspace:
         self.workspace.cleanup()
 
     def pytest(self):
+        """Run pytest in the workspace and return the exit code and output."""
         exit_code = 0
         buffer = None
 
@@ -42,6 +42,7 @@ class TestWorkspace:
         return exit_code, buffer.getvalue()
 
     def invariant_test(self):
+        """Run invariant test in the workspace and return the exit code and output."""
         exit_code = 0
         buffer = None
 
@@ -61,8 +62,8 @@ class TestWorkspace:
         return exit_code, buffer.getvalue()
 
 
-# with just pytest, Invariant assertions should still work (not tracked, but raised)
 def test_pytest_no_context():
+    """Test that Invariant assertions work with pytest (not tracked, but raised)."""
     with TestWorkspace(
         {
             "test_file1.py": """
@@ -99,8 +100,8 @@ def test_true():
         assert "1 failed, 1 passed" in result, "Expected summary of 1 failed, 1 passed"
 
 
-# with just pytest, regular assertions should still work and produce correct error messages
 def test_pytest_no_context_regular_assertions():
+    """With just pytest, regular assertions should still work and produce correct error messages"""
     with TestWorkspace(
         {
             "test_file1.py": """
@@ -129,8 +130,9 @@ E       assert False"""
         ), "Expected no failure message for test_false"
 
 
-# with just pytest, Invariant assertions should be tracked and produce correct error messages (but you can't push)
 def test_pytest_with_context():
+    """With just pytest, Invariant assertions should be tracked and produce correct
+    error messages (but you can't push)"""
     with TestWorkspace(
         {
             "test_file1.py": """
@@ -187,8 +189,8 @@ def test_my_trace():
         ), "Expected trace in failure message"
 
 
-# with just pytest, regular assertions should still work and produce correct error messages
 def test_pytest_with_context_regular_assertions():
+    """with just pytest, regular assertions should still work and produce correct error messages"""
     with TestWorkspace(
         {
             "test_file1.py": """
@@ -230,8 +232,9 @@ E           assert False"""
         assert "=== 1 failed" in result
 
 
-# with invariant test, Invariant assertions should be tracked and produce correct error messages (and you can push)
 def test_invariant_no_context():
+    """With invariant test, Invariant assertions should be tracked and
+    produce correct error messages (and you can push)"""
     with TestWorkspace(
         {
             "test_file1.py": """
@@ -269,8 +272,8 @@ def test_true():
         assert "1 failed, 1 passed" in result, "Expected summary of 1 failed, 1 passed"
 
 
-# with invariant test, regular assertions should still work and produce correct error messages
 def test_invariant_no_context_regular_assertions():
+    """With invariant test, regular assertions should still work and produce correct error messages"""
     with TestWorkspace(
         {
             "test_file1.py": """
@@ -299,8 +302,10 @@ E       assert False"""
         ), "Expected no failure message for test_false"
 
 
-# with invariant test, Invariant assertions should be tracked and produce correct error messages. Also, there should be the Invariant summary of your tests (and you can push)
 def test_invariant_with_context():
+    """with invariant test, Invariant assertions should be tracked and produce correct
+    error messages. Also, there should be the Invariant summary of your tests (and you can push)
+    """
     with TestWorkspace(
         {
             "test_file1.py": """
@@ -357,9 +362,10 @@ def test_my_trace():
         ), "Expected trace in failure message"
 
 
-# with invariant test, regular assertions should still work and produce correct error messages (they show up in summary, but
-# error messages are not localized in the trace)
 def test_invariant_with_context_regular_assertions():
+    """with invariant test, regular assertions should still work and produce correct error
+    messages (they show up in summary, but error messages are not localized in the trace)
+    """
     with TestWorkspace(
         {
             "test_file1.py": """

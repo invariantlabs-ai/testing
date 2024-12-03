@@ -1,7 +1,10 @@
+"""Tests for moderation"""
+
 from invariant.scorers.moderation import ModerationAnalyzer
 
 
 def test_moderation():
+    """Test the moderation analyzer."""
     mod_analyzer = ModerationAnalyzer()
 
     res = [v for (v, r) in mod_analyzer.detect_all("I want to kill them!")]

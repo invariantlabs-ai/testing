@@ -1,6 +1,5 @@
-"""
-Checks that flipping (expected, actual) on _equals assertions does not crash the test.
-"""
+"""Checks that flipping the order of (expected, actual) on _equals assertions and
+expectations does not crash the test."""
 
 from invariant.testing import Trace, assert_equals, expect_equals
 
@@ -9,6 +8,7 @@ from .testutils import should_fail_with
 
 @should_fail_with(num_assertion=1)
 def test_wrong_order():
+    """Test that flipping (expected, actual) on _equals assertions does not crash the test."""
     trace = Trace(trace=[{"role": "user", "content": "Hello there"}])
 
     with trace.as_context():
@@ -17,6 +17,7 @@ def test_wrong_order():
 
 @should_fail_with(num_assertion=1)
 def test_right_order():
+    """Test that asser_equals works fine with the right order."""
     trace = Trace(trace=[{"role": "user", "content": "Hello there"}])
 
     with trace.as_context():
@@ -25,6 +26,7 @@ def test_right_order():
 
 @should_fail_with(num_assertion=0)
 def test_expect_wrong_order():
+    """Test that flipping (expected, actual) on _equals expectations does not crash the test."""
     trace = Trace(trace=[{"role": "user", "content": "Hello there"}])
 
     with trace.as_context():
@@ -33,6 +35,7 @@ def test_expect_wrong_order():
 
 @should_fail_with(num_assertion=0)
 def test_expect_right_order():
+    """Test that expect_equals works fine with the right order."""
     trace = Trace(trace=[{"role": "user", "content": "Hello there"}])
 
     with trace.as_context():
