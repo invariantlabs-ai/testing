@@ -7,7 +7,7 @@ from swarm import Swarm
 from .capital_finder_agent import create_agent
 
 
-@pytest.fixture(name="swarm_wrapper")
+@pytest.fixture(name="swarm_wrapper", scope="module")
 def fixture_swarm_wrapper():
     """Create a wrapper swarm client."""
     return SwarmWrapper(Swarm())
@@ -17,11 +17,11 @@ def test_capital_finder_agent_when_capital_found(swarm_wrapper):
     """Test the capital finder agent when the capital is found."""
     agent = create_agent()
     messages = [{"role": "user", "content": "What is the capital of France?"}]
-    _ = swarm_wrapper.run(
+    response = swarm_wrapper.run(
         agent=agent,
         messages=messages,
     )
-    trace = swarm_wrapper.to_invariant_trace()
+    trace = SwarmWrapper.to_invariant_trace(response)
 
     with trace.as_context():
         get_capital_tool_calls = trace.tool_calls(name=lambda n: n == "get_capital")
@@ -37,11 +37,11 @@ def test_capital_finder_agent_when_capital_not_found(swarm_wrapper):
     """Test the capital finder agent when the capital is found."""
     agent = create_agent()
     messages = [{"role": "user", "content": "What is the capital of Spain?"}]
-    _ = swarm_wrapper.run(
+    response = swarm_wrapper.run(
         agent=agent,
         messages=messages,
     )
-    trace = swarm_wrapper.to_invariant_trace()
+    trace = SwarmWrapper.to_invariant_trace(response)
 
     with trace.as_context():
         get_capital_tool_calls = trace.tool_calls(name=lambda n: n == "get_capital")

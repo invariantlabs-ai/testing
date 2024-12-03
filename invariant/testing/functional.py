@@ -1,17 +1,17 @@
 """Helper functions for searching around collections that contain invariant values."""
+
+# Import built-in functions to avoid shadowing
+from builtins import max as builtin_max
+from builtins import min as builtin_min
 from collections.abc import Iterable
-from typing import Any, Callable, Union
+from typing import Any, Callable
 
 from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_number import InvariantNumber
 from invariant.custom_types.invariant_value import InvariantValue
 
-# Import built-in functions to avoid shadowing
-from builtins import max as builtin_max
-from builtins import min as builtin_min
 
-
-def map(
+def map(  # pylint: disable=redefined-builtin
     func: Callable[[InvariantValue], InvariantValue], iterable: Iterable[InvariantValue]
 ) -> list[InvariantValue]:
     """Apply a function to each element in the iterable and create a new list."""
@@ -23,7 +23,8 @@ def reduce_raw(
     initial_value: Any,
     iterable: Iterable[InvariantValue],
 ) -> Any:
-    """Reduce the list instance to a single value using a function and disregarding address information.
+    """Reduce the list instance to a single value using a function and disregarding address
+    information.
 
     Use this method instead of 'reduce' when the 'func' is not compatible with 'InvariantValue'.
     """
@@ -38,7 +39,7 @@ def reduce_raw(
 
 def reduce(
     func: Callable[[InvariantValue, InvariantValue], InvariantValue],
-    initial_value: Union[InvariantValue, Any],
+    initial_value: InvariantValue | Any,
     iterable: Iterable[InvariantValue],
 ) -> InvariantValue:
     """Reduce the list instance to a single value using a function."""
@@ -48,14 +49,15 @@ def reduce(
             accumulator = func(accumulator, item)
         except TypeError as e:
             raise TypeError(
-                f"Incompatible function: {func} for types '{type(accumulator).__name__}' and '{type(item).__name__}'. "
+                f"Incompatible function: {func} for types '{type(accumulator).__name__}' \
+                and '{type(item).__name__}'. "
                 "Did you mean to use 'invariant_reduce_raw()'?"
             ) from e
     return accumulator
 
 
 def count(
-    value: Union[InvariantValue, Any], iterable: Iterable[InvariantValue]
+    value: InvariantValue | Any, iterable: Iterable[InvariantValue]
 ) -> InvariantNumber:
     """Return the number of occurrences of a value in the list."""
     return sum(
@@ -69,11 +71,14 @@ def count(
         )
     )
 
-def match(pattern: str, iterable: Iterable[InvariantValue], group_id: int | str = 0) -> list[InvariantValue]:
+
+def match(
+    pattern: str, iterable: Iterable[InvariantValue], group_id: int | str = 0
+) -> list[InvariantValue]:
     """Match the value against the given regex pattern and return the matched group.
 
     The function calls .match() on each element of the iterable that has .match() function.
-    
+
     Args:
         pattern: The regex pattern to match against.
         iterable: The iterable of InvariantValue objects to match against.
@@ -89,7 +94,9 @@ def match(pattern: str, iterable: Iterable[InvariantValue], group_id: int | str 
     )
 
 
-def any(iterable: Iterable[InvariantValue]) -> InvariantBool:
+def any(  # pylint: disable=redefined-builtin
+    iterable: Iterable[InvariantValue],
+) -> InvariantBool:
     """Return True if any element in the list is True."""
     return reduce(
         lambda element1, element2: element1 | element2,
@@ -98,7 +105,9 @@ def any(iterable: Iterable[InvariantValue]) -> InvariantBool:
     )
 
 
-def all(iterable: Iterable[InvariantValue]) -> InvariantBool:
+def all(  # pylint: disable=redefined-builtin
+    iterable: Iterable[InvariantValue],
+) -> InvariantBool:
     """Return True if all elements in the list are True."""
     return reduce(
         lambda element1, element2: element1 & element2,
@@ -107,7 +116,7 @@ def all(iterable: Iterable[InvariantValue]) -> InvariantBool:
     )
 
 
-def filter(
+def filter(  # pylint: disable=redefined-builtin
     predicate: Callable[[InvariantValue], bool], iterable: Iterable[InvariantValue]
 ) -> list[InvariantValue]:
     """Filter elements of the list based on a predicate."""
@@ -126,11 +135,15 @@ def find(
     return default
 
 
-def min(iterable: Iterable[InvariantValue]) -> InvariantValue:
+def min(  # pylint: disable=redefined-builtin
+    iterable: Iterable[InvariantValue],
+) -> InvariantValue:
     """Return the minimum value in the list."""
     return builtin_min(iterable, key=lambda x: x.value)
 
 
-def max(iterable: Iterable[InvariantValue]) -> InvariantValue:
+def max(  # pylint: disable=redefined-builtin
+    iterable: Iterable[InvariantValue],
+) -> InvariantValue:
     """Return the maximum value in the list."""
     return builtin_max(iterable, key=lambda x: x.value)

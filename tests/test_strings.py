@@ -1,7 +1,6 @@
 import base64
 
 import pytest
-
 from invariant.scorers.base import approx
 from invariant.scorers.strings import *
 from invariant.scorers.utils.llm import LLMClassifier, LLMDetector

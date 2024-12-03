@@ -1,45 +1,67 @@
 """Wrapper for the OpenAI Swarm client."""
 
-import copy
-
 from invariant.custom_types.trace import Trace
 from swarm import Swarm
 from swarm.types import Response
 
 
+class InvariantSwarmResponse(Response):
+    """Wrapper around the Swarm Response object."""
+
+    # Represents the full history of messages passed to and from the agent.
+    invariant_trace: list[dict]
+
+
 class SwarmWrapper:
-    """Wrapper for the OpenAI Swarm client."""
+    """Stateless wrapper for the OpenAI Swarm client."""
 
     def __init__(self, client: Swarm) -> None:
         self.client = client
-        self.history = []
 
-    @classmethod
-    def wrap_swarm(cls, client: Swarm) -> Swarm:
-        """Wrap the OpenAI Swarm client."""
-        return cls(client)
+    @staticmethod
+    def to_invariant_trace(invariant_swarm_response: InvariantSwarmResponse) -> Trace:
+        """Convert the response to an Invariant Trace."""
+        return Trace.from_swarm(invariant_swarm_response.invariant_trace)
 
-    def to_invariant_trace(self) -> Trace:
-        """Convert the Swarm response to an Invariant Trace."""
-        messages = copy.deepcopy(self.history)
-        return Trace(trace=messages)
+    def run(self, *args, **kwargs) -> InvariantSwarmResponse:
+        """Call the run method on the Swarm client.
 
-    def run(self, *args, **kwargs) -> Response:
-        """Call the run method on the Swarm client."""
-        # Extract 'messages' from kwargs if provided
-        messages = kwargs.get("messages")
+        Sample usage:
+
+        agent = Agent(...)
+        swarm_wrapper = SwarmWrapper()
+
+        # First prompt.
+        messages = [{"role": "user", "content": "Hello"}]
+        response = swarm_wrapper.run(agent=agent, messages=messages, ...)
+        # Extend messages with response.messages so that it stores the history of
+        # interactions between the user and the agent.
+        messages.extend(response.messages)
+
+        # Add a new prompt to the history and pass it to the agent.
+        messages.extend([{"role": "user", "content": "What is the capital of France?"}])
+        response = swarm_wrapper.run(agent=agent, messages=messages, ...)
+        messages.extend(response.messages)
+        ...
+
+        Returns:
+            InvariantSwarmResponse: The response from the Swarm client, including the
+            updated history of messages.
+        """
+        # Extract 'messages' from kwargs if provided. This represents the full
+        # history of messages passed to and from the agent.
+        history = kwargs.get("messages")
 
         # If 'messages' is not in kwargs, it might be in args
-        if messages is None and len(args) > 0:
-            messages = args[1]
-
-        if messages:
-            self.history.extend(messages)
+        if history is None and len(args) > 0:
+            history = args[1]
 
         response = self.client.run(*args, **kwargs)
-        if isinstance(response, Response):
-            self.history.extend(response.messages)
-        elif isinstance(response, dict):
-            # If stream is set to True, the response is a dict with a 'response' key
-            self.history.extend(response.get("response", {}).get("messages", []))
-        return response
+
+        updated_history = history + response.messages
+        return InvariantSwarmResponse(
+            messages=response.messages,
+            agent=response.agent,
+            context_variables=response.context_variables,
+            invariant_trace=updated_history,
+        )

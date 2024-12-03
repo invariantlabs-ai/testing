@@ -8,9 +8,6 @@ import sys
 import time
 
 import pytest
-from invariant_sdk.client import Client as InvariantClient
-
-from invariant.utils import utils
 from invariant.config import Config
 from invariant.constants import (
     INVARIANT_AP_KEY_ENV_VAR,
@@ -18,6 +15,8 @@ from invariant.constants import (
     INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR,
     INVARIANT_TEST_RUNNER_TERMINAL_WIDTH_ENV_VAR,
 )
+from invariant.utils import utils
+from invariant_sdk.client import Client as InvariantClient
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
