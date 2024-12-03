@@ -461,49 +461,12 @@ class Trace(BaseModel):
         Returns:
             str: The Python string representing the trace.
 
-    def tool_calls(
-        self, selector: int | None = None, **filterkwargs
-    ) -> list[InvariantDict] | InvariantDict:
-        """Return the tool calls in the trace."""
-        if isinstance(selector, int):
-            for i, (tc_address, tc) in enumerate(iterate_tool_calls(self.trace)):
-                if i == selector:
-                    return InvariantDict(tc, tc_address)
-        elif isinstance(selector, dict):
-
-            def find_value(d, path):
-                for k in path.split("."):
-                    if type(d) == str and type(k) == str:
-                        d = json.loads(d)
-                    if k not in d:
-                        return None
-                    d = d[k]
-                return d
-
-            return [
-                InvariantDict(tc, tc_address)
-                for tc_address, tc in iterate_tool_calls(self.trace)
-                if all(
-                    find_value(tc["function"], kwname) == kwvalue
-                    for kwname, kwvalue in selector.items()
-                )
-            ]
-        elif len(filterkwargs) > 0:
-            return [
-                InvariantDict(tc, tc_address)
-                for tc_address, tc in iterate_tool_calls(self.trace)
-                if all(
-                    match_keyword_filter_on_tool_call(
-                        kwname, kwvalue, tc.get(kwname), tc
-                    )
-                    for kwname, kwvalue in filterkwargs.items()
-                )
-            ]
-        else:
-            return [
-                InvariantDict(tc, tc_address)
-                for tc_address, tc in iterate_tool_calls(self.trace)
-            ]
+        """
+        return (
+            "Trace(trace=[\n"
+            + ",\n".join("  " + str(msg) for msg in self.trace)
+            + "\n])"
+        )
 
     def push_to_explorer(
         self,
