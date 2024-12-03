@@ -136,6 +136,28 @@ class Trace(BaseModel):
         return cls(trace=trace_messages)
 
     @classmethod
+    def from_langgraph(cls, invocation_response: dict[str, Any] | Any) -> "Trace":
+        """Converts a Langgraph invocation response to a Trace object.
+
+        Sample usage:
+
+        app = workflow.compile(...)
+        invocation_response = app.invoke(
+            {"messages": [HumanMessage(content="what is the weather in sf")]}
+        )
+        trace = Trace.from_langgraph(invocation_response)
+
+        """
+        from langchain_community.adapters.openai import (
+            convert_message_to_dict,
+        )  # pylint: disable=import-outside-toplevel
+
+        messages = []
+        for message in invocation_response["messages"]:
+            messages.append(convert_message_to_dict(message))
+        return cls(trace=messages)
+
+    @classmethod
     def from_explorer(
         cls,
         identifier_or_id: str,

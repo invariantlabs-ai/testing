@@ -22,6 +22,9 @@ diskcache = "^5.6.3"
 pytest = "^8.3.3"
 pytest-cov = "^5.0.0"
 openai-swarm = "^0.1.1"
+langgraph = "^0.2.53"
+langchain-openai = "^0.2.10"
+langchain-community = "^0.3.9"
 
 [build-system]
 requires = ["poetry-core"]

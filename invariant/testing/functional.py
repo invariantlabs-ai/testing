@@ -127,7 +127,7 @@ def find(
     predicate: Callable[[InvariantValue], bool],
     iterable: Iterable[InvariantValue],
     default=None,
-) -> InvariantValue:
+) -> InvariantValue | None:
     """Return the first element matching the predicate or None."""
     for item in iterable:
         if predicate(item):
