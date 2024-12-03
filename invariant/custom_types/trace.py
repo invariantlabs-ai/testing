@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 from typing import Any, Callable, Dict, Generator, List
 
 from invariant.custom_types.invariant_dict import InvariantDict, InvariantValue
@@ -14,6 +13,9 @@ def iterate_tool_calls(
     messages: list[dict],
 ) -> Generator[tuple[list[str], dict], None, None]:
     """Generator function to iterate over tool calls in a list of messages.
+
+    Args:
+        messages (list[dict]): A list of messages without address information.
 
     Yields:
         tuple[list[str], dict]: A tuple containing:
@@ -52,8 +54,44 @@ def iterate_tool_calls(
             continue
         tool_calls = msg.get("tool_calls") or []
         for tc_i, tc in enumerate(tool_calls):
-            yield ([f"{msg_i}.tool_calls.{tc_i}"], tc)
+            yield [f"{msg_i}.tool_calls.{tc_i}"], tc
 
+def iterate_tool_outputs(
+    messages: list[dict],
+) -> Generator[tuple[list[str], dict], None, None]:
+    """
+    Generator function to iterate over tool outputs in a list of messages.
+
+    Args:
+        messages (list[dict]): A list of messages without address information.
+
+    Yields:
+        tuple[list[str], dict]: A tuple containing:
+            - A list of strings representing the hierarchical address of the tool output
+              in the message. For example, `["2"]` indicates the third message in the list.
+            - The tool output data (a dictionary or object representing the tool output).
+    """
+    for msg_i, msg in enumerate(messages):
+        if msg.get("role") == "tool":
+            yield [f"{msg_i}"], msg
+
+def iterate_messages(
+    messages: list[dict],
+) -> Generator[tuple[list[str], dict], None, None]:
+    """
+    Generator function to iterate over messages in a list of messages.
+
+    Args:
+        messages (list[dict]): A list of messages without address information.
+
+    Yields:
+        tuple[list[str], dict]: A tuple containing:
+            - A list of strings representing the hierarchical address of the message
+              in the list. For example, `["1"]` indicates the second message in the list.
+            - The message data (a dictionary or object representing the message).
+    """
+    for msg_i, msg in enumerate(messages):
+        yield [f"{msg_i}"], msg
 
 def match_keyword_filter_on_tool_call(
     kwname: str,
@@ -66,7 +104,6 @@ def match_keyword_filter_on_tool_call(
     if kwname in ["name", "arguments", "id"]:
         value = tool_call["function"].get(kwname)
     return match_keyword_filter(kwname, kwvalue, value)
-
 
 def match_keyword_filter(
     kwname: str, kwvalue: str | int | Callable, value: InvariantValue | Any
@@ -91,11 +128,28 @@ def match_keyword_filter(
         f"Cannot filter '{kwname}' with '{kwvalue}' (only str/int comparison or lambda functions are supported)"
     )
 
+def traverse_dot_path(d: dict, path: str) -> Any | None:
+    """
+    Traverse a dictionary using a dot-separated path.
+
+    Args:
+        d (dict): The dictionary to traverse.
+        path (str): The dot-separated path to traverse.
+
+    Returns:
+        Any: The value at the end of the path, or None if the path does not exist.
+    """
+    for k in path.split("."):
+        if k not in d:
+            return None
+        d = d[k]
+    return d
+
 
 class Trace(BaseModel):
     """Defines an Invariant trace."""
 
-    _trace: List[Dict]
+    trace: List[Dict]
     metadata: Dict[str, Any] | None = None
 
     # Active Manager that is running with this trace as context
@@ -103,25 +157,18 @@ class Trace(BaseModel):
     # If this is already assigned, the trace is currently being used in a context manager already and should not be re-used.
     manager: Any = None
 
-    def __init__(self, trace: List[Dict], metadata: Dict[str, Any] | None = None, **kwargs):
-        super().__init__(metadata=metadata, **kwargs)
-        self._trace = trace
-        self._messages = self._format_and_get_all_messages()
+    def _messages(self):
+        for i, msg in enumerate(self.trace):
+            yield InvariantDict(msg, [str(i)])
 
     def __next__(self):
-        return self._messages
+        return next(self._messages())
 
     def __iter__(self):
-        return self
+        return iter(self._messages())
 
     def __str__(self):
-        return "\n".join(str(msg) for msg in self._trace)
-
-    def _format_and_get_all_messages(self) -> list[InvariantDict]:
-        """Return all messages in the trace as InvariantDict objects."""
-        return [
-            InvariantDict(message, [str(i)]) for i, message in enumerate(self._trace)
-        ]
+        return "\n".join(str(msg) for msg in self.trace)
 
     def as_context(self):
         from invariant.manager import Manager
@@ -161,27 +208,133 @@ class Trace(BaseModel):
         messages, metadata = from_explorer(identifier_or_id, index, explorer_endpoint)
         return cls(trace=messages, metadata=metadata)
 
-    def messages(
-        self, selector: int | None = None, **filterkwargs
-    ) -> list[InvariantDict]:
-        """Return the messages in the trace."""
+    def _filter_trace(
+        self,
+        iterator_func: Callable[[list[dict]], Generator[tuple[list[str], dict], None, None]] = iterate_messages,
+        match_keyword_function: Callable = match_keyword_filter_on_tool_call,
+        selector: int | dict | None = None,
+        **filterkwargs
+    ) -> list[InvariantDict] | InvariantDict:
+        """
+        Filter the trace based on the provided selector and keyword arguments. Use this
+        method as a helper for custom filters such as messages(), tool_calls(), and tool_outputs().
+
+        Args:
+            iterator_func: The iterator function to use to iterate over the trace.
+                           It should take a list of messages and return a generator
+                           that yields tuples of addresses and messages.
+            match_keyword_function: The function to use to match keyword filters.
+            selector: The selector to use to filter the trace.
+            **filterkwargs: The keyword arguments to use to filter the trace.
+
+        Returns:
+            list[InvariantDict] | InvariantDict: The filtered trace.
+        """
+
+        # If a single index is provided, return the message at that index
         if isinstance(selector, int):
-            return InvariantDict(self._trace[selector], f"{selector}")
-        if len(filterkwargs) > 0:
+            for i, message in enumerate(iterator_func(self.trace)):
+                if i == selector:
+                    return InvariantDict(message, f"{i}")
+
+        # If a dictionary is provided, filter messages based on the dictionary
+        elif isinstance(selector, dict):
             return [
-                InvariantDict(message, [f"{i}"])
-                for i, message in enumerate(self._trace)
+                InvariantDict(tc, tc_address)
+                for tc_address, tc in iterator_func(self.trace)
                 if all(
-                    match_keyword_filter(kwname, kwvalue, message.get(kwname))
+                    traverse_dot_path(tc, kwname) == kwvalue
+                    for kwname, kwvalue in selector.items()
+                )
+            ]
+
+        # If keyword arguments are provided, filter messages based on the keyword arguments
+        elif len(filterkwargs) > 0:
+            return [
+                InvariantDict(message, addresses)
+                for addresses, message in iterator_func(self.trace)
+                if all(
+                    match_keyword_function(
+                        kwname, kwvalue, message.get(kwname), message
+                    )
                     for kwname, kwvalue in filterkwargs.items()
                 )
             ]
-        return self._messages
+
+        # If no selector is provided, return all messages
+        return [InvariantDict(message, addresses) for addresses, message in iterator_func(self.trace)]
+
+    def messages(
+        self,
+        selector: int | dict | None = None,
+        **filterkwargs
+    ) -> list[InvariantDict] | InvariantDict:
+        """
+        Get all messages from the trace.
+
+        Args:
+            selector: The selector to use to filter the trace.
+            **filterkwargs: The keyword arguments to use to filter the trace.
+
+        Returns:
+            list[InvariantDict] | InvariantDict: The filtered messages.
+        """
+        if isinstance(selector, int):
+            return InvariantDict(self.trace[selector], f"{selector}")
+        return self._filter_trace(
+            iterate_messages,
+            match_keyword_filter_on_tool_call,
+            selector,
+            **filterkwargs
+        )
+
+    def tool_calls(
+        self,
+        selector: int | dict | None = None,
+        **filterkwargs
+    ) -> list[InvariantDict] | InvariantDict:
+        """
+        Get all tool calls from the trace.
+
+        Args:
+            selector: The selector to use to filter the trace.
+            **filterkwargs: The keyword arguments to use to filter the trace.
+
+        Returns:
+            list[InvariantDict] | InvariantDict: The filtered tool calls.
+        """
+        return self._filter_trace(
+            iterate_tool_calls,
+            match_keyword_filter_on_tool_call,
+            selector,
+            **filterkwargs
+        )
+
+    def tool_outputs(
+        self,
+        selector: int | dict | None = None,
+        **filterkwargs
+    ) -> list[InvariantDict] | InvariantDict:
+        """
+        Get all tool outputs from the trace.
+
+        Args:
+            selector: The selector to use to filter the trace.
+            **filterkwargs: The keyword arguments to use to filter the trace.
+
+        Returns:
+            list[InvariantDict] | InvariantDict: The filtered tool outputs.
+        """
+        return self._filter_trace(
+            iterate_tool_outputs,
+            match_keyword_filter_on_tool_call,
+            selector, **filterkwargs
+        )
 
     def tool_pairs(self) -> list[tuple[InvariantDict, InvariantDict]]:
         """Returns the list of tuples of (tool_call, tool_output)."""
         res = []
-        for msg_idx, msg in enumerate(self._trace):
+        for msg_idx, msg in enumerate(self.trace):
             if msg.get("role") != "assistant":
                 continue
             for tc_idx, tc in enumerate(msg.get("tool_calls", [])):
@@ -225,46 +378,6 @@ class Trace(BaseModel):
             (res_pair[1], res_pair[2]) for res_pair in res if res_pair[2] is not None
         ]
 
-    def tool_calls(
-        self, selector: int | None = None, **filterkwargs
-    ) -> list[InvariantDict] | InvariantDict:
-        """Return the tool calls in the trace."""
-        if isinstance(selector, int):
-            for i, (tc_address, tc) in enumerate(iterate_tool_calls(self._trace)):
-                if i == selector:
-                    return InvariantDict(tc, tc_address)
-        elif isinstance(selector, dict):
-
-            def find_value(d, path):
-                for k in path.split("."):
-                    d = d[k]
-                return d
-
-            return [
-                InvariantDict(tc, tc_address)
-                for tc_address, tc in iterate_tool_calls(self._trace)
-                if all(
-                    find_value(tc["function"], kwname) == kwvalue
-                    for kwname, kwvalue in selector.items()
-                )
-            ]
-        elif len(filterkwargs) > 0:
-            return [
-                InvariantDict(tc, tc_address)
-                for tc_address, tc in iterate_tool_calls(self._trace)
-                if all(
-                    match_keyword_filter_on_tool_call(
-                        kwname, kwvalue, tc.get(kwname), tc
-                    )
-                    for kwname, kwvalue in filterkwargs.items()
-                )
-            ]
-        else:
-            return [
-                InvariantDict(tc, tc_address)
-                for tc_address, tc in iterate_tool_calls(self._trace)
-            ]
-
     def to_python(self):
         """
         Returns a snippet of Python code construct that can be used
@@ -272,6 +385,6 @@ class Trace(BaseModel):
         """
         return (
             "Trace(trace=[\n"
-            + ",\n".join("  " + str(msg) for msg in self._trace)
+            + ",\n".join("  " + str(msg) for msg in self.trace)
             + "\n])"
         )

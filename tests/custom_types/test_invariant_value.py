@@ -199,3 +199,16 @@ def test_invariant_value_matches():
     # Test with an invalid matcher (not a Matcher instance)
     with pytest.raises(AttributeError):
         value.matches("not_a_matcher")
+
+
+def test_invariant_list_init():
+    """Test initialization of InvariantList."""
+    # Test with a list of InvariantValue objects
+    values = [1, 2, 3]
+    addresses = ["address1", "address2", "address3"]
+    value = InvariantValue.of(values, addresses)
+
+    print()
+    print(value)
+
+    assert False

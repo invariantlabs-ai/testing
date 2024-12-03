@@ -247,7 +247,7 @@ class Manager:
                     else "EXPECTATION VIOLATED"
                 )
 
-                formatted_trace = format_trace(self.trace._trace, highlights=addresses)
+                formatted_trace = format_trace(self.trace.trace, highlights=addresses)
                 if formatted_trace is not None:
                     error_message += (
                         " "

@@ -63,11 +63,11 @@ def trace_with_tool_calls():
 
 
 def test_messages_list_select(trace: Trace):
-    assert trace.messages()[1]["content"].value == trace._trace[1]["content"]
+    assert trace.messages()[1]["content"].value == trace.trace[1]["content"]
 
 
 def tests_messages_index_select(trace: Trace):
-    assert trace.messages(1)["content"].value == trace._trace[1]["content"]
+    assert trace.messages(1)["content"].value == trace.trace[1]["content"]
 
 
 def test_messages_filter(trace: Trace):
@@ -152,3 +152,7 @@ def test_tool_calls_filter_name_callable(trace_with_tool_calls: Trace):
 def test_tool_calls_filter_name_callable_2(trace_with_tool_calls: Trace):
     tool_calls = trace_with_tool_calls.tool_calls(name=lambda n: "e" in n)
     assert len(tool_calls) == 2
+
+
+def test_something(trace: Trace):
+    trace.tool_outputs()
