@@ -56,7 +56,7 @@ class MockException(Exception):
 def mocked_request(self, method, pathname, request_kwargs):
     """Check that the request kwargs match a PushTracesRequest.
 
-    Raise MockException if successful. This way we prevent code executing after the request call from braking.
+    Raise MockException if successful. This way we prevent code executing after the request call from breaking.
     """
     PushTracesRequest(**request_kwargs["json"])
     raise MockException("This is Mocked")
