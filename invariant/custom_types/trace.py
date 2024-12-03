@@ -104,10 +104,10 @@ def match_keyword_filter_on_tool_call(
     # this enables checks like tool_calls(name='greet') to work
     if kwname in ["name", "arguments", "id"]:
         value = tool_call["function"].get(kwname)
-    return match_keyword_filter(kwname, kwvalue, value)
+    return match_keyword_filter(kwname, kwvalue, value, tool_call)
 
 def match_keyword_filter(
-    kwname: str, kwvalue: str | int | Callable, value: InvariantValue | Any
+    kwname: str, kwvalue: str | int | Callable, value: InvariantValue | Any, message: dict
 ) -> bool:
     """
     Match a keyword filter.
@@ -201,6 +201,13 @@ class Trace(BaseModel):
         The identifier_or_id can be either a trace ID or a <username>/<dataset> pair, in which case
         the index of the trace to load must be provided.
 
+        Args:
+            identifier_or_id: The trace ID or <username>/<dataset> pair.
+            index: The index of the trace to load from the dataset.
+
+        Returns:
+            Trace: A Trace object with the loaded trace.
+
         :param identifier_or_id: The trace ID or <username>/<dataset> pair.
         :param index: The index of the trace to load from the dataset.
 
@@ -215,6 +222,9 @@ class Trace(BaseModel):
         """
         Register content checkers for data_types. When implementing a new content checker,
         add the new content checker to the dictionary below.
+
+        Returns:
+            Dict[str, Matcher]: The content checkers for the trace.
         """
         __content_checkers__ = {
             "image": ContainsImage(),
@@ -251,7 +261,7 @@ class Trace(BaseModel):
     def _filter_trace(
         self,
         iterator_func: Callable[[list[dict]], Generator[tuple[list[str], dict], None, None]] = iterate_messages,
-        match_keyword_function: Callable = match_keyword_filter_on_tool_call,
+        match_keyword_function: Callable = match_keyword_filter,
         selector: int | dict | None = None,
         data_type: str | None = None,
         **filterkwargs
@@ -329,7 +339,7 @@ class Trace(BaseModel):
         """
         return self._filter_trace(
             iterate_messages,
-            match_keyword_filter_on_tool_call,
+            match_keyword_filter,
             selector,
             data_type,
             **filterkwargs
@@ -379,7 +389,7 @@ class Trace(BaseModel):
         """
         return self._filter_trace(
             iterate_tool_outputs,
-            match_keyword_filter_on_tool_call,
+            match_keyword_filter,
             selector,
             data_type,
             **filterkwargs
@@ -432,10 +442,14 @@ class Trace(BaseModel):
             (res_pair[1], res_pair[2]) for res_pair in res if res_pair[2] is not None
         ]
 
-    def to_python(self):
+    def to_python(self) -> str:
         """
         Returns a snippet of Python code construct that can be used
         to recreate the trace in a Python script.
+
+        Returns:
+            str: The Python string representing the trace.
+
         """
         return (
             "Trace(trace=[\n"
