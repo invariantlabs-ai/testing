@@ -20,8 +20,6 @@ def test_used_tool():
  
         count_sarah = len(F.filter(lambda x: x['content'].contains('Sarah'), tool_results(trace)))
         count_john = len(F.filter(lambda x: x['content'].contains('John'), tool_results(trace)))
-
-        print(count_sarah, count_john, tool_results(trace)[0]['content'].value)
         it.assert_true(count_sarah >= 1 and count_john >= 1, 'The calendar tool should return events for both Sarah and John')
 
 def test_correct():
