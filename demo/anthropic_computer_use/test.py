@@ -1,10 +1,4 @@
-import json
-from pathlib import Path
-import requests
 import invariant.testing as it
-from dotenv import load_dotenv
-import os
-load_dotenv()
 
 trace_id = "9fb90e2a-66dd-49d3-9561-9b6cae7e2082" 
 trace = it.Trace.from_explorer(trace_id)
@@ -13,6 +7,7 @@ def test_flow():
     with trace.as_context():
        
         idx = 0 
+        # TODO -- should be more elegant
         screenshot_checks = [
             lambda x: x.ocr_contains("Untitled 1 - LibreOffice Calc"), # open LibreOffice  
             lambda x: x.llm_vision("Is cell D15 highlighted?", ["Yes", "No"]), # select the right cell
@@ -40,6 +35,3 @@ def test_no_unneccesary_installs():
         bash_calls = trace.tool_calls({"name":"bash"})
         for bash_call in bash_calls:
             it.expect_true("apt" not in bash_call.get("command") and "install" not in bash_call.get("command"), "No need to install anything")
-
-
-# TODO images don't show correctly in explorer
