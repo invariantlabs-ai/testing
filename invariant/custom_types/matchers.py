@@ -140,3 +140,27 @@ class IsFactuallyEqual(Matcher):
             raise ValueError(f"llm returned invalid result {res_score}")
 
         return res_score_number >= self.levels_to_score_mapping[self.level]
+
+
+class ContainsImage(Matcher):
+    """
+    Matcher for checking if string is an image or dict contains image.
+
+    Checks if the string starts with "local_base64_img: " or "local_img_link: ".
+    Checks if dict has a content field, and if that content field starts with "local_base64_img: " or "local_img_link: ".
+    """
+    def matches(self, actual_value: str | dict) -> bool:
+        """
+        Args:
+            actual_value: str | dict - The value to check if it is an image.
+
+        Returns:
+            bool: True if the value is an image, False otherwise.
+        """
+        if not isinstance(actual_value, dict) and not isinstance(actual_value, str):
+            raise TypeError("IsImage matcher only works with dictionaries and strings.")
+        if isinstance(actual_value, dict):
+            if 'content' not in actual_value:
+                return False
+            actual_value = actual_value['content']
+        return actual_value.startswith("local_base64_img: ") or actual_value.startswith("local_img_link: ")

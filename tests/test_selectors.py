@@ -61,6 +61,63 @@ def trace_with_tool_calls():
         ]
     )
 
+@pytest.fixture
+def trace_with_images():
+    return Trace(
+        trace=[
+            {"role": "user", "content": "Hello there"},
+            {
+                "role": "assistant",
+                "content": "Hello there",
+            },
+            {"role": "user", "content": "I need an image."},
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "tool_1",
+                        "type": "function",
+                        "function": {
+                            "name": "computer",
+                            "arguments": {
+                                "action": "screenshot"
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "tool_1",
+                "role": "tool",
+                "content": "local_img_link: _some_url_"
+            },
+            {"role": "user", "content": "I need a different image"},
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "tool_2",
+                        "type": "function",
+                        "function": {
+                            "name": "computer",
+                            "arguments": {
+                                "action": "screenshot"
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "tool_2",
+                "role": "tool",
+                "content": "local_base64_img: dGVzdA=="
+            }
+        ]
+    )
+
+
 
 def test_messages_list_select(trace: Trace):
     assert trace.messages()[1]["content"].value == trace.trace[1]["content"]
@@ -152,3 +209,32 @@ def test_tool_calls_filter_name_callable(trace_with_tool_calls: Trace):
 def test_tool_calls_filter_name_callable_2(trace_with_tool_calls: Trace):
     tool_calls = trace_with_tool_calls.tool_calls(name=lambda n: "e" in n)
     assert len(tool_calls) == 2
+
+
+# TODO: Implement
+def test_trace_is_iterable(trace: Trace):
+    pass
+
+
+def test_filter_on_image_returns_correct_number(trace_with_images: Trace):
+    images = trace_with_images.messages(data_type="image")
+    assert len(images) == 2
+
+    images = trace_with_images.tool_outputs(data_type="image")
+    assert len(images) == 2
+
+    images = trace_with_images.tool_calls(data_type="image")
+    assert len(images) == 0
+
+
+def test_filter_on_image_returns_correct_image(trace_with_images: Trace):
+    images = trace_with_images.messages(data_type="image")
+    assert images[0]['id'] == "tool_1"
+    assert images[1]['id'] == "tool_2"
+
+    images = trace_with_images.tool_outputs(data_type="image")
+    assert images[0]["id"] == "tool_1"
+    assert images[1]["id"] == "tool_2"
+
+    images = trace_with_images.tool_calls(data_type="image")
+    assert len(images) == 0
