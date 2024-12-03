@@ -72,6 +72,8 @@ def test_invariant_value_of():
     assert value.value == some_instance
     assert value.addresses == ["address1"]
 
+    assert InvariantValue.of(None, ["address1"]) is None
+
 
 def test_invariant_value_equals():
     """Test the 'equals' method of InvariantValue."""

@@ -26,15 +26,17 @@ class InvariantValue:
                     self.addresses[i] = a + ":0-" + str(len(self.value))
 
     @staticmethod
-    def of(value: Any, address: list[str]):
+    def of(value: Any, address: list[str]) -> InvariantValue | "InvariantDict" | None:
         """Create an Invariant type object from a value and a list of addresses."""
+        if value is None:
+            return None
         if isinstance(value, InvariantValue):
             return value
         from .invariant_bool import InvariantBool
         from .invariant_dict import InvariantDict
+        from .invariant_image import InvariantImage
         from .invariant_number import InvariantNumber
         from .invariant_string import InvariantString
-        from .invariant_image import InvariantImage
 
         if isinstance(value, dict):
             if not isinstance(address, list):
@@ -45,13 +47,13 @@ class InvariantValue:
                     + str(type(address))
                 )
             return InvariantDict(value, address)
-        elif isinstance(value, bool):
+        if isinstance(value, bool):
             return InvariantBool(value, address)
-        elif isinstance(value, (int, float)):
+        if isinstance(value, (int, float)):
             return InvariantNumber(value, address)
-        elif isinstance(value, str) and value.startswith("local_base64_img:"):
+        if isinstance(value, str) and value.startswith("local_base64_img:"):
             return InvariantImage(value, address)
-        elif isinstance(value, str):
+        if isinstance(value, str):
             return InvariantString(value, address)
         return InvariantValue(value, address)
 
