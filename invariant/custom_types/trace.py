@@ -227,9 +227,6 @@ class Trace(BaseModel):
         Returns:
             Trace: A Trace object with the loaded trace.
 
-        :param identifier_or_id: The trace ID or <username>/<dataset> pair.
-        :param index: The index of the trace to load from the dataset.
-
         :return: A Trace object with the loaded trace.
         """
         messages, metadata = from_explorer(identifier_or_id, index, explorer_endpoint)
@@ -473,12 +470,15 @@ class Trace(BaseModel):
         client: InvariantClient | None = None,
         dataset_name: None | str = None,
     ) -> PushTracesResponse:
-        """Pushes the trace to the explorer.
+        """
+        Pushes the trace to the explorer.
 
-        :param client: The client used to push. If None a standard invariant_sdk client is initialized.
-        :param dataset_name: The name of the dataset to witch the trace would be approved.
+        Args:
+            client: The client used to push. If None a standard invariant_sdk client is initialized.
+            dataset_name: The name of the dataset to witch the trace would be approved.
 
-        :return: response of push trace request.
+        Returns:
+            PushTracesResponse: response of push trace request.
         """
         if client is None:
             client = InvariantClient()
