@@ -412,7 +412,7 @@ class Trace(BaseModel):
 
         matched_ids = set()
         # First, find all tool outputs that have the same id as a tool call
-        for msg_idx, msg in enumerate(self._trace):
+        for msg_idx, msg in enumerate(self.trace):
             if msg.get("role") != "tool" or "id" not in msg:
                 continue
             for i, res_pair in enumerate(res):
@@ -423,7 +423,7 @@ class Trace(BaseModel):
         res = sorted(res, key=lambda x: x[0])
 
         # For the remaining tool outputs, assign them to the previous unmatched tool call
-        for msg_idx, msg in enumerate(self._trace):
+        for msg_idx, msg in enumerate(self.trace):
             if msg.get("role") != "tool":
                 continue
             if msg.get("id") in matched_ids:
