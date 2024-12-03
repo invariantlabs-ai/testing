@@ -31,7 +31,7 @@ def test_not_cheating():
             command = bash_call.get("function").get("arguments").get("command", "")
             it.assert_false(command.contains("echo"), "No echo commands in bash calls")
 
-def test_no_unneccesary_installs():
+def test_no_unnecessary_installs():
     with trace.as_context():
         bash_calls = trace.tool_calls({"name":"bash"})
         for bash_call in bash_calls:
