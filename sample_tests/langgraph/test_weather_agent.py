@@ -2,7 +2,7 @@
 
 import invariant.testing.functional as F
 import pytest
-from invariant.testing import Trace, assert_equals, assert_true
+from invariant.testing import Trace, assert_true
 from langchain_core.messages import HumanMessage
 
 from .weather_agent import WeatherAgent
