@@ -1,7 +1,7 @@
 """Tests for the capital_finder_agent"""
 
 import pytest
-from invariant.testing import SwarmWrapper, assert_equals, assert_true, traced
+from invariant.testing import SwarmWrapper, assert_equals, assert_true
 from swarm import Swarm
 
 from .capital_finder_agent import create_agent
@@ -13,16 +13,15 @@ def fixture_swarm_wrapper():
     return SwarmWrapper(Swarm())
 
 
-@traced
 def test_capital_finder_agent_when_capital_found(swarm_wrapper):
     """Test the capital finder agent when the capital is found."""
     agent = create_agent()
     messages = [{"role": "user", "content": "What is the capital of France?"}]
-    _ = swarm_wrapper.run(
+    response = swarm_wrapper.run(
         agent=agent,
         messages=messages,
     )
-    trace = swarm_wrapper.to_invariant_trace()
+    trace = SwarmWrapper.to_invariant_trace(response)
 
     with trace.as_context():
         get_capital_tool_calls = trace.tool_calls(name=lambda n: n == "get_capital")
@@ -34,16 +33,15 @@ def test_capital_finder_agent_when_capital_found(swarm_wrapper):
         assert_true("Paris" in trace.messages(-1)["content"])
 
 
-@traced
 def test_capital_finder_agent_when_capital_not_found(swarm_wrapper):
     """Test the capital finder agent when the capital is found."""
     agent = create_agent()
     messages = [{"role": "user", "content": "What is the capital of Spain?"}]
-    _ = swarm_wrapper.run(
+    response = swarm_wrapper.run(
         agent=agent,
         messages=messages,
     )
-    trace = swarm_wrapper.to_invariant_trace()
+    trace = SwarmWrapper.to_invariant_trace(response)
 
     with trace.as_context():
         get_capital_tool_calls = trace.tool_calls(name=lambda n: n == "get_capital")

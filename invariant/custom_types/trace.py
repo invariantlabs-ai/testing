@@ -12,7 +12,6 @@ from pydantic import BaseModel
 
 from invariant.custom_types.invariant_dict import InvariantDict, InvariantValue
 from invariant.utils.explorer import from_explorer
-from invariant.utils.utils import ssl_verification_enabled
 
 
 def iterate_tool_calls(
@@ -123,6 +122,21 @@ class Trace(BaseModel):
         """
         for assertion in assertions:
             assertion(self)
+
+    @classmethod
+    def from_swarm(cls, history: list[dict]) -> "Trace":
+        """Creates a Trace instance from the history of messages exchanged with the Swarm client.
+
+        Args:
+            history (list[dict]): The history of messages exchanged with the Swarm client.
+
+        Returns:
+            Trace: A Trace object with all the messages combined.
+        """
+        assert isinstance(history, list)
+        assert all(isinstance(msg, dict) for msg in history)
+        trace_messages = copy.deepcopy(history)
+        return cls(trace=trace_messages)
 
     @classmethod
     def from_explorer(
