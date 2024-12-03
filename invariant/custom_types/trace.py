@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from invariant.custom_types.invariant_dict import InvariantDict, InvariantValue
 from invariant.utils.explorer import from_explorer
+from invariant.utils.utils import ssl_verification_enabled
 
 
 def iterate_tool_calls(
