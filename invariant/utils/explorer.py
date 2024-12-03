@@ -4,6 +4,8 @@ import base64
 
 import requests
 
+TIMEOUT = 5  # connect and read timeouts.
+
 
 def _get_image(
     local_img_path: str, explorer_endpoint: str = "https://explorer.invariantlabs.ai"
@@ -20,6 +22,7 @@ def _get_image(
 
     response = requests.get(
         f"{explorer_endpoint}/api/v1/trace/image/{dataset_id}/{trace_id}/{image_id}",
+        timeout=TIMEOUT,
     )
     if response.status_code != 200:
         raise ValueError(
@@ -46,7 +49,6 @@ def from_explorer(
     Returns:
         A Trace object with the loaded trace.
     """
-    import requests
 
     metadata = {
         "id": identifier_or_id,
@@ -81,11 +83,15 @@ def from_explorer(
 
     response = requests.get(
         url=f"{explorer_endpoint}/api/v1/trace/{identifier_or_id}?annotated=1",
-        timeout=timeout,
+        timeout=TIMEOUT,
     )
     messages = response.json()["messages"]
     for msg in messages:
-        if (content := msg.get("content")) and isinstance(content, str) and content.startswith("local_img_link:"):
+        if (
+            (content := msg.get("content"))
+            and isinstance(content, str)
+            and content.startswith("local_img_link:")
+        ):
             img = _get_image(msg["content"], explorer_endpoint)
             msg["content"] = "local_base64_img: " + img
     return messages, metadata
