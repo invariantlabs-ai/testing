@@ -12,7 +12,7 @@ def len(iterable):
     return F.count(lambda x: InvariantNumber(1), iterable)
 
 def tool_results(trace):
-    return F.filter(lambda x: x['role'] == 'tool', trace.trace)
+    return F.filter(lambda x: x['role'] == 'tool', trace.messages())
     #return [result for _, result in trace.tool_pairs()]
 
 def test_used_tool():
@@ -24,14 +24,11 @@ def test_used_tool():
  
         #tool_results = F.filter(lambda x: x['role'] == 'tool', trace.trace) 
         #print(tool_results[0]['content'], type(tool_results[0]['content']))
-        #count_sarah = F.count(lambda x: 'Sarah' in x['content'], tool_results(trace))
-        #count_john = F.count(lambda x: 'John' in x['content'], tool_results(trace))
+        count_sarah = F.count(lambda x: 'Sarah' in x['content'], tool_results(trace))
+        count_john = F.count(lambda x: 'John' in x['content'], tool_results(trace))
 
-        count_sarah = F.match('Sarah', F.map(lambda tcr: tcr['content'], tool_results(trace)))
-        count_john = F.match('John', F.map(lambda tcr: tcr['content'], tool_results(trace)))
         it.assert_true(len(count_sarah) >= 1 and len(count_john) >= 1, 'The calendar tool should return events for both Sarah and John')
 
 def test_correct():
     with trace.as_context():
-        # TODO: no highlighting
-        it.assert_true('0:30' in trace.messages(-1)['content'])
+        it.assert_true(trace.messages(-1)['content'].contains('0:30'))
