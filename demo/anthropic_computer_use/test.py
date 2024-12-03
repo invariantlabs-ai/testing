@@ -10,7 +10,7 @@ def test_flow():
         # TODO -- should be more elegant
         screenshot_checks = [
             lambda x: x.ocr_contains("Untitled 1 - LibreOffice Calc"), # open LibreOffice  
-            lambda x: x.llm_vision("Is cell D15 highlighted?", ["Yes", "No"]), # select the right cell
+            lambda x: x.llm_vision("Is cell D15 highlighted?", ["Yes", "No"]) == 'Yes', # select the right cell
             lambda x: x.ocr_contains("asdf"), # type "asdf" in the cell
             lambda x: x.ocr_contains("Save as"), # open save dialog
             lambda x: x.ocr_contains("test.csv") and not x.ocr_contains("test.csvUntitled 1"), # save the file
