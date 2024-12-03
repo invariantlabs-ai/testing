@@ -12,6 +12,8 @@ class InvariantValue:
 
     def __init__(self, value: Any, addresses: list[str] = None):
         """Initialize an InvariantValue with a value and a list of addresses."""
+        if value is None:
+            raise ValueError("InvariantValue cannot be initialized with None value")
         if addresses is not None and not all(
             isinstance(addr, str) for addr in addresses
         ):
