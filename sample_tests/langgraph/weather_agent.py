@@ -67,24 +67,3 @@ class WeatherAgent:
         checkpointer = MemorySaver()
 
         return workflow.compile(checkpointer=checkpointer)
-
-
-# app = WeatherAgent().get_graph()
-# final_state = app.invoke(
-#     {"messages": [HumanMessage(content="what is the weather in sf")]},
-#     config={"configurable": {"thread_id": 42}},
-# )
-
-
-# print("Final state:", final_state)
-# for message in final_state["messages"]:
-#     print("Converted final state: ", convert_message_to_dict(message))
-
-# final_state = app.invoke(
-#     {"messages": [HumanMessage(content="what is the weather in nyc")]},
-#     config={"configurable": {"thread_id": 42}},
-# )
-
-# print("Final state:", final_state)
-# for message in final_state["messages"]:
-#     print("Converted final state: ", convert_message_to_dict(message))
