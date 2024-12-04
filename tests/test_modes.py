@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 
 
-class TestWorkspace:
+class WorkspaceHelper:
     """A temporary workspace for running tests."""
 
     def __init__(self, files):
@@ -21,7 +21,7 @@ class TestWorkspace:
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.workspace.cleanup()
 
-    def pytest(self):
+    def run_pytest(self):
         """Run pytest in the workspace and return the exit code and output."""
         exit_code = 0
         buffer = None
@@ -41,7 +41,7 @@ class TestWorkspace:
 
         return exit_code, buffer.getvalue()
 
-    def invariant_test(self):
+    def run_invariant_test(self):
         """Run invariant test in the workspace and return the exit code and output."""
         exit_code = 0
         buffer = None
@@ -64,7 +64,7 @@ class TestWorkspace:
 
 def test_pytest_no_context():
     """Test that Invariant assertions work with pytest (not tracked, but raised)."""
-    with TestWorkspace(
+    with WorkspaceHelper(
         {
             "test_file1.py": """
 from invariant.testing import assert_true
@@ -77,7 +77,7 @@ def test_false():
 """
         }
     ) as workspace:
-        exit_code, result = workspace.pytest()
+        exit_code, result = workspace.run_pytest()
 
         assert exit_code == 1, "Exit code should be 1"
 
@@ -102,7 +102,7 @@ def test_true():
 
 def test_pytest_no_context_regular_assertions():
     """With just pytest, regular assertions should still work and produce correct error messages"""
-    with TestWorkspace(
+    with WorkspaceHelper(
         {
             "test_file1.py": """
 def test_true():
@@ -113,7 +113,7 @@ def test_false():
 """
         }
     ) as workspace:
-        exit_code, result = workspace.pytest()
+        exit_code, result = workspace.run_pytest()
 
         assert exit_code != 0, "Exit code should be 1"
 
@@ -133,7 +133,7 @@ E       assert False"""
 def test_pytest_with_context():
     """With just pytest, Invariant assertions should be tracked and produce correct
     error messages (but you can't push)"""
-    with TestWorkspace(
+    with WorkspaceHelper(
         {
             "test_file1.py": """
 from invariant.testing import assert_false, Trace
@@ -161,7 +161,7 @@ def test_my_trace():
 """
         }
     ) as workspace:
-        exit_code, result = workspace.pytest()
+        exit_code, result = workspace.run_pytest()
 
         assert exit_code != 0, "Exit code should not be 0"
 
@@ -191,7 +191,7 @@ def test_my_trace():
 
 def test_pytest_with_context_regular_assertions():
     """with just pytest, regular assertions should still work and produce correct error messages"""
-    with TestWorkspace(
+    with WorkspaceHelper(
         {
             "test_file1.py": """
 from invariant.testing import assert_false, Trace
@@ -215,7 +215,7 @@ def test_my_trace():
 """
         }
     ) as workspace:
-        exit_code, result = workspace.pytest()
+        exit_code, result = workspace.run_pytest()
 
         assert exit_code != 0, "Exit code should not be 0"
 
@@ -235,7 +235,7 @@ E           assert False"""
 def test_invariant_no_context():
     """With invariant test, Invariant assertions should be tracked and
     produce correct error messages (and you can push)"""
-    with TestWorkspace(
+    with WorkspaceHelper(
         {
             "test_file1.py": """
 from invariant.testing import assert_true
@@ -248,7 +248,7 @@ def test_false():
 """
         }
     ) as workspace:
-        exit_code, result = workspace.invariant_test()
+        exit_code, result = workspace.run_invariant_test()
 
         print(result)
         assert exit_code == 1, "Exit code should be 1"
@@ -274,7 +274,7 @@ def test_true():
 
 def test_invariant_no_context_regular_assertions():
     """With invariant test, regular assertions should still work and produce correct error messages"""
-    with TestWorkspace(
+    with WorkspaceHelper(
         {
             "test_file1.py": """
 def test_true():
@@ -285,7 +285,7 @@ def test_false():
 """
         }
     ) as workspace:
-        exit_code, result = workspace.invariant_test()
+        exit_code, result = workspace.run_invariant_test()
 
         assert exit_code != 0, "Exit code should be 1"
 
@@ -306,7 +306,7 @@ def test_invariant_with_context():
     """with invariant test, Invariant assertions should be tracked and produce correct
     error messages. Also, there should be the Invariant summary of your tests (and you can push)
     """
-    with TestWorkspace(
+    with WorkspaceHelper(
         {
             "test_file1.py": """
 from invariant.testing import assert_false, Trace
@@ -334,7 +334,7 @@ def test_my_trace():
 """
         }
     ) as workspace:
-        exit_code, result = workspace.invariant_test()
+        exit_code, result = workspace.run_invariant_test()
 
         assert exit_code != 0, "Exit code should not be 0"
 
@@ -366,7 +366,7 @@ def test_invariant_with_context_regular_assertions():
     """with invariant test, regular assertions should still work and produce correct error
     messages (they show up in summary, but error messages are not localized in the trace)
     """
-    with TestWorkspace(
+    with WorkspaceHelper(
         {
             "test_file1.py": """
 from invariant.testing import assert_false, Trace
@@ -390,7 +390,7 @@ def test_my_trace():
 """
         }
     ) as workspace:
-        exit_code, result = workspace.invariant_test()
+        exit_code, result = workspace.run_invariant_test()
 
         assert exit_code != 0, "Exit code should not be 0"
 
