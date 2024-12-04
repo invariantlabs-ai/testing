@@ -173,3 +173,67 @@ def len(iterable: Iterable[InvariantValue]) -> InvariantNumber:
     return InvariantNumber(
         builtin_len(iterable), [addr for item in iterable for addr in item.addresses]
     )
+
+
+def assert_order(
+    checks: list[InvariantValue] | list[Callable[[InvariantValue], bool]],
+    iterable: Iterable[InvariantValue],
+) -> InvariantBool:
+    """
+    Slides the `checks` window over `iterable` and checks if the elements in the window
+    satisfy the checks. Returns InvariantBool in one of the following ways:
+        1. Invariant(True, all addresses of the elements in the first window that satisfies all checks)
+        2. Invariant(False, last address that matched some part of a check)
+        3. Invariant(False, first address of the iterable otherwise)
+
+    Args:
+        checks: The list of checks to be satisfied. If a check is a function, it should return
+                True if the element satisfies the check. If a check is a value, the element should be
+                equal to the check.
+        iterable: The iterable of InvariantValue objects.
+
+    Returns:
+        InvariantBool: True if the checks are satisfied at least once.
+    """
+    def check_window(window: Iterable[InvariantValue], last_match_addr: list[str] | None) -> tuple[bool, str]:
+        """
+        Check if the window satisfies the checks.
+
+        Args:
+            window: The window of elements to check.
+
+        Returns:
+            tuple[bool, str]:
+                1. True if the window satisfies the checks.
+                2. The address of the last element that satisfied the checks.
+        """
+        for i, check in enumerate(checks):
+            # If check is callable, call the function with the element
+            if isinstance(check, Callable):
+                if not check(window[i]):
+                    return False, last_match_addr
+            
+            # If check is a value, check if the element is equal to the value
+            elif window[i] != check:
+                return False, last_match_addr
+            
+            # Update the address of the last element that satisfied the checks
+            # Used for highlighting in case no match is found.
+            last_match_addr = window[i].addresses
+
+        # Return the addresses of all elements in the window
+        return True, [message.addresses for message in window]
+        
+    last_match_addr = None
+    for i in range(builtin_len(iterable) - builtin_len(checks) + 1):
+        # Check each window
+        window_satisfied, last_match_addr = check_window(iterable[i : i + builtin_len(checks)], last_match_addr)
+
+        if window_satisfied:
+            # Return all addresses of the elements in the window
+            return InvariantBool(
+                True, [addr for item in iterable[i : i + builtin_len(checks)] for addr in item.addresses]
+            )
+    
+    return InvariantBool(False, last_match_addr if last_match_addr else iterable[0].addresses)
+    

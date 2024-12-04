@@ -35,8 +35,10 @@ def fixture_invariant_number_list():
         InvariantNumber(1, addresses=["0"]),
         InvariantNumber(5, addresses=["1"]),
         InvariantNumber(8, addresses=["2"]),
+        InvariantNumber(4, addresses=["3"]),
+        InvariantNumber(2, addresses=["4"]),
+        InvariantNumber(4, addresses=["5"]),
     ]
-
 
 @pytest.fixture(name="invariant_string_list")
 def fixture_invariant_string_list():
@@ -246,14 +248,14 @@ def test_match():
 def test_len_helper_returns_correct_length(invariant_number_list: list):
     """Test that the len function returns the correct length."""
     result = F.len(invariant_number_list)
-    assert result == InvariantNumber(3)
+    assert result == len(invariant_number_list)
 
 
 def test_len_helper_maintains_addresses(invariant_number_list: list):
     """Test that the len function maintains addresses."""
     result = F.len(invariant_number_list)
-    assert result.addresses == ["0", "1", "2"]
-    assert len(result.addresses) == 3
+    assert result.addresses == [f"{i}" for i in range(len(invariant_number_list))]
+    assert len(result.addresses) == len(invariant_number_list)
 
 
 def test_len_helper_returns_invariant_number(invariant_number_list: list):
@@ -267,3 +269,73 @@ def test_len_helper_works_without_addresses():
     result = F.len([InvariantNumber(1), InvariantNumber(2), InvariantNumber(3)])
     assert result == InvariantNumber(3)
     assert result.addresses == []
+
+
+def test_assert_order_with_builtin_value(invariant_number_list: list):
+    """Test that the assert_order function works."""
+    checks = [4, 2, 4]
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == True
+    assert result.addresses == ["3", "4", "5"]
+
+
+def test_assert_order_with_invariant_value(invariant_number_list: list):
+    """Test that the assert_order function works with InvariantValue objects."""
+    checks = [InvariantNumber(4), InvariantNumber(2), InvariantNumber(4)]
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == True
+    assert result.addresses == ["3", "4", "5"]
+
+
+def test_assert_order_with_lambda(invariant_number_list: list):
+    """Test that the assert_order function works with lambda."""
+
+    checks = [lambda x: x % 2 == 0 for _ in range(3)]
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == True
+    assert result.addresses == ["2", "3", "4"]
+
+
+def test_assert_order_returns_false(invariant_number_list: list):
+    """Test that the assert_order function returns False if the order is not correct."""
+    checks = [3, 2, 5]
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == False
+
+
+@pytest.mark.parametrize(
+    "checks, address", [
+    ([5, 8, 3], ["2"]),
+    ([5, 9, 4], ["1"]),
+])
+def test_assert_order_returns_last_match_address(invariant_number_list: list, checks, address):
+    """
+    Test that the assert_order function returns the address of the last element
+    that matched when no complete window matched the checks.
+    """
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == False
+    assert result.addresses == address
+
+
+def test_assert_returns_first_address_if_no_matches_found(invariant_number_list: list):
+    """
+    Test that the assert_order function returns the address of the first element
+    when no (partial) matches are found in any of the windows.
+    """
+    checks = [-1, -2, -3]
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == False
+    assert result.addresses == invariant_number_list[0].addresses
+
