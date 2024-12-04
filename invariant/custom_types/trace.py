@@ -359,7 +359,7 @@ class Trace(BaseModel):
         if isinstance(selector, int):
             for i, (addresses, message) in enumerate(iterator_func(self.trace)):
                 if i == selector:
-                    return_val = InvariantDict(message, f"{i}")
+                    return_val = InvariantDict(message, [f"{i}"])
                     return return_val if self._is_data_type(return_val, data_type) else None
 
         # If a dictionary is provided, filter messages based on the dictionary
