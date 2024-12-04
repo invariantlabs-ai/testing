@@ -1,9 +1,12 @@
 """Test cases for the InvariantString class."""
 
+from unittest.mock import patch
+
 import pytest
 from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_number import InvariantNumber
 from invariant.custom_types.invariant_string import InvariantString
+from invariant.scorers.code import Dependencies
 from invariant.utils.packages import is_program_installed
 from pytest import approx
 
@@ -257,16 +260,26 @@ def test_extract():
 @pytest.mark.skipif(
     not is_program_installed("docker"), reason="Skip for now, needs docker"
 )
-def test_execute():
-    """Test the code execution transformer of InvariantString."""
+def test_execute_without_detect_packages():
+    """Test the code execution transformer of InvariantString without detect_packages."""
     code = InvariantString("""def f(n):\treturn n**2""", ["messages.0.content"])
     res = code.execute_contains("25", "print(f(5))")
     assert res
     assert len(res.addresses) == 1 and res.addresses[0] == "messages.0.content:0-21"
 
-    code = InvariantString(
-        """import numpy as np; print(np.array([1, 2, 3, 4])**2)""",
-        ["messages.0.content"],
-    )
-    assert code.execute_contains("9", detect_packages=True)
-    assert code.execute_contains("16", detect_packages=True)
+
+@pytest.mark.skipif(
+    not is_program_installed("docker"), reason="Skip for now, needs docker"
+)
+def test_execute_with_detect_packages():
+    """Test the code execution transformer of InvariantString with detect_packages."""
+    with patch("invariant.scorers.code._get_dependencies") as mock_get_dependencies:
+        mock_get_dependencies.return_value = Dependencies(dependencies=["numpy"])
+
+        code = InvariantString(
+            """import numpy as np; print(np.array([1, 2, 3, 4])**2)""",
+            ["messages.0.content"],
+        )
+        assert code.execute_contains("4", detect_packages=True)
+        assert code.execute_contains("9", detect_packages=True)
+        assert code.execute_contains("16", detect_packages=True)

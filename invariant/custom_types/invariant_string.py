@@ -8,7 +8,6 @@ from operator import ge, gt, le, lt, ne
 from typing import Any, Union
 
 from _pytest.python_api import ApproxBase
-
 from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_number import InvariantNumber
 from invariant.custom_types.invariant_value import InvariantValue
@@ -26,7 +25,7 @@ class InvariantString(InvariantValue):
             raise TypeError(f"value must be a str, got {type(value)}")
         if addresses is None:
             addresses = []
-        if type(addresses) is str:
+        if isinstance(addresses, str):
             addresses = [addresses]
         super().__init__(value, addresses)
 
@@ -215,7 +214,9 @@ class InvariantString(InvariantValue):
         if match is None:
             return None
         start, end = match.span(group_id)
-        return InvariantString(match.group(group_id), self._concat_addresses([f"{start}-{end}"]))
+        return InvariantString(
+            match.group(group_id), self._concat_addresses([f"{start}-{end}"])
+        )
 
     def is_similar(self, other: str, threshold: float = 0.5) -> InvariantBool:
         """Check if the value is similar to the given string using cosine similarity."""

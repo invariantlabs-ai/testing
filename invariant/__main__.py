@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import os
+import shutil
 import sys
 import time
 
@@ -148,7 +149,7 @@ def test(args: list[str]) -> None:
         config.dataset_name
     )
     if os.path.exists(test_results_directory_path):
-        os.remove(test_results_directory_path)
+        shutil.rmtree(test_results_directory_path)
 
     # Run pytest with remaining arguments
     exit_code = pytest.main(pytest_args)
