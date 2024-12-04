@@ -1,14 +1,14 @@
 """Scoring functions for content that contains code."""
+
 import json
 import subprocess
 import tempfile
 from typing import Tuple
 
 import openai
-from pydantic import BaseModel
-
 from invariant.custom_types.addresses import Range
 from invariant.utils.packages import is_program_installed
+from pydantic import BaseModel
 
 
 def is_valid_json(text: str) -> Tuple[bool, int | None]:
@@ -31,6 +31,25 @@ def is_valid_python(text: str) -> Tuple[bool, int | None]:
         return False, None
 
 
+class Dependencies(BaseModel):
+    """Dependencies detected by the LLM."""
+
+    dependencies: list[str]
+
+
+def _get_dependencies(text: str) -> Dependencies:
+    """Get the dependencies of a Python code snippet using an LLM."""
+    prompt = f"""Extract the dependencies necessary to run the following python code (either include concrete versions, e.g. 1.0 or do not write versions at all):\n\n{
+            text}"""
+    client = openai.OpenAI()
+    response = client.beta.chat.completions.parse(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}],
+        response_format=Dependencies,
+    )
+    return response.choices[0].message.parsed
+
+
 def execute(text: str, detect_packages: bool = False) -> str:
     """Executes a string of Python code and returns the standard output.
 
@@ -44,32 +63,21 @@ def execute(text: str, detect_packages: bool = False) -> str:
     if not is_program_installed("docker"):
         raise RuntimeError("Please install docker to use the execute function.")
 
-    class Dependencies(BaseModel):
-        dependencies: list[str]
-
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         file_path = temp_file.name
-        with open(file_path, "w") as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             f.write(text)
 
     if detect_packages:
-        prompt = f"""Extract the dependencies necessary to run the following python code (either include concrete versions, e.g. 1.0 or do not write versions at all):\n\n{
-            text}"""
-        client = openai.OpenAI()
-        response = client.beta.chat.completions.parse(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": prompt}],
-            response_format=Dependencies,
-        )
-        dependencies = response.choices[0].message.parsed
-        with open(file_path, "r") as f:
+        dependencies = _get_dependencies(text)
+        with open(file_path, "r", encoding="utf-8") as f:
             script_content = f.read()
 
         new_content = (
             f"# /// script\n# dependencies = {json.dumps(dependencies.dependencies)}\n# ///\n"
             + script_content
         )
-        with open(file_path, "w") as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             f.write(new_content)
 
     cmd = [
@@ -85,5 +93,5 @@ def execute(text: str, detect_packages: bool = False) -> str:
         "run",
         "script.py",
     ]
-    res = subprocess.run(cmd, capture_output=True, text=True)
+    res = subprocess.run(cmd, capture_output=True, text=True, check=True)
     return res.stdout

@@ -1,7 +1,10 @@
+"""Test the factuality module."""
+
 from invariant.testing import IsFactuallyEqual, Trace, assert_false, assert_that
 
 
 def test_is_factually_equal():
+    """Test the IsFactuallyEqual assertion."""
     question = "Who wins the American Election of 2024?"
 
     # Test case: super strict aggrement

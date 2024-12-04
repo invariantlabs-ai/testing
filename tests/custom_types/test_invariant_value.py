@@ -22,6 +22,9 @@ def test_invariant_value_initialization():
     with pytest.raises(TypeError, match="addresses must be a list of strings"):
         InvariantValue("test", ["address1", 123])
 
+    with pytest.raises(ValueError, match="cannot be initialized with None value"):
+        InvariantValue(None, ["address1", 123])
+
 
 def test_invariant_value_of():
     """Test the static method 'of' for creating InvariantValue objects."""
@@ -71,6 +74,8 @@ def test_invariant_value_of():
     assert isinstance(value, InvariantValue)
     assert value.value == some_instance
     assert value.addresses == ["address1"]
+
+    assert InvariantValue.of(None, ["address1"]) is None
 
 
 def test_invariant_value_equals():
@@ -128,7 +133,6 @@ def test_invariant_value_bool():
     assert bool(InvariantValue("")) is False  # Empty string
     assert bool(InvariantValue([])) is False  # Empty list
     assert bool(InvariantValue([1, 2, 3])) is True  # Non-empty list
-    assert bool(InvariantValue(None)) is False  # None value
 
 
 def test_invariant_value_float():
