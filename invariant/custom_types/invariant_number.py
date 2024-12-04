@@ -61,6 +61,18 @@ class InvariantNumber(InvariantValue):
     def __radd__(self, other):
         """(reverse) Add two numbers together."""
         return InvariantNumber(other + self.value, self.addresses)
+    
+    def __mod__(self, other):
+        """Modulo two numbers together."""
+        if isinstance(other, InvariantNumber):
+            return InvariantNumber(
+                self.value % other.value, self.addresses + other.addresses
+            )
+        return InvariantNumber(self.value % other, self.addresses)
+    
+    def __rmod__(self, other):
+        """(reverse) Modulo two numbers together."""
+        return InvariantNumber(other % self.value, self.addresses)
 
     def __str__(self) -> str:
         return f"InvariantNumber(value={self.value}, addresses={self.addresses})"
