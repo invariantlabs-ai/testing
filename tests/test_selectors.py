@@ -201,15 +201,6 @@ def test_messages_filter_callable_user_with_string_upper(trace: Trace):
     )
 
 
-def test_something():
-    trace = Trace.from_explorer(
-        identifier_or_id='mbalunovic/tests-1732714692',
-        index=1
-    )
-
-    print(len(trace.messages(data_type='image')))
-
-
 def test_messages_filter_callable_user_with_string_lower(trace: Trace):
     assert (
         trace.messages(role=lambda r: r == "user")[0]["content"].lower()
