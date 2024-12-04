@@ -18,16 +18,17 @@ class InvariantDict:
         self.value = value
         self.addresses = address
 
+    def _wrap_value(self, key: str, value: Any) -> InvariantValue | None:
+        if value is None:
+            return None
+        return InvariantValue.of(value, [f"{a}.{key}" for a in self.addresses])
+
     def __getitem__(self, key) -> InvariantValue | None:
         """Allows for dictionary-like access to the value using square brackets."""
         if key not in self.value:
             raise KeyError(f"Key {key} not found in {self.value}")
 
-        value = self.value[key]
-        if value is None:
-            return None
-
-        return InvariantValue.of(value, [f"{a}.{key}" for a in self.addresses])
+        return self._wrap_value(key, self.value[key])
 
     def get(self, key, default: Any = None) -> InvariantValue | Any:
         """Get the value of the key or return the default value if the key is not found."""
@@ -35,7 +36,7 @@ class InvariantDict:
         if value is None:
             return default
 
-        return InvariantValue.of(value, [f"{a}.{key}" for a in self.addresses])
+        return self._wrap_value(key, value)
 
     def __str__(self) -> str:
         return "InvariantDict" + str(self.value) + " at " + str(self.addresses)

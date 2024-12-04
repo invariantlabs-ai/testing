@@ -3,6 +3,8 @@
 import pytest
 from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_dict import InvariantDict
+from invariant.custom_types.invariant_number import InvariantNumber
+from invariant.custom_types.invariant_string import InvariantString
 from invariant.testing import LambdaMatcher
 
 
@@ -30,9 +32,19 @@ def test_invariant_dict_get():
     """Test the __getitem__ method of InvariantDict."""
     dict1 = InvariantDict({"hello": 1}, address=["addr1"])
     assert dict1["hello"] == 1
+    hello_value = dict1["hello"]
+    assert isinstance(hello_value, InvariantNumber)
+    assert hello_value.value == 1 and hello_value.addresses == ["addr1.hello"]
+
     with pytest.raises(KeyError):
         _ = dict1["world"]
-    assert dict1.get("hello") == 1
+
+    dict2 = InvariantDict({"hello": "1"}, address=["addr1"])
+    assert dict2.get("hello") == "1"
+    hello_value = dict2.get("hello")
+    assert isinstance(hello_value, InvariantString)
+    assert hello_value.value == "1" and hello_value.addresses == ["addr1.hello:0-1"]
+
     assert dict1.get("world") is None
     assert dict1.get("world", 1) == 1
 
