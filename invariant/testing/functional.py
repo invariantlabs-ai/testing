@@ -74,7 +74,6 @@ def count(
     """
 
     def map_func(a):
-        print(a, value, isinstance(value, InvariantValue), isinstance(value, Callable))
         if isinstance(value, Callable) and value(a):
             return InvariantNumber(1, a.addresses)
         if a == value:
