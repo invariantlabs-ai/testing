@@ -11,14 +11,15 @@ from contextvars import ContextVar
 from json import JSONEncoder
 
 import pytest
+from invariant_sdk.client import Client as InvariantClient
+from invariant_sdk.types.push_traces import PushTracesResponse
+from pydantic import ValidationError
+
 from invariant.config import Config
 from invariant.constants import INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR
 from invariant.custom_types.test_result import AssertionResult, TestResult
 from invariant.formatter import format_trace
 from invariant.utils import utils
-from invariant_sdk.client import Client as InvariantClient
-from invariant_sdk.types.push_traces import PushTracesResponse
-from pydantic import ValidationError
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -28,8 +29,7 @@ INVARIANT_CONTEXT = ContextVar("invariant_context", default=[])
 
 
 class RaisingManager:
-    """
-    Similar to 'Manager' but immediately raises hard exceptions and does not track them over time.
+    """Similar to 'Manager' but immediately raises hard exceptions and does not track them over time.
 
     This manager will be used e.g. when the `trace.as_context()` context manager was not used.
 
@@ -120,7 +120,6 @@ class Manager:
 
     def _get_test_result(self):
         """Generate the test result."""
-
         passed = all(
             assertion.passed if assertion.type == "HARD" else True
             for assertion in self.assertions
@@ -157,7 +156,6 @@ class Manager:
 
     def __exit__(self, exc_type, exc_value, traceback) -> bool:
         """Exit the context manager, handling any exceptions that occurred."""
-
         if exc_type is AssertionError:
             # add regular assertion failure as hard assertion result
             assertion = AssertionResult(
@@ -264,6 +262,24 @@ class Manager:
 
             pytest.fail(error_message, pytrace=False)
 
+    def _create_annotation(
+        self, assertion: AssertionResult, address: str, source: str, assertion_id: int
+    ):
+        """Create an annotation for a single assertion."""
+        return {
+            # non-localized assertions are top-level
+            "address": "messages." + address if address != "<root>" else address,
+            "content": assertion.message or str(assertion),
+            "extra_metadata": {
+                "source": source,
+                "test": assertion.test,
+                "passed": assertion.passed,
+                "line": 0,
+                # ID of the assertion (if an assertion results in multiple annotations)
+                "assertion_id": assertion_id,
+            },
+        }
+
     def push(self) -> PushTracesResponse:
         """Push the test results to Explorer."""
         assert self.config is not None, "cannot push(...) without a config"
@@ -282,20 +298,18 @@ class Manager:
                     source += "-passed"
 
                 annotations.append(
-                    {
-                        "address": "messages." + address,
-                        "content": assertion.message or str(assertion),
-                        "extra_metadata": {
-                            "source": source,
-                            "test": assertion.test,
-                            "passed": assertion.passed,
-                            "line": 0,
-                            # ID of the assertion (if an assertion results in multiple annotations)
-                            "assertion_id": assertion_id,
-                        },
-                    }
+                    self._create_annotation(assertion, address, source, assertion_id)
                 )
 
+            if len(assertion.addresses) == 0:
+                annotations.append(
+                    self._create_annotation(
+                        assertion,
+                        "<root>",
+                        "test-assertion" + ("-passed" if assertion.passed else ""),
+                        assertion_id,
+                    )
+                )
         test_result = self._get_test_result()
         metadata = {
             "name": test_result.name,
@@ -324,9 +338,7 @@ class Manager:
 
 
 class TestResultEncoder(JSONEncoder):
-    """
-    Simple encoder that omits the Manager object from the JSON output.
-    """
+    """Simple encoder that omits the Manager object from the JSON output."""
 
     def default(self, o):
         if isinstance(o, Manager):
