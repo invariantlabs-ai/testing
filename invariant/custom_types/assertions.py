@@ -10,12 +10,10 @@ from invariant.manager import Manager
 
 
 def get_caller_snippet(levels=1) -> Tuple[str, int]:
-    """
-    When called from e.g. assert_equals below, gets the full code of the
-    caller function.
-    """
+    """Get the code snippet of the caller function."""
     import inspect  # pylint: disable=import-outside-toplevel
 
+    # when called from e.g. assert_equals below, gets the full code of the caller function.
     frame = inspect.currentframe()
     caller_frame = frame.f_back
     # how many levels to traverse up to get to the caller
@@ -50,7 +48,6 @@ def assert_equals(
     stacklevels: int = 1,
 ):
     """Expect the invariant value to be equal to the given value."""
-
     # make sure lhs is an InvariantValue
     if not isinstance(actual_value, InvariantValue):
         actual_value = InvariantValue.of(actual_value, [])
