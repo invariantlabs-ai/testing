@@ -1,11 +1,13 @@
-"""InvariantDict class definition"""
+"""InvariantDict class definition for a dict type"""
+
+from typing import Any
 
 from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_value import InvariantValue
 
 
 class InvariantDict:
-    """InvariantDict class definition"""
+    """Invariant implementation of a dict type"""
 
     def __init__(self, value: dict, address: list):
         """Initialize an InvariantDict with a value and a list of addresses."""
@@ -27,7 +29,7 @@ class InvariantDict:
 
         return InvariantValue.of(value, [f"{a}.{key}" for a in self.addresses])
 
-    def get(self, key, default=None) -> InvariantValue | None:
+    def get(self, key, default: Any = None) -> InvariantValue | Any:
         """Get the value of the key or return the default value if the key is not found."""
         value = self.value.get(key)
         if value is None:
@@ -35,7 +37,7 @@ class InvariantDict:
 
         return InvariantValue.of(value, [f"{a}.{key}" for a in self.addresses])
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "InvariantDict" + str(self.value) + " at " + str(self.addresses)
 
     def matches(self, matcher: "Matcher") -> "InvariantBool":  # type: ignore # noqa: F821
@@ -44,5 +46,5 @@ class InvariantDict:
         cmp_result = matcher.matches(self.value)
         return InvariantBool(cmp_result, self.addresses)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
