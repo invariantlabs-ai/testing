@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import time
+import traceback as tb
 from contextvars import ContextVar
 from json import JSONEncoder
 
@@ -159,8 +160,9 @@ class Manager:
         if exc_type is AssertionError:
             # add regular assertion failure as hard assertion result
             assertion = AssertionResult(
-                test=self.test_name,
-                message="'" + str(exc_value).encode("unicode_escape").decode() + "'",
+                test=str(tb.format_exc()),
+                message=str(exc_value).encode("unicode_escape").decode()
+                + " (AssertionError)",
                 passed=False,
                 type="HARD",
                 addresses=[],
@@ -168,7 +170,7 @@ class Manager:
             self.add_assertion(assertion)
         elif exc_type is not None:
             assertion = AssertionResult(
-                test=self.test_name,
+                test=str(tb.format_exc()),
                 message="Error during test execution: " + str(exc_value),
                 passed=False,
                 type="HARD",
@@ -216,6 +218,7 @@ class Manager:
         return False
 
     def handle_outcome(self):
+        """Handle the outcome of the test (check whether we need to raise an exception)."""
         # collect set of failed hard assertions
         failed_hard_assertions = [
             a for a in self.assertions if a.type == "HARD" and not a.passed
