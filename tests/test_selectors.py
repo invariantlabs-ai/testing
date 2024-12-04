@@ -28,7 +28,7 @@ def swarm_trace():
         {'content': None, 'refusal': None, 'role': 'assistant', 'audio': None, 'function_call': None, 'tool_calls': [
             {
                 'id': 'call_iL5lGunpRSNMgtNSdxnGRWjr', 
-                'function': {'arguments': '{"query":"Lunch with Sarah","date":"2024-05-15"}', 'name': 'search_calendar_events'}, 'type': 'function'}], 
+                'function': {'arguments': '{"query":"Lunch with Sarah","date":"2024-05-15"}', 'name': 'search_calendar_events'}, 'type': 'function'}],
                 'sender': 'Agent A'}, 
         {'role': 'tool', 'tool_call_id': 'call_iL5lGunpRSNMgtNSdxnGRWjr', 'tool_name': 'search_calendar_events', 'content': "[{'title': 'Lunch with Sarah', 'date': '2024-05-15', 'time': '12:30', 'duration': '1:00'}]"}, 
         {'content': None, 'refusal': None, 'role': 'assistant', 'audio': None, 'function_call': None, 'tool_calls': [
@@ -131,6 +131,33 @@ def trace_with_images():
                 "role": "tool",
                 "content": "local_base64_img: dGVzdA=="
             }
+        ]
+    )
+
+@pytest.fixture
+def trace_tool_call_with_duplicate_field():
+    """
+    Trace with a tool call that has the
+    """
+    return Trace(
+        trace=[
+            {
+                "role": "assistant",
+                "content": "Hello there",
+                "tool_calls": [
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "greet",
+                            "arguments": {
+                                "name": "there"
+                            },
+                            "duplicated_argument": "inner_value",
+                        },
+                        "duplicated_argument": "outer_value",
+                    }
+                ],
+            },
         ]
     )
 
@@ -280,6 +307,21 @@ def test_trace_with_nones(swarm_trace: Trace):
     assert len(swarm_trace.tool_calls({"arguments.command": "2024-05-15"})) == 0
     assert len(swarm_trace.tool_calls({"arguments.query": "Lunch with Sarah", "arguments.date": "2024-05-15"})) == 1
     assert len(swarm_trace.tool_pairs()) == 3
+
+
+def test_dict_selector_with_and_without_function_dot(swarm_trace: Trace):
+    """Test that dict selector on tool calls finds fields with and without function. prefix"""
+    assert len(swarm_trace.tool_calls({"function.name": "search_calendar_events"})) == 3
+    assert len(swarm_trace.tool_calls({"name": "search_calendar_events"})) == 3
+
+
+def test_dict_selector_finds_top_field_for_tool_calls(trace_tool_call_with_duplicate_field: Trace):
+    """
+    Test that selector finds the first level field for tool calls
+    and only checks nested structure if the field is not found.
+    """
+    assert len(trace_tool_call_with_duplicate_field.tool_calls({"duplicated_argument": "outer_value"})) == 1
+    assert len(trace_tool_call_with_duplicate_field.tool_calls({"function.duplicated_argument": "inner_value"})) == 1
 
 
 def test_tool_pairs():

@@ -134,22 +134,31 @@ def match_keyword_filter(
         f"Cannot filter '{kwname}' with '{kwvalue}' (only str/int comparison or lambda functions are supported)"
     )
 
-def traverse_dot_path(d: dict, path: str) -> Any | None:
+def traverse_dot_path(message: dict, path: str) -> Any | None:
     """
-    Traverse a dictionary using a dot-separated path.
+    Traverse a dictionary using a dot-separated path. If argument is not
+    found, .function will be added as a prefix to the path to search the
+    function fields for tool calls.
 
     Args:
-        d (dict): The dictionary to traverse.
+        message (dict): The message dict to traverse.
         path (str): The dot-separated path to traverse.
 
     Returns:
         Any: The value at the end of the path, or None if the path does not exist.
     """
-    for k in path.split("."):
-        if k not in d:
-            return None
-        d = d[k]
-    return d
+    def _inner(d, _path):
+        for k in _path.split("."):
+            if type(d) == str and type(k) == str:
+                d = json.loads(d)
+            if k not in d:
+                return None
+            d = d[k]
+        return d
+
+    if (res := _inner(message, path)) is None:
+        return _inner(message, 'function.' + path)
+    return res
 
 
 class Trace(BaseModel):
