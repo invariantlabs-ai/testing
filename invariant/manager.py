@@ -266,15 +266,27 @@ class Manager:
         self, assertion: AssertionResult, address: str, source: str, assertion_id: int
     ):
         """Create an annotation for a single assertion."""
+        content = assertion.message
+
+        # if there is no message, we extract the assertion call
+        if content is None:
+            # take everything after the marked line (remove marker)
+            remainder = assertion.test.split("\n")[assertion.test_line :]
+            # truncate it smartly
+            content = "\n".join(remainder)
+            content = utils.ast_truncate(content.lstrip(">"))
+
         return {
             # non-localized assertions are top-level
             "address": "messages." + address if address != "<root>" else address,
-            "content": assertion.message or str(assertion),
+            # the assertion message
+            "content": content,
+            # metadata as expected by Explorer
             "extra_metadata": {
                 "source": source,
                 "test": assertion.test,
                 "passed": assertion.passed,
-                "line": 0,
+                "line": assertion.test_line,
                 # ID of the assertion (if an assertion results in multiple annotations)
                 "assertion_id": assertion_id,
             },

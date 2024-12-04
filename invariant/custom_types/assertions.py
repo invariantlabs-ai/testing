@@ -34,7 +34,7 @@ def get_caller_snippet(levels=1) -> Tuple[str, int]:
     )
     caller_code[line_in_caller] = f">{marked_line}"
     offset = max(0, line_in_caller - 5)
-    line_in_snippet = line_in_caller - offset
+    line_in_snippet = line_in_caller - offset + 1
     caller_code = caller_code[offset : line_in_caller + 5]
 
     return "\n" + "".join(caller_code), line_in_snippet
