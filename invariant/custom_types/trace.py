@@ -165,6 +165,29 @@ class Trace(BaseModel):
         trace_messages = copy.deepcopy(history)
         trace_messages.extend(response.messages or [])
         return cls(trace=trace_messages)
+    
+    @classmethod
+    def from_openai(
+        cls,  messages: list[dict], last_response: "openai.types.chat.chat_completion.ChatCompletion" | None = None) -> "Trace":
+        """
+        Creates a Trace instance from the current OpenAI response(optional) and the
+        messages exchanged with the OpenAI client.
+        
+        Args:
+            messages (list[dict]): The messages exchanged with the OpenAI client.
+            last_response (openai...ChatCompletion): The last response from the OpenAI client. Can be None if this response is already included in the messages.
+            Tha argument last_response is kept to maintain consistency with the from_swarm method.
+        """
+        from openai.types.chat.chat_completion import ChatCompletion as Response  # pylint: disable=import-outside-toplevel
+        
+        assert isinstance(messages, list)
+        assert all(isinstance(msg, dict) for msg in messages)
+
+        trace_messages = copy.deepcopy(messages)
+        if last_response:
+            assert isinstance(last_response, Response)
+            trace_messages.extend([last_response.choices[0].message.to_dict()] or [])
+        return cls(trace=trace_messages)
 
     def messages(
         self, selector: int | None = None, **filterkwargs
