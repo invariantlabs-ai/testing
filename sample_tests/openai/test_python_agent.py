@@ -65,3 +65,7 @@ def test_java_question():
         assert_true(run_python_tool_call == 0)
         expect_equals("I can only help with Python code.", trace.messages(-1)["content"])
         assert_true(trace.messages(-1)["content"].levenshtein(expected_response) < 5)
+
+test_java_question()
+test_python_question()
+test_python_question_invalid()

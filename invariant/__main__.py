@@ -7,8 +7,11 @@ import os
 import shutil
 import sys
 import time
+import webbrowser
 
 import pytest
+from invariant_sdk.client import Client as InvariantClient
+
 from invariant.config import Config
 from invariant.constants import (
     INVARIANT_AP_KEY_ENV_VAR,
@@ -17,7 +20,6 @@ from invariant.constants import (
     INVARIANT_TEST_RUNNER_TERMINAL_WIDTH_ENV_VAR,
 )
 from invariant.utils import utils
-from invariant_sdk.client import Client as InvariantClient
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -38,6 +40,11 @@ def parse_args(args: list[str]) -> tuple[argparse.Namespace, list[str]]:
         "--dataset_name",
         help="The name of the dataset to be used to associate the test trace data and results. This name will be used to derive a fresh dataset name on each run (e.g. myproject-1732007573)",
         default="tests",
+    )
+    parser.add_argument(
+        "--open",
+        action="store_true",
+        help="Open the Invariant Explorer with the results of the test run",
     )
     parser.add_argument(
         "--push",
@@ -74,9 +81,8 @@ def create_config(args: argparse.Namespace) -> Config:
     )
 
 
-def finalize_tests_and_print_summary(conf: Config) -> None:
-    """
-    Finalizes the test run:
+def finalize_tests_and_print_summary(conf: Config, open_browser: bool) -> None:
+    """Finalizes the test run:
     * pushes result metadata to the Explorer if --push
     * prints a summary of the test results.
     """
@@ -130,6 +136,10 @@ def finalize_tests_and_print_summary(conf: Config) -> None:
 
         print(f"Results available at {explorer_url}")
 
+        # open in browser if --open
+        if open_browser:
+            webbrowser.open(explorer_url)
+
 
 def test(args: list[str]) -> None:
     try:
@@ -155,7 +165,7 @@ def test(args: list[str]) -> None:
     exit_code = pytest.main(pytest_args)
 
     # print Invariant test summary
-    finalize_tests_and_print_summary(config)
+    finalize_tests_and_print_summary(config, open_browser=invariant_runner_args.open)
 
     return exit_code
 

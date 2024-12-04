@@ -11,6 +11,7 @@ from invariant_sdk.types.push_traces import PushTracesResponse
 from pydantic import BaseModel
 
 from invariant.custom_types.invariant_dict import InvariantDict, InvariantValue
+from invariant.custom_types.matchers import Matcher, ContainsImage
 from invariant.utils.explorer import from_explorer
 from invariant.utils.utils import ssl_verification_enabled
 
@@ -19,6 +20,9 @@ def iterate_tool_calls(
     messages: list[dict],
 ) -> Generator[tuple[list[str], dict], None, None]:
     """Generator function to iterate over tool calls in a list of messages.
+
+    Args:
+        messages (list[dict]): A list of messages without address information.
 
     Yields:
         tuple[list[str], dict]: A tuple containing:
@@ -57,7 +61,46 @@ def iterate_tool_calls(
             continue
         tool_calls = msg.get("tool_calls") or []
         for tc_i, tc in enumerate(tool_calls):
-            yield ([f"{msg_i}.tool_calls.{tc_i}"], tc)
+            yield [f"{msg_i}.tool_calls.{tc_i}"], tc
+
+
+def iterate_tool_outputs(
+    messages: list[dict],
+) -> Generator[tuple[list[str], dict], None, None]:
+    """
+    Generator function to iterate over tool outputs in a list of messages.
+
+    Args:
+        messages (list[dict]): A list of messages without address information.
+
+    Yields:
+        tuple[list[str], dict]: A tuple containing:
+            - A list of strings representing the hierarchical address of the tool output
+              in the message. For example, `["2"]` indicates the third message in the list.
+            - The tool output data (a dictionary or object representing the tool output).
+    """
+    for msg_i, msg in enumerate(messages):
+        if msg.get("role") == "tool":
+            yield [f"{msg_i}"], msg
+
+
+def iterate_messages(
+    messages: list[dict],
+) -> Generator[tuple[list[str], dict], None, None]:
+    """
+    Generator function to iterate over messages in a list of messages.
+
+    Args:
+        messages (list[dict]): A list of messages without address information.
+
+    Yields:
+        tuple[list[str], dict]: A tuple containing:
+            - A list of strings representing the hierarchical address of the message
+              in the list. For example, `["1"]` indicates the second message in the list.
+            - The message data (a dictionary or object representing the message).
+    """
+    for msg_i, msg in enumerate(messages):
+        yield [f"{msg_i}"], msg
 
 
 def match_keyword_filter_on_tool_call(
@@ -70,11 +113,11 @@ def match_keyword_filter_on_tool_call(
     # this enables checks like tool_calls(name='greet') to work
     if kwname in ["name", "arguments", "id"]:
         value = tool_call["function"].get(kwname)
-    return match_keyword_filter(kwname, kwvalue, value)
+    return match_keyword_filter(kwname, kwvalue, value, tool_call)
 
 
 def match_keyword_filter(
-    kwname: str, kwvalue: str | int | Callable, value: InvariantValue | Any
+    kwname: str, kwvalue: str | int | Callable, value: InvariantValue | Any, message: dict
 ) -> bool:
     """Match a keyword filter.
 
@@ -96,6 +139,33 @@ def match_keyword_filter(
     )
 
 
+def traverse_dot_path(message: dict, path: str) -> Any | None:
+    """
+    Traverse a dictionary using a dot-separated path. If argument is not
+    found, .function will be added as a prefix to the path to search the
+    function fields for tool calls.
+
+    Args:
+        message (dict): The message dict to traverse.
+        path (str): The dot-separated path to traverse.
+
+    Returns:
+        Any: The value at the end of the path, or None if the path does not exist.
+    """
+    def _inner(d, _path):
+        for k in _path.split("."):
+            if type(d) == str and type(k) == str:
+                d = json.loads(d)
+            if k not in d:
+                return None
+            d = d[k]
+        return d
+
+    if (res := _inner(message, path)) is None:
+        return _inner(message, 'function.' + path)
+    return res
+
+
 class Trace(BaseModel):
     """Defines an Invariant trace."""
 
@@ -106,6 +176,19 @@ class Trace(BaseModel):
     # (e.g. with Trace(...) as trace: ... )
     # If this is already assigned, the trace is currently being used in a context manager already and should not be re-used.
     manager: Any = None
+
+    def __next__(self):
+        return next(self._messages())
+
+    def __iter__(self):
+        return iter(self._messages())
+
+    def __str__(self):
+        return "\n".join(str(msg) for msg in self.trace)
+
+    def _messages(self):
+        for i, msg in enumerate(self.trace):
+            yield InvariantDict(msg, [str(i)])
 
     def as_context(self):
         from invariant.manager import Manager
@@ -173,8 +256,12 @@ class Trace(BaseModel):
         The identifier_or_id can be either a trace ID or a <username>/<dataset> pair, in which case
         the index of the trace to load must be provided.
 
-        :param identifier_or_id: The trace ID or <username>/<dataset> pair.
-        :param index: The index of the trace to load from the dataset.
+        Args:
+            identifier_or_id: The trace ID or <username>/<dataset> pair.
+            index: The index of the trace to load from the dataset.
+
+        Returns:
+            Trace: A Trace object with the loaded trace.
 
         :return: A Trace object with the loaded trace.
         """
@@ -201,24 +288,184 @@ class Trace(BaseModel):
         trace_messages = copy.deepcopy(messages)
         return cls(trace=trace_messages)
 
-    def messages(
-        self, selector: int | None = None, **filterkwargs
-    ) -> list[InvariantDict]:
-        """Return the messages in the trace."""
+    # Functions to check data_types
+    @property
+    def content_checkers(self) -> Dict[str, Matcher]:
+        """
+        Register content checkers for data_types. When implementing a new content checker,
+        add the new content checker to the dictionary below.
+
+        Returns:
+            Dict[str, Matcher]: The content checkers for the trace.
+        """
+        __content_checkers__ = {
+            "image": ContainsImage(),
+        }
+        return __content_checkers__
+
+    def _is_data_type(self, message: InvariantDict, data_type: str | None = None) -> bool:
+        """
+        Check if a message matches a given data_type using the content_checkers.
+        data_type should correspond to the keys in the content_checkers dictionary.
+        If data_type is None, the message is considered to match the data_type
+        (i.e., no filtering is performed).
+
+        Args:
+            message: The message to check.
+            data_type: The data_type to check against.
+
+        Returns:
+            bool: True if the message matches the data_type, False otherwise.
+
+        Raises:
+            ValueError: If the data_type is not supported.
+        """
+        # If not filtering on data_type
+        if data_type is None:
+            return True
+
+        # Check message against valid content types
+        if data_type in self.content_checkers:
+            return message.matches(self.content_checkers[data_type]).value
+        else:
+            raise ValueError(f"Unsupported data_type: {data_type}")
+
+    def _filter_trace(
+        self,
+        iterator_func: Callable[[list[dict]], Generator[tuple[list[str], dict], None, None]] = iterate_messages,
+        match_keyword_function: Callable = match_keyword_filter,
+        selector: int | dict | None = None,
+        data_type: str | None = None,
+        **filterkwargs
+    ) -> list[InvariantDict] | InvariantDict:
+        """
+        Filter the trace based on the provided selector, keyword arguments and data_type. Use this
+        method as a helper for custom filters such as messages(), tool_calls(), and tool_outputs().
+
+        Args:
+            iterator_func: The iterator function to use to iterate over the trace.
+                           It should take a list of messages and return a generator
+                           that yields tuples of addresses and messages.
+            match_keyword_function: The function to use to match keyword filters.
+            selector: The selector to use to filter the trace.
+            data_type: The data_type to filter on. Uses the content_checkers to check the data_type.
+            **filterkwargs: The keyword arguments to use to filter the trace.
+
+        Returns:
+            list[InvariantDict] | InvariantDict: The filtered trace.
+        """
+
+        # If a single index is provided, return the message at that index
         if isinstance(selector, int):
-            return InvariantDict(self.trace[selector], f"{selector}")
-        if len(filterkwargs) > 0:
+            for i, (addresses, message) in enumerate(iterator_func(self.trace)):
+                if i == selector:
+                    return_val = InvariantDict(message, f"{i}")
+                    return return_val if self._is_data_type(return_val, data_type) else None
+
+        # If a dictionary is provided, filter messages based on the dictionary
+        elif isinstance(selector, dict):
             return [
-                InvariantDict(message, [f"{i}"])
-                for i, message in enumerate(self.trace)
+                InvariantDict(message, addresses)
+                for addresses, message in iterator_func(self.trace)
                 if all(
-                    match_keyword_filter(kwname, kwvalue, message.get(kwname))
-                    for kwname, kwvalue in filterkwargs.items()
-                )
+                    traverse_dot_path(message, kwname) == kwvalue
+                    for kwname, kwvalue in selector.items()
+                ) and self._is_data_type(InvariantDict(message, addresses), data_type)
             ]
+
+        # If keyword arguments are provided, filter messages based on the keyword arguments
+        elif len(filterkwargs) > 0:
+            return [
+                InvariantDict(message, addresses)
+                for addresses, message in iterator_func(self.trace)
+                if all(
+                    match_keyword_function(
+                        kwname, kwvalue, message.get(kwname), message
+                    )
+                    for kwname, kwvalue in filterkwargs.items()
+                ) and self._is_data_type(InvariantDict(message, addresses), data_type)
+            ]
+
+        # If no selector is provided, return all messages, filtering on data_type.
         return [
-            InvariantDict(message, [f"{i}"]) for i, message in enumerate(self.trace)
+            InvariantDict(message, addresses) for addresses, message in iterator_func(self.trace)
+            if self._is_data_type(InvariantDict(message, addresses), data_type)
         ]
+
+    def messages(
+        self,
+        selector: int | dict | None = None,
+        data_type: str | None = None,
+        **filterkwargs
+    ) -> list[InvariantDict] | InvariantDict:
+        """
+        Get all messages from the trace that match the provided selector, data_type, and keyword filters.
+
+        Args:
+            selector: The selector to use to filter the trace.
+            data_type: The data_type to filter on. Uses the content_checkers to check the data_type.
+            **filterkwargs: The keyword arguments to use to filter the trace.
+
+        Returns:
+            list[InvariantDict] | InvariantDict: The filtered messages.
+        """
+        return self._filter_trace(
+            iterate_messages,
+            match_keyword_filter,
+            selector,
+            data_type,
+            **filterkwargs
+        )
+
+    def tool_calls(
+        self,
+        selector: int | dict | None = None,
+        data_type: str | None = None,
+        **filterkwargs
+    ) -> list[InvariantDict] | InvariantDict:
+        """
+        Get all tool calls from the trace that match the provided selector, data_type, and keyword filters.
+
+        Args:
+            selector: The selector to use to filter the trace.
+            data_type: The data_type to filter on. Uses the content_checkers to check the data_type.
+            **filterkwargs: The keyword arguments to use to filter the trace.
+
+        Returns:
+            list[InvariantDict] | InvariantDict: The filtered tool calls.
+        """
+        return self._filter_trace(
+            iterate_tool_calls,
+            match_keyword_filter_on_tool_call,
+            selector,
+            data_type,
+            **filterkwargs
+        )
+
+    def tool_outputs(
+        self,
+        selector: int | dict | None = None,
+        data_type: str | None = None,
+        **filterkwargs
+    ) -> list[InvariantDict] | InvariantDict:
+        """
+        Get all tool outputs from the trace that match the provided selector, data_type, and keyword filters.
+
+        Args:
+            selector: The selector to use to filter the trace.
+            data_type: The data_type to filter on. Uses the content_checkers to check the data_type.
+            **filterkwargs: The keyword arguments to use to filter the trace.
+
+        Returns:
+            list[InvariantDict] | InvariantDict: The filtered tool outputs.
+        """
+        return self._filter_trace(
+            iterate_tool_outputs,
+            match_keyword_filter,
+            selector,
+            data_type,
+            **filterkwargs
+        )
 
     def tool_pairs(self) -> list[tuple[InvariantDict, InvariantDict]]:
         """Returns the list of tuples of (tool_call, tool_output)."""
@@ -259,61 +506,35 @@ class Trace(BaseModel):
             (res_pair[1], res_pair[2]) for res_pair in res if res_pair[2] is not None
         ]
 
-    def tool_calls(
-        self, selector: int | None = None, **filterkwargs
-    ) -> list[InvariantDict] | InvariantDict:
-        """Return the tool calls in the trace."""
-        if isinstance(selector, int):
-            for i, (tc_address, tc) in enumerate(iterate_tool_calls(self.trace)):
-                if i == selector:
-                    return InvariantDict(tc, tc_address)
-        elif isinstance(selector, dict):
+    def to_python(self) -> str:
+        """
+        Returns a snippet of Python code construct that can be used
+        to recreate the trace in a Python script.
 
-            def find_value(d, path):
-                for k in path.split("."):
-                    if type(d) == str and type(k) == str:
-                        d = json.loads(d)
-                    if k not in d:
-                        return None
-                    d = d[k]
-                return d
+        Returns:
+            str: The Python string representing the trace.
 
-            return [
-                InvariantDict(tc, tc_address)
-                for tc_address, tc in iterate_tool_calls(self.trace)
-                if all(
-                    find_value(tc["function"], kwname) == kwvalue
-                    for kwname, kwvalue in selector.items()
-                )
-            ]
-        elif len(filterkwargs) > 0:
-            return [
-                InvariantDict(tc, tc_address)
-                for tc_address, tc in iterate_tool_calls(self.trace)
-                if all(
-                    match_keyword_filter_on_tool_call(
-                        kwname, kwvalue, tc.get(kwname), tc
-                    )
-                    for kwname, kwvalue in filterkwargs.items()
-                )
-            ]
-        else:
-            return [
-                InvariantDict(tc, tc_address)
-                for tc_address, tc in iterate_tool_calls(self.trace)
-            ]
+        """
+        return (
+            "Trace(trace=[\n"
+            + ",\n".join("  " + str(msg) for msg in self.trace)
+            + "\n])"
+        )
 
     def push_to_explorer(
         self,
         client: InvariantClient | None = None,
         dataset_name: None | str = None,
     ) -> PushTracesResponse:
-        """Pushes the trace to the explorer.
+        """
+        Pushes the trace to the explorer.
 
-        :param client: The client used to push. If None a standard invariant_sdk client is initialized.
-        :param dataset_name: The name of the dataset to witch the trace would be approved.
+        Args:
+            client: The client used to push. If None a standard invariant_sdk client is initialized.
+            dataset_name: The name of the dataset to witch the trace would be approved.
 
-        :return: response of push trace request.
+        Returns:
+            PushTracesResponse: response of push trace request.
         """
         if client is None:
             client = InvariantClient()
@@ -325,6 +546,3 @@ class Trace(BaseModel):
             dataset=dataset_name,
             request_kwargs={"verify": ssl_verification_enabled()},
         )
-
-    def __str__(self):
-        return "\n".join(str(msg) for msg in self.trace)
