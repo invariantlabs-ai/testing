@@ -146,7 +146,7 @@ def test_sum_helper(invariant_number_list: list):
     assert len(sum_value.addresses) == len(invariant_number_list)
 
 
-def test_count_helper(invariant_string_list: list):
+def test_count_helper_with_value(invariant_string_list: list):
     """Test that the count helper returns correct value and keeps all addresses."""
     string_to_count = "12"
 
@@ -158,6 +158,14 @@ def test_count_helper(invariant_string_list: list):
     assert isinstance(count_value, InvariantNumber)
     assert count_value.value == real_count
     assert len(count_value.addresses) == len(invariant_string_list)
+
+
+def test_count_helper_with_lambda(invariant_number_list: list):
+    """Test that the count function works with lambda."""
+    result = F.count(lambda v: v == 1 , invariant_number_list)
+    assert result == InvariantNumber(1)
+    assert result.addresses == [v.addresses[0] for v in invariant_number_list]
+
 
 
 def test_any_helper(invariant_bool_list: list):
