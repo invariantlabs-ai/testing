@@ -63,6 +63,7 @@ def iterate_tool_calls(
         for tc_i, tc in enumerate(tool_calls):
             yield [f"{msg_i}.tool_calls.{tc_i}"], tc
 
+
 def iterate_tool_outputs(
     messages: list[dict],
 ) -> Generator[tuple[list[str], dict], None, None]:
@@ -82,6 +83,7 @@ def iterate_tool_outputs(
         if msg.get("role") == "tool":
             yield [f"{msg_i}"], msg
 
+
 def iterate_messages(
     messages: list[dict],
 ) -> Generator[tuple[list[str], dict], None, None]:
@@ -100,6 +102,7 @@ def iterate_messages(
     for msg_i, msg in enumerate(messages):
         yield [f"{msg_i}"], msg
 
+
 def match_keyword_filter_on_tool_call(
     kwname: str,
     kwvalue: str | int | Callable,
@@ -111,6 +114,7 @@ def match_keyword_filter_on_tool_call(
     if kwname in ["name", "arguments", "id"]:
         value = tool_call["function"].get(kwname)
     return match_keyword_filter(kwname, kwvalue, value, tool_call)
+
 
 def match_keyword_filter(
     kwname: str, kwvalue: str | int | Callable, value: InvariantValue | Any, message: dict
@@ -133,6 +137,7 @@ def match_keyword_filter(
     raise ValueError(
         f"Cannot filter '{kwname}' with '{kwvalue}' (only str/int comparison or lambda functions are supported)"
     )
+
 
 def traverse_dot_path(message: dict, path: str) -> Any | None:
     """

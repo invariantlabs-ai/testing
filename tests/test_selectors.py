@@ -21,6 +21,7 @@ def trace():
         ]
     )
 
+
 @pytest.fixture
 def swarm_trace():
     return Trace(trace=[
@@ -38,6 +39,7 @@ def swarm_trace():
         {'role': 'tool', 'tool_call_id': 'call_JBViXjQT0UunZsKFZvPWvF5O', 'tool_name': 'search_calendar_events', 'content': "[{'title': 'Meeting with John', 'date': '2024-05-15', 'time': '11:00', 'duration': '1:00'}, {'title': 'Lunch with Sarah', 'date': '2024-05-15', 'time': '12:30', 'duration': '1:00'}]"}, 
         {'role': 'tool', 'tool_call_id': 'call_k4QoRZEYzMed4QUhDS7tvyV6', 'tool_name': 'search_calendar_events', 'content': '[]'}, 
         {'content': 'Your lunch with Sarah on 2024-05-15 is scheduled for 12:30 PM and it lasts for 1 hour. You have a meeting with John that day from 11:00 AM to 12:00 PM.\n\nTherefore, you have from 12:00 PM to 12:30 PM as free time before your lunch with Sarah. This gives you **00:30** minutes to transition between these events.', 'refusal': None, 'role': 'assistant', 'audio': None, 'function_call': None, 'tool_calls': None, 'sender': 'Agent A'}])
+
 
 @pytest.fixture
 def trace_with_tool_calls():
@@ -77,6 +79,7 @@ def trace_with_tool_calls():
             },
         ]
     )
+
 
 @pytest.fixture
 def trace_with_images():
@@ -134,6 +137,7 @@ def trace_with_images():
         ]
     )
 
+
 @pytest.fixture
 def trace_tool_call_with_duplicate_field():
     """
@@ -160,7 +164,6 @@ def trace_tool_call_with_duplicate_field():
             },
         ]
     )
-
 
 
 def test_messages_list_select(trace: Trace):
@@ -196,6 +199,15 @@ def test_messages_filter_callable_user_with_string_upper(trace: Trace):
         trace.messages(role=lambda r: r == "user")[0]["content"].upper()
         == "HELLO THERE"
     )
+
+
+def test_something():
+    trace = Trace.from_explorer(
+        identifier_or_id='mbalunovic/tests-1732714692',
+        index=1
+    )
+
+    print(len(trace.messages(data_type='image')))
 
 
 def test_messages_filter_callable_user_with_string_lower(trace: Trace):
@@ -346,4 +358,3 @@ def test_tool_pairs():
     assert tool_pairs[1][1]["id"] == "2" and tool_pairs[1][1]["content"] == "Tool output 2"
     assert tool_pairs[2][0]["function"]["name"] == "func3"
     assert tool_pairs[2][1]["content"] == "Tool output 3"
-

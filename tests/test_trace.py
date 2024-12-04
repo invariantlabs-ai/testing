@@ -28,6 +28,7 @@ def test_trace_iterable(message_list: Trace):
     for message in trace:
         assert message in trace
 
+
 def test_trace_iterable_maintains_order(message_list: Trace):
     trace = message_list
 

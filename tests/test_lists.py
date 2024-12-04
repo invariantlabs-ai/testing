@@ -167,7 +167,6 @@ def test_count_helper_with_lambda(invariant_number_list: list):
     assert result.addresses == [v.addresses[0] for v in invariant_number_list]
 
 
-
 def test_any_helper(invariant_bool_list: list):
     """Test that the any helper returns correct value and keeps all addresses."""
     any_value = F.any(invariant_bool_list)
