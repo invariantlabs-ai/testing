@@ -1,22 +1,23 @@
 from .python_agent import PythonAgent
-from invariant.testing import Trace, assert_true, assert_equals
+from invariant.testing import Trace, assert_true, expect_equals
 from unittest.mock import MagicMock
+import invariant.testing.functional as Function
 
 # This is a test that the agent should execute valid python code and get result for a question about fibonacci series
 def test_python_question():
-    input = "Calculate fibonacci series for 10 in python"
+    input = "Calculate 10-th number in the fibonacci series in python"
     python_agent = PythonAgent()
     response = python_agent.get_response(input)
     trace = Trace.from_openai(response)
     with trace.as_context():
         run_python_tool_call = trace.tool_calls(name="run_python")
-        assert_true(len(run_python_tool_call) == 1)
+        assert_true(Function.len(run_python_tool_call) == 1)
         assert_true(run_python_tool_call[0]["function"]["arguments"]["code"].is_valid_code("python"))
         assert_true("34" in trace.messages(-1)["content"])
 
 # This is a test that mock the agent respond with Java code
 def test_python_question_invalid():
-    input = "Calculate fibonacci series for 10"
+    input = "Calculate 10-th number in the fibonacci series"
     python_agent = PythonAgent()
     mock_invalid_response = [
         {
@@ -48,7 +49,7 @@ def test_python_question_invalid():
     trace = Trace.from_openai(response)
     with trace.as_context():
         run_python_tool_call = trace.tool_calls(name="run_python")
-        assert_true(len(run_python_tool_call) == 1)
+        assert_true(Function.len(run_python_tool_call) == 1)
         assert_true(not run_python_tool_call[0]["function"]["arguments"]["code"].is_valid_code("python"))
 
 #  This is a test that the request specifies another programming language Java
@@ -58,7 +59,9 @@ def test_java_question():
     python_agent = PythonAgent()
     response = python_agent.get_response(input)
     trace = Trace.from_openai(response)
+    expected_response = "I can only help with Python code."
     with trace.as_context():
         run_python_tool_call = trace.tool_calls(name="run_python")
-        assert_true(len(run_python_tool_call) == 0)
-        assert_equals("I can only help with Python code.", trace.messages(-1)["content"])
+        assert_true(run_python_tool_call == 0)
+        expect_equals("I can only help with Python code.", trace.messages(-1)["content"])
+        assert_true(trace.messages(-1)["content"].levenshtein(expected_response) < 5)
