@@ -3,6 +3,7 @@
 # Import built-in functions to avoid shadowing
 from builtins import max as builtin_max
 from builtins import min as builtin_min
+from builtins import len as builtin_len
 from collections.abc import Iterable
 from typing import Any, Callable
 
@@ -57,19 +58,29 @@ def reduce(
 
 
 def count(
-    value: InvariantValue | Any, iterable: Iterable[InvariantValue]
+    value: InvariantValue | Callable[[InvariantValue | Any], bool] | Any, iterable: Iterable[InvariantValue]
 ) -> InvariantNumber:
-    """Return the number of occurrences of a value in the list."""
-    return sum(
-        map(
-            lambda a: (
-                InvariantNumber(1, a.addresses)
-                if a == value
-                else InvariantNumber(0, a.addresses)
-            ),
-            iterable,
-        )
-    )
+    """
+    Count the number of elements in the list that are equal to the given value or satisfy the
+    given condition defined by value.
+
+    Args:
+        value: The value to compare against or a function that returns True for elements that
+            should be counted.
+        iterable: The iterable of InvariantValue objects
+
+    Returns:
+        InvariantNumber: The number of elements that match the given value or condition
+    """
+
+    def map_func(a):
+        if isinstance(value, Callable) and value(a):
+            return InvariantNumber(1, a.addresses)
+        if a == value:
+            return InvariantNumber(1, a.addresses)
+        return InvariantNumber(0, a.addresses)
+
+    return sum(map(map_func, iterable))
 
 
 def match(
@@ -147,3 +158,18 @@ def max(  # pylint: disable=redefined-builtin
 ) -> InvariantValue:
     """Return the maximum value in the list."""
     return builtin_max(iterable, key=lambda x: x.value)
+
+  
+def len(iterable: Iterable[InvariantValue]) -> InvariantNumber:
+    """
+    Return the length of the iterable and the addresses of all elements in the list.
+
+    Args:
+        iterable: The iterable of InvariantValue objects.
+
+    Returns:
+        InvariantNumber: The length of the iterable with addresses.
+    """
+    return InvariantNumber(
+        builtin_len(iterable), [addr for item in iterable for addr in item.addresses]
+    )
