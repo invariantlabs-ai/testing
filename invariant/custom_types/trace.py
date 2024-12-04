@@ -268,6 +268,26 @@ class Trace(BaseModel):
         messages, metadata = from_explorer(identifier_or_id, index, explorer_endpoint)
         return cls(trace=messages, metadata=metadata)
 
+
+    @classmethod
+    def from_openai(
+        cls,  messages: list[dict]) -> "Trace":
+        """
+        Creates a Trace instance from the history messages exchanged with the openai client.
+
+        Args:
+            messages (list[dict]): The history messages exchanged with the openai client.
+
+        Returns:
+            Trace: A Trace object with all the messages combined.
+        """
+        
+        # It's actually the same as from_Swarm does
+        assert isinstance(messages, list)
+        assert all(isinstance(msg, dict) for msg in messages)
+        trace_messages = copy.deepcopy(messages)
+        return cls(trace=trace_messages)
+
     # Functions to check data_types
     @property
     def content_checkers(self) -> Dict[str, Matcher]:
