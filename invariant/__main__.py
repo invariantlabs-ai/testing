@@ -4,13 +4,11 @@ import argparse
 import json
 import logging
 import os
+import shutil
 import sys
 import time
 
 import pytest
-from invariant_sdk.client import Client as InvariantClient
-
-from invariant.utils import utils
 from invariant.config import Config
 from invariant.constants import (
     INVARIANT_AP_KEY_ENV_VAR,
@@ -18,6 +16,8 @@ from invariant.constants import (
     INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR,
     INVARIANT_TEST_RUNNER_TERMINAL_WIDTH_ENV_VAR,
 )
+from invariant.utils import utils
+from invariant_sdk.client import Client as InvariantClient
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -149,7 +149,7 @@ def test(args: list[str]) -> None:
         config.dataset_name
     )
     if os.path.exists(test_results_directory_path):
-        os.remove(test_results_directory_path)
+        shutil.rmtree(test_results_directory_path)
 
     # Run pytest with remaining arguments
     exit_code = pytest.main(pytest_args)

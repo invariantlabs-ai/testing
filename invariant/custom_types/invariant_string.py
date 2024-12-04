@@ -8,7 +8,6 @@ from operator import ge, gt, le, lt, ne
 from typing import Any, Union
 
 from _pytest.python_api import ApproxBase
-
 from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_number import InvariantNumber
 from invariant.custom_types.invariant_value import InvariantValue
@@ -26,7 +25,7 @@ class InvariantString(InvariantValue):
             raise TypeError(f"value must be a str, got {type(value)}")
         if addresses is None:
             addresses = []
-        if type(addresses) is str:
+        if isinstance(addresses, str):
             addresses = [addresses]
         super().__init__(value, addresses)
 
@@ -191,6 +190,7 @@ class InvariantString(InvariantValue):
         if isinstance(pattern, InvariantString):
             pattern = pattern.value
         new_addresses = []
+
         for match in re.finditer(pattern, self.value):
             start, end = match.span()
             new_addresses.append(f"{start}-{end}")
@@ -214,7 +214,9 @@ class InvariantString(InvariantValue):
         if match is None:
             return None
         start, end = match.span(group_id)
-        return InvariantString(match.group(group_id), self._concat_addresses([f"{start}-{end}"]))
+        return InvariantString(
+            match.group(group_id), self._concat_addresses([f"{start}-{end}"])
+        )
 
     def is_similar(self, other: str, threshold: float = 0.5) -> InvariantBool:
         """Check if the value is similar to the given string using cosine similarity."""
@@ -278,14 +280,16 @@ class InvariantString(InvariantValue):
             ret.append(InvariantString(substr, self._concat_addresses([str(r)])))
         return ret
 
-    def execute(
-        self, suffix_code: str = "", detect_packages: bool = False
+    def execute_contains(
+        self, pattern: str, suffix_code: str = "", detect_packages: bool = False
     ) -> InvariantString:
         """Execute the value as Python code and return the standard output as InvariantString.
 
         Args:
+            pattern (str): The pattern to check for in the output.
             suffix_code (str): The Python code to append to the value before execution.
             detect_packages (bool): Whether to detect the dependencies of the code.
         """
         res = execute(self.value + "\n" + suffix_code, detect_packages)
-        return InvariantString(res, self.addresses)
+        has_pattern = re.search(pattern, res) is not None
+        return InvariantBool(has_pattern, self.addresses)

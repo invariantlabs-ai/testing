@@ -1,3 +1,5 @@
+""" Imports for invariant testing. """
+
 from invariant.custom_types.assertions import (
     assert_equals,
     assert_false,
@@ -16,6 +18,7 @@ from invariant.custom_types.matchers import (
     Matcher,
 )
 from invariant.custom_types.trace import Trace
+from invariant.wrappers.swarm_wrapper import SwarmWrapper
 
 # re-export trace and various assertion types
 __all__ = [
@@ -33,4 +36,5 @@ __all__ = [
     "HasSubstring",
     "IsSimilar",
     "IsFactuallyEqual",
+    "SwarmWrapper",
 ]

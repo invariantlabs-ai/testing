@@ -1,22 +1,33 @@
+"""Utility functions to interact with the Invariant Explorer."""
+
 import base64
+
 import requests
 
-def _get_image(local_img_path: str, explorer_endpoint: str = "https://explorer.invariantlabs.ai") -> str:
+TIMEOUT = 5  # connect and read timeouts.
+
+
+def _get_image(
+    local_img_path: str, explorer_endpoint: str = "https://explorer.invariantlabs.ai"
+) -> str:
     """Get the base64 encoded image from the local_img_path.
-    
+
     Args:
         local_img_path: The path to the image in the local filesystem.
     """
-    path_parts = local_img_path.split('/')
+    path_parts = local_img_path.split("/")
     dataset_id = path_parts[-3]
     trace_id = path_parts[-2]
-    image_id = path_parts[-1].split('.')[0]
+    image_id = path_parts[-1].split(".")[0]
 
     response = requests.get(
         f"{explorer_endpoint}/api/v1/trace/image/{dataset_id}/{trace_id}/{image_id}",
+        timeout=TIMEOUT,
     )
     if response.status_code != 200:
-        raise ValueError(f"Error getting image {local_img_path} from Explorer: {response.status_code}")
+        raise ValueError(
+            f"Error getting image {local_img_path} from Explorer: {response.status_code}"
+        )
     return base64.b64encode(response.content).decode("utf-8")
 
 
@@ -38,7 +49,6 @@ def from_explorer(
     Returns:
         A Trace object with the loaded trace.
     """
-    import requests
 
     metadata = {
         "id": identifier_or_id,
@@ -73,12 +83,15 @@ def from_explorer(
 
     response = requests.get(
         url=f"{explorer_endpoint}/api/v1/trace/{identifier_or_id}?annotated=1",
-        timeout=timeout,
+        timeout=TIMEOUT,
     )
     messages = response.json()["messages"]
     for msg in messages:
-        if msg.get("content", "").startswith("local_img_link:"):
-
+        if (
+            (content := msg.get("content"))
+            and isinstance(content, str)
+            and content.startswith("local_img_link:")
+        ):
             img = _get_image(msg["content"], explorer_endpoint)
             msg["content"] = "local_base64_img: " + img
     return messages, metadata

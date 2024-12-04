@@ -1,7 +1,6 @@
 """Tests for the InvariantNumber class."""
 
 import pytest
-
 from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_number import InvariantNumber
 

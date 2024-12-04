@@ -1,27 +1,27 @@
 """Tests for the capital_finder_agent"""
 
 import pytest
-from invariant.testing import Trace, assert_equals, assert_true
+from invariant.testing import SwarmWrapper, assert_equals, assert_true
 from swarm import Swarm
 
 from .capital_finder_agent import create_agent
 
 
-@pytest.fixture(name="swarm_client")
-def fixture_swarm_client():
-    """Create a swarm client."""
-    return Swarm()
+@pytest.fixture(name="swarm_wrapper", scope="module")
+def fixture_swarm_wrapper():
+    """Create a wrapper swarm client."""
+    return SwarmWrapper(Swarm())
 
 
-def test_capital_finder_agent_when_capital_found(swarm_client):
+def test_capital_finder_agent_when_capital_found(swarm_wrapper):
     """Test the capital finder agent when the capital is found."""
     agent = create_agent()
-    history = [{"role": "user", "content": "What is the capital of France?"}]
-    response = swarm_client.run(
+    messages = [{"role": "user", "content": "What is the capital of France?"}]
+    response = swarm_wrapper.run(
         agent=agent,
-        messages=history,
+        messages=messages,
     )
-    trace = Trace.from_swarm(response, history)
+    trace = SwarmWrapper.to_invariant_trace(response)
 
     with trace.as_context():
         get_capital_tool_calls = trace.tool_calls(name=lambda n: n == "get_capital")
@@ -33,15 +33,15 @@ def test_capital_finder_agent_when_capital_found(swarm_client):
         assert_true("Paris" in trace.messages(-1)["content"])
 
 
-def test_capital_finder_agent_when_capital_not_found(swarm_client):
+def test_capital_finder_agent_when_capital_not_found(swarm_wrapper):
     """Test the capital finder agent when the capital is found."""
     agent = create_agent()
-    history = [{"role": "user", "content": "What is the capital of Spain?"}]
-    response = swarm_client.run(
+    messages = [{"role": "user", "content": "What is the capital of Spain?"}]
+    response = swarm_wrapper.run(
         agent=agent,
-        messages=history,
+        messages=messages,
     )
-    trace = Trace.from_swarm(response, history)
+    trace = SwarmWrapper.to_invariant_trace(response)
 
     with trace.as_context():
         get_capital_tool_calls = trace.tool_calls(name=lambda n: n == "get_capital")
