@@ -1,11 +1,11 @@
-from .python_agent import OpenaiPythonAgent
+from .python_agent import PythonAgent
 from invariant.testing import Trace, assert_true, assert_equals
 from unittest.mock import MagicMock
 
 # This is a test that the agent should execute valid python code and get result for a question about fibonacci series
 def test_python_question():
     input = "Calculate fibonacci series for 10 in python"
-    python_agent = OpenaiPythonAgent()
+    python_agent = PythonAgent()
     response = python_agent.get_response(input)
     trace = Trace.from_openai(response)
     with trace.as_context():
@@ -17,7 +17,7 @@ def test_python_question():
 # This is a test that mock the agent respond with Java code
 def test_python_question_invalid():
     input = "Calculate fibonacci series for 10"
-    python_agent = OpenaiPythonAgent()
+    python_agent = PythonAgent()
     mock_invalid_response = [
         {
             "role":"system",
@@ -55,7 +55,7 @@ def test_python_question_invalid():
 #  The agent should respond with "I can only help with Python code."
 def test_java_question():
     input = "How to calculate fibonacci series in Java?"
-    python_agent = OpenaiPythonAgent()
+    python_agent = PythonAgent()
     response = python_agent.get_response(input)
     trace = Trace.from_openai(response)
     with trace.as_context():
