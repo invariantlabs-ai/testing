@@ -3,7 +3,22 @@
 import pytest
 from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_dict import InvariantDict
+from invariant.custom_types.invariant_number import InvariantNumber
+from invariant.custom_types.invariant_string import InvariantString
 from invariant.testing import LambdaMatcher
+
+
+def test_invariant_dict_initialization():
+    """Test initialization of InvariantDict."""
+    dict1 = InvariantDict({"hello": 1}, address=["addr1"])
+    assert dict1.value == {"hello": 1}
+    assert dict1.addresses == ["addr1"]
+
+    with pytest.raises(TypeError, match="value must be a dictionary"):
+        InvariantDict("hello", ["addr1"])
+
+    with pytest.raises(TypeError, match="addresses must be a list"):
+        InvariantDict({"hello": 1}, "addr1")
 
 
 def test_invariant_dict_str():
@@ -17,7 +32,21 @@ def test_invariant_dict_get():
     """Test the __getitem__ method of InvariantDict."""
     dict1 = InvariantDict({"hello": 1}, address=["addr1"])
     assert dict1["hello"] == 1
-    assert dict1["world"] is None
+    hello_value = dict1["hello"]
+    assert isinstance(hello_value, InvariantNumber)
+    assert hello_value.value == 1 and hello_value.addresses == ["addr1.hello"]
+
+    with pytest.raises(KeyError):
+        _ = dict1["world"]
+
+    dict2 = InvariantDict({"hello": "1"}, address=["addr1"])
+    assert dict2.get("hello") == "1"
+    hello_value = dict2.get("hello")
+    assert isinstance(hello_value, InvariantString)
+    assert hello_value.value == "1" and hello_value.addresses == ["addr1.hello:0-1"]
+
+    assert dict1.get("world") is None
+    assert dict1.get("world", 1) == 1
 
 
 def test_invariant_dict_matches():
@@ -60,4 +89,5 @@ def test_invariant_dict_matches():
 
     # Test case 5: Invalid matcher (not a Matcher instance)
     with pytest.raises(AttributeError):
+        invariant_dict.matches("not_a_matcher")
         invariant_dict.matches("not_a_matcher")
