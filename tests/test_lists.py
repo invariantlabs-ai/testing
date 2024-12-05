@@ -291,41 +291,41 @@ def test_len_helper_works_without_addresses():
     assert result.addresses == []
 
 
-def test_assert_order_with_builtin_value(invariant_number_list: list):
-    """Test that the assert_order function works."""
+def test_assert_window_with_builtin_value(invariant_number_list: list):
+    """Test that the assert_window function works."""
     checks = [4, 2, 4]
 
-    result = F.assert_order(checks, invariant_number_list)
+    result = F.assert_window(checks, invariant_number_list)
 
     assert result.value == True
     assert result.addresses == ["3", "4", "5"]
 
 
-def test_assert_order_with_invariant_value(invariant_number_list: list):
-    """Test that the assert_order function works with InvariantValue objects."""
+def test_assert_window_with_invariant_value(invariant_number_list: list):
+    """Test that the assert_window function works with InvariantValue objects."""
     checks = [InvariantNumber(4), InvariantNumber(2), InvariantNumber(4)]
 
-    result = F.assert_order(checks, invariant_number_list)
+    result = F.assert_window(checks, invariant_number_list)
 
     assert result.value == True
     assert result.addresses == ["3", "4", "5"]
 
 
-def test_assert_order_with_lambda(invariant_number_list: list):
-    """Test that the assert_order function works with lambda."""
+def test_assert_window_with_lambda(invariant_number_list: list):
+    """Test that the assert_window function works with lambda."""
     checks = [lambda x: x % 2 == 0 for _ in range(3)]
 
-    result = F.assert_order(checks, invariant_number_list)
+    result = F.assert_window(checks, invariant_number_list)
 
     assert result.value == True
     assert result.addresses == ["2", "3", "4"]
 
 
-def test_assert_order_returns_false(invariant_number_list: list):
-    """Test that the assert_order function returns False if the order is not correct."""
+def test_assert_window_returns_false(invariant_number_list: list):
+    """Test that the assert_window function returns False if the order is not correct."""
     checks = [3, 2, 5]
 
-    result = F.assert_order(checks, invariant_number_list)
+    result = F.assert_window(checks, invariant_number_list)
 
     assert result.value == False
 
@@ -337,34 +337,168 @@ def test_assert_order_returns_false(invariant_number_list: list):
         ([5, 9, 4], ["1"]),
     ],
 )
-def test_assert_order_returns_last_match_address(
+def test_assert_window_returns_last_match_address(
     invariant_number_list: list, checks, address
 ):
-    """Test that the assert_order function returns the address of the last element that matched when no complete window matched the checks."""
-    result = F.assert_order(checks, invariant_number_list)
+    """Test that the assert_window function returns the address of the last element that matched when no complete window matched the checks."""
+    result = F.assert_window(checks, invariant_number_list)
 
     assert result.value == False
     assert result.addresses == address
 
 
-def test_assert_returns_first_address_if_no_matches_found(invariant_number_list: list):
-    """Test that the assert_order function returns the address of the first element when no (partial) matches are found in any of the windows."""
+def test_assert_window_returns_first_address_if_no_matches_found(
+    invariant_number_list: list,
+):
+    """Test that the assert_window function returns the address of the first element when no (partial) matches are found in any of the windows."""
     checks = [-1, -2, -3]
 
-    result = F.assert_order(checks, invariant_number_list)
+    result = F.assert_window(checks, invariant_number_list)
 
     assert result.value == False
     assert result.addresses == invariant_number_list[0].addresses
 
 
-def test_assert_order_works_over_trace_with_filtering(simple_trace: Trace):
-    """Test that the assert_order function works over a trace with filtering."""
+def test_assert_window_works_over_trace_with_filtering(simple_trace: Trace):
+    """Test that the assert_window function works over a trace with filtering."""
     checks = [
         lambda m: m["content"] == "Hi, how can I help you?",
         lambda m: m["content"] == "Sure, what do you need help with?",
     ]
 
-    res = F.assert_order(checks, simple_trace.messages(role="assistant"))
+    res = F.assert_window(checks, simple_trace.messages(role="assistant"))
 
     assert res.value == True
     assert res.addresses == ["1", "3"]
+
+
+def test_assert_order_returns_expected(invariant_number_list: list):
+    """Test that the assert_order function works."""
+    # Concequitive numbers
+    checks = [4, 2, 4]
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == True
+    assert result.addresses == ["3", "4", "5"]
+
+    # Non-consecutive numbers
+    checks = [1, 8, 2]
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == True
+    assert result.addresses == ["0", "2", "4"]
+
+
+def test_assert_order_returns_false(invariant_number_list: list):
+    """Test that the assert_order function returns False if the order is not correct."""
+    # No match (3 is not in the trace)
+    checks = [3, 2, 5]
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == False
+    assert result.addresses == ["0"]
+
+    # No match (2 is never before 5)
+    checks = [2, 5, 4]
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == False
+    assert result.addresses == ["4"]
+
+
+def test_assert_order_returns_last_match_address(invariant_number_list: list):
+    """Test that the assert_order function returns the address of the last element that matched when no complete order matched the checks."""
+    checks = [5, 8, 3]
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == False
+    assert result.addresses == ["2"]
+
+    checks = [5, 9, 4]
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == False
+    assert result.addresses == ["1"]
+
+
+def test_assert_order_returns_first_address_if_no_matches_found(
+    invariant_number_list: list,
+):
+    """Test that the assert_order function returns the address of the first element when no (partial) matches are found in any of the orders."""
+    checks = [-1, -2, -3]
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == False
+    assert result.addresses == ["0"]
+
+
+def test_assert_order_works_with_callable(invariant_number_list: list):
+    """Test that the assert_order function works with callable."""
+    checks = [lambda x: x % 2 == 1, lambda x: x % 2 == 0, lambda x: x % 2 == 0]
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == True
+    assert result.addresses == ["0", "2", "3"]
+
+
+def test_assert_returns_first_match_address(invariant_number_list: list):
+    """Test that assert_order returns the address of the first full match it finds.
+
+    I.e., there are two 4s in the trace, but the first match is at index 3.
+    The function should greedily return the first match.
+    """
+    checks = [1, 5, 4]
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == True
+    assert result.addresses == ["0", "1", "3"]
+
+
+def test_assert_handles_duplicate_values(invariant_number_list: list):
+    """Test that assert_order handles duplicate values correctly."""
+    # Should find the first two 4s
+    checks = [4, 4]
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == True
+    assert result.addresses == ["3", "5"]
+
+    # Should not find multiple 5s
+    checks = [5, 5]
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    assert result.value == False
+    assert result.addresses == ["1"]
+
+
+def test_assert_order_handles_empty_checks(invariant_number_list: list):
+    """Test that assert_order handles empty checks."""
+    result = F.assert_order([], invariant_number_list)
+
+    assert result.value == True
+    assert result.addresses == []
+
+
+def test_assert_order_handles_check_longer_than_trace(invariant_number_list: list):
+    """Test that assert_order handles checks that are longer than the trace."""
+    checks = [1, 5, 8, 4, 2, 4, 1]
+    assert len(checks) > F.len(
+        invariant_number_list
+    ), "Invalid test, checks should be longer than the trace."
+
+    result = F.assert_order(checks, invariant_number_list)
+
+    # Should return the last matched element
+    assert result.value == False
+    assert result.addresses == ["5"]

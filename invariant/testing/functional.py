@@ -173,22 +173,80 @@ def len(iterable: Iterable[InvariantValue]) -> InvariantNumber:
 
 
 def assert_order(
-    checks: list[InvariantValue] | list[Callable[[InvariantValue], bool]],
+    checks: list | list[Callable[[InvariantValue], bool]],
     iterable: Iterable[InvariantValue],
-) -> InvariantBool:
+):
     """Assert that the elements in the iterable return True for the checks in order.
 
+    Given a list of checks, this function checks that the elements in the iterable satisfy the checks in order.
+    They may have an arbitrary number of messages between them, but the order must be preserved.
+
     Returns InvariantBool in one of the following ways:
-        1. Invariant(True, all addresses of the elements in the first window that satisfies all checks)
-        2. Invariant(False, last address that matched some part of a check)
-        3. Invariant(False, first address of the iterable otherwise)
+        - InvariantBool(True, all addresses of the elements in the first window that satisfies all checks)
+        - InvariantBool(False, last address that matched some part of a check)
+        - InvariantBool(False, first address of the iterable otherwise)
 
     Args:
         checks:   The list of checks to be satisfied. If a check is a function, it should return
                   True if the element satisfies the check. If a check is a value, the element should be
                   equal to the check.
 
-        iterable: The iterable of InvariantValue objects.
+        iterable: An iterable of InvariantValue objects to check against.
+
+    Returns:
+        InvariantBool: True if the checks are satisfied in order
+    """
+    current_check = 0
+    check_match_addresses = []
+
+    for message in iterable:
+        # If all checks are satisfied, break loop
+        if current_check >= builtin_len(checks):
+            break
+
+        # If the check is a function, call the function with the message
+        if isinstance(checks[current_check], Callable):
+            if checks[current_check](message):
+                current_check += 1
+                check_match_addresses.append(message.addresses)
+
+        # If the check is a value, check if the message is equal to the check
+        elif message == checks[current_check]:
+            current_check += 1
+            check_match_addresses.append(message.addresses)
+
+    # If we haven't satisfied all checks, return the address of the last match
+    if current_check != builtin_len(checks):
+        return_address = (
+            check_match_addresses[-1]
+            if check_match_addresses
+            else iterable[0].addresses
+        )
+        return InvariantBool(False, return_address)
+
+    # Return the (flattened) addresses of the elements that satisfied the checks
+    return InvariantBool(
+        True, [addr for item in check_match_addresses for addr in item]
+    )
+
+
+def assert_window(
+    checks: list[InvariantValue] | list[Callable[[InvariantValue], bool]],
+    iterable: Iterable[InvariantValue],
+) -> InvariantBool:
+    """Assert that the elements in the iterable return True for the checks in order.
+
+    Returns InvariantBool in one of the following ways:
+        - InvariantBool(True, all addresses of the elements in the first window that satisfies all checks)
+        - InvariantBool(False, last address that matched some part of a check)
+        - InvariantBool(False, first address of the iterable otherwise)
+
+    Args:
+        checks:   The list of checks to be satisfied. If a check is a function, it should return
+                  True if the element satisfies the check. If a check is a value, the element should be
+                  equal to the check.
+
+        iterable: An iterable of InvariantValue objects to check against.
 
     Returns:
         InvariantBool: True if the checks are satisfied at least once.
