@@ -1,6 +1,7 @@
 """Wrapper for the OpenAI Swarm client."""
 
 from invariant.custom_types.trace import Trace
+from invariant.custom_types.trace_factory import TraceFactory
 from swarm import Swarm
 from swarm.types import Response
 
@@ -21,7 +22,7 @@ class SwarmWrapper:
     @staticmethod
     def to_invariant_trace(invariant_swarm_response: InvariantSwarmResponse) -> Trace:
         """Convert the response to an Invariant Trace."""
-        return Trace.from_swarm(invariant_swarm_response.invariant_trace)
+        return TraceFactory.from_swarm(invariant_swarm_response.invariant_trace)
 
     def run(self, *args, **kwargs) -> InvariantSwarmResponse:
         """Call the run method on the Swarm client.

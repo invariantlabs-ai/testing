@@ -2,18 +2,15 @@
 
 from __future__ import annotations
 
-import copy
 import json
 from typing import Any, Callable, Dict, Generator, List
 
+from invariant.custom_types.invariant_dict import InvariantDict, InvariantValue
+from invariant.custom_types.matchers import ContainsImage, Matcher
+from invariant.utils.utils import ssl_verification_enabled
 from invariant_sdk.client import Client as InvariantClient
 from invariant_sdk.types.push_traces import PushTracesResponse
 from pydantic import BaseModel
-
-from invariant.custom_types.invariant_dict import InvariantDict, InvariantValue
-from invariant.custom_types.matchers import Matcher, ContainsImage
-from invariant.utils.explorer import from_explorer
-from invariant.utils.utils import ssl_verification_enabled
 
 
 def iterate_tool_calls(
@@ -117,7 +114,10 @@ def match_keyword_filter_on_tool_call(
 
 
 def match_keyword_filter(
-    kwname: str, kwvalue: str | int | Callable, value: InvariantValue | Any, message: dict
+    kwname: str,
+    kwvalue: str | int | Callable,
+    value: InvariantValue | Any,
+    message: dict,
 ) -> bool:
     """Match a keyword filter.
 
@@ -152,9 +152,10 @@ def traverse_dot_path(message: dict, path: str) -> Any | None:
     Returns:
         Any: The value at the end of the path, or None if the path does not exist.
     """
+
     def _inner(d, _path):
         for k in _path.split("."):
-            if type(d) == str and type(k) == str:
+            if isinstance(d, str) and isinstance(k, str):
                 d = json.loads(d)
             if k not in d:
                 return None
@@ -162,7 +163,7 @@ def traverse_dot_path(message: dict, path: str) -> Any | None:
         return d
 
     if (res := _inner(message, path)) is None:
-        return _inner(message, 'function.' + path)
+        return _inner(message, "function." + path)
     return res
 
 
@@ -207,87 +208,6 @@ class Trace(BaseModel):
         for assertion in assertions:
             assertion(self)
 
-    @classmethod
-    def from_swarm(cls, history: list[dict]) -> "Trace":
-        """Creates a Trace instance from the history of messages exchanged with the Swarm client.
-
-        Args:
-            history (list[dict]): The history of messages exchanged with the Swarm client.
-
-        Returns:
-            Trace: A Trace object with all the messages combined.
-        """
-        assert isinstance(history, list)
-        assert all(isinstance(msg, dict) for msg in history)
-        trace_messages = copy.deepcopy(history)
-        return cls(trace=trace_messages)
-
-    @classmethod
-    def from_langgraph(cls, invocation_response: dict[str, Any] | Any) -> "Trace":
-        """Converts a Langgraph invocation response to a Trace object.
-
-        Sample usage:
-
-        app = workflow.compile(...)
-        invocation_response = app.invoke(
-            {"messages": [HumanMessage(content="what is the weather in sf")]}
-        )
-        trace = Trace.from_langgraph(invocation_response)
-
-        """
-        from langchain_community.adapters.openai import (
-            convert_message_to_dict,
-        )  # pylint: disable=import-outside-toplevel
-
-        messages = []
-        for message in invocation_response["messages"]:
-            messages.append(convert_message_to_dict(message))
-        return cls(trace=messages)
-
-    @classmethod
-    def from_explorer(
-        cls,
-        identifier_or_id: str,
-        index: int | None = None,
-        explorer_endpoint: str = "https://explorer.invariantlabs.ai",
-    ) -> "Trace":
-        """Loads a public trace from the Explorer (https://explorer.invariantlabs.ai).
-
-        The identifier_or_id can be either a trace ID or a <username>/<dataset> pair, in which case
-        the index of the trace to load must be provided.
-
-        Args:
-            identifier_or_id: The trace ID or <username>/<dataset> pair.
-            index: The index of the trace to load from the dataset.
-
-        Returns:
-            Trace: A Trace object with the loaded trace.
-
-        :return: A Trace object with the loaded trace.
-        """
-        messages, metadata = from_explorer(identifier_or_id, index, explorer_endpoint)
-        return cls(trace=messages, metadata=metadata)
-
-
-    @classmethod
-    def from_openai(
-        cls,  messages: list[dict]) -> "Trace":
-        """
-        Creates a Trace instance from the history messages exchanged with the openai client.
-
-        Args:
-            messages (list[dict]): The history messages exchanged with the openai client.
-
-        Returns:
-            Trace: A Trace object with all the messages combined.
-        """
-        
-        # It's actually the same as from_Swarm does
-        assert isinstance(messages, list)
-        assert all(isinstance(msg, dict) for msg in messages)
-        trace_messages = copy.deepcopy(messages)
-        return cls(trace=trace_messages)
-
     # Functions to check data_types
     @property
     def content_checkers(self) -> Dict[str, Matcher]:
@@ -303,7 +223,9 @@ class Trace(BaseModel):
         }
         return __content_checkers__
 
-    def _is_data_type(self, message: InvariantDict, data_type: str | None = None) -> bool:
+    def _is_data_type(
+        self, message: InvariantDict, data_type: str | None = None
+    ) -> bool:
         """
         Check if a message matches a given data_type using the content_checkers.
         data_type should correspond to the keys in the content_checkers dictionary.
@@ -332,11 +254,13 @@ class Trace(BaseModel):
 
     def _filter_trace(
         self,
-        iterator_func: Callable[[list[dict]], Generator[tuple[list[str], dict], None, None]] = iterate_messages,
+        iterator_func: Callable[
+            [list[dict]], Generator[tuple[list[str], dict], None, None]
+        ] = iterate_messages,
         match_keyword_function: Callable = match_keyword_filter,
         selector: int | dict | None = None,
         data_type: str | None = None,
-        **filterkwargs
+        **filterkwargs,
     ) -> list[InvariantDict] | InvariantDict:
         """
         Filter the trace based on the provided selector, keyword arguments and data_type. Use this
@@ -360,7 +284,11 @@ class Trace(BaseModel):
             for i, (addresses, message) in enumerate(iterator_func(self.trace)):
                 if i == selector:
                     return_val = InvariantDict(message, [f"{i}"])
-                    return return_val if self._is_data_type(return_val, data_type) else None
+                    return (
+                        return_val
+                        if self._is_data_type(return_val, data_type)
+                        else None
+                    )
 
         # If a dictionary is provided, filter messages based on the dictionary
         elif isinstance(selector, dict):
@@ -370,7 +298,8 @@ class Trace(BaseModel):
                 if all(
                     traverse_dot_path(message, kwname) == kwvalue
                     for kwname, kwvalue in selector.items()
-                ) and self._is_data_type(InvariantDict(message, addresses), data_type)
+                )
+                and self._is_data_type(InvariantDict(message, addresses), data_type)
             ]
 
         # If keyword arguments are provided, filter messages based on the keyword arguments
@@ -383,12 +312,14 @@ class Trace(BaseModel):
                         kwname, kwvalue, message.get(kwname), message
                     )
                     for kwname, kwvalue in filterkwargs.items()
-                ) and self._is_data_type(InvariantDict(message, addresses), data_type)
+                )
+                and self._is_data_type(InvariantDict(message, addresses), data_type)
             ]
 
         # If no selector is provided, return all messages, filtering on data_type.
         return [
-            InvariantDict(message, addresses) for addresses, message in iterator_func(self.trace)
+            InvariantDict(message, addresses)
+            for addresses, message in iterator_func(self.trace)
             if self._is_data_type(InvariantDict(message, addresses), data_type)
         ]
 
@@ -396,7 +327,7 @@ class Trace(BaseModel):
         self,
         selector: int | dict | None = None,
         data_type: str | None = None,
-        **filterkwargs
+        **filterkwargs,
     ) -> list[InvariantDict] | InvariantDict:
         """
         Get all messages from the trace that match the provided selector, data_type, and keyword filters.
@@ -410,18 +341,14 @@ class Trace(BaseModel):
             list[InvariantDict] | InvariantDict: The filtered messages.
         """
         return self._filter_trace(
-            iterate_messages,
-            match_keyword_filter,
-            selector,
-            data_type,
-            **filterkwargs
+            iterate_messages, match_keyword_filter, selector, data_type, **filterkwargs
         )
 
     def tool_calls(
         self,
         selector: int | dict | None = None,
         data_type: str | None = None,
-        **filterkwargs
+        **filterkwargs,
     ) -> list[InvariantDict] | InvariantDict:
         """
         Get all tool calls from the trace that match the provided selector, data_type, and keyword filters.
@@ -439,14 +366,14 @@ class Trace(BaseModel):
             match_keyword_filter_on_tool_call,
             selector,
             data_type,
-            **filterkwargs
+            **filterkwargs,
         )
 
     def tool_outputs(
         self,
         selector: int | dict | None = None,
         data_type: str | None = None,
-        **filterkwargs
+        **filterkwargs,
     ) -> list[InvariantDict] | InvariantDict:
         """
         Get all tool outputs from the trace that match the provided selector, data_type, and keyword filters.
@@ -464,7 +391,7 @@ class Trace(BaseModel):
             match_keyword_filter,
             selector,
             data_type,
-            **filterkwargs
+            **filterkwargs,
         )
 
     def tool_pairs(self) -> list[tuple[InvariantDict, InvariantDict]]:

@@ -1,24 +1,26 @@
-from invariant.testing import Trace, assert_true, expect_equals
+import json
 from unittest.mock import MagicMock
-from invariant.testing import Trace
+
 import invariant.testing.functional as F
 import openai
+from invariant.testing import TraceFactory, assert_true, expect_equals
 
-import json
 
 def run_python(code):
-    import sys 
-    from io import StringIO 
-    stdout = sys.stdout 
-    sys.stdout = StringIO() 
-    try: 
-        exec(code) 
-        output = sys.stdout.getvalue() 
+    import sys
+    from io import StringIO
+
+    stdout = sys.stdout
+    sys.stdout = StringIO()
+    try:
+        exec(code)
+        output = sys.stdout.getvalue()
     except Exception as e:
-        output = str(e) 
+        output = str(e)
     finally:
         sys.stdout = stdout
     return output
+
 
 tools = [
     {
@@ -34,14 +36,16 @@ tools = [
                         "description": "The Python code to run",
                     },
                 },
-                "required": ["code"]
+                "required": ["code"],
             },
-        }
+        },
     }
 ]
-    
+
+
 class PythonAgent:
     """An openai agent that run Pyhon code fullfilling the user's request then return the result."""
+
     def __init__(self):
         self.client = openai.OpenAI()
         self.prompt = """
@@ -52,10 +56,10 @@ class PythonAgent:
                     """
 
     def get_response(self, user_input: str):
-        
+
         messages = [
             {"role": "system", "content": self.prompt},
-            {"role": "user", "content": user_input}
+            {"role": "user", "content": user_input},
         ]
 
         while True:
@@ -93,12 +97,17 @@ def test_python_question():
     input = "Calculate fibonacci series for the first 10 elements in python"
     python_agent = PythonAgent()
     response = python_agent.get_response(input)
-    trace = Trace.from_openai(response)
+    trace = TraceFactory.from_openai(response)
     with trace.as_context():
         run_python_tool_call = trace.tool_calls(name="run_python")
         assert_true(F.len(run_python_tool_call) == 1)
-        assert_true(run_python_tool_call[0]["function"]["arguments"]["code"].is_valid_code("python"))
+        assert_true(
+            run_python_tool_call[0]["function"]["arguments"]["code"].is_valid_code(
+                "python"
+            )
+        )
         assert_true("34" in trace.messages(-1)["content"])
+
 
 # This is a test that mock the agent respond with Java code
 def test_python_question_invalid():
@@ -106,36 +115,39 @@ def test_python_question_invalid():
     python_agent = PythonAgent()
     mock_invalid_response = [
         {
-            "role":"system",
-            "content":"\n                    You are an assistant that strictly responds with Python code only. \n                    The code should print the result.\n                    You always use tool run_python to execute the code that you write to present the results.\n                    If the user specifies other programming language in the question, you should respond with \"I can only help with Python code.\"\n                    "
+            "role": "system",
+            "content": '\n                    You are an assistant that strictly responds with Python code only. \n                    The code should print the result.\n                    You always use tool run_python to execute the code that you write to present the results.\n                    If the user specifies other programming language in the question, you should respond with "I can only help with Python code."\n                    ',
         },
+        {"role": "user", "content": "Calculate fibonacci series for 10"},
         {
-            "role":"user",
-            "content":"Calculate fibonacci series for 10"
-        },
-        {
-            "content":"None",
-            "refusal":"None",
-            "role":"assistant",
-            "tool_calls":[
+            "content": "None",
+            "refusal": "None",
+            "role": "assistant",
+            "tool_calls": [
                 {
-                    "id":"call_GMx1WYM7sN0BGY1ISCk05zez",
-                    "function":{
-                    "arguments":"{\"code\":\"public class Fibonacci { public static void main(String[] args) { for (int n = 10, a = 0, b = 1, i = 0; i < n; i++, b = a + (a = b)) System.out.print(a + " "); } }\"}",
-                    "name":"run_python"
+                    "id": "call_GMx1WYM7sN0BGY1ISCk05zez",
+                    "function": {
+                        "arguments": '{"code":"public class Fibonacci { public static void main(String[] args) { for (int n = 10, a = 0, b = 1, i = 0; i < n; i++, b = a + (a = b)) System.out.print(a + '
+                        '); } }"}',
+                        "name": "run_python",
                     },
-                    "type":"function"
+                    "type": "function",
                 }
-            ]
-        }
+            ],
+        },
     ]
     python_agent.get_response = MagicMock(return_value=mock_invalid_response)
     response = python_agent.get_response(input)
-    trace = Trace.from_openai(response)
+    trace = TraceFactory.from_openai(response)
     with trace.as_context():
         run_python_tool_call = trace.tool_calls(name="run_python")
         assert_true(F.len(run_python_tool_call) == 1)
-        assert_true(not run_python_tool_call[0]["function"]["arguments"]["code"].is_valid_code("python"))
+        assert_true(
+            not run_python_tool_call[0]["function"]["arguments"]["code"].is_valid_code(
+                "python"
+            )
+        )
+
 
 #  This is a test that the request specifies another programming language Java
 #  The agent should respond with "I can only help with Python code."
@@ -143,12 +155,13 @@ def test_java_question():
     input = "How to calculate fibonacci series in Java?"
     python_agent = PythonAgent()
     response = python_agent.get_response(input)
-    trace = Trace.from_openai(response)
+    trace = TraceFactory.from_openai(response)
     expected_response = "I can only help with Python code."
     with trace.as_context():
         run_python_tool_call = trace.tool_calls(name="run_python")
         assert_true(F.len(run_python_tool_call) == 0)
-        expect_equals("I can only help with Python code.", trace.messages(-1)["content"])
+        expect_equals(
+            "I can only help with Python code.", trace.messages(-1)["content"]
+        )
 
         assert_true(trace.messages(-1)["content"].levenshtein(expected_response) < 5)
-
