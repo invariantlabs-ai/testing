@@ -7,6 +7,7 @@ from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_number import InvariantNumber
 from invariant.custom_types.invariant_string import InvariantString
 from invariant.scorers.code import Dependencies
+from invariant.scorers.llm.clients.client import SupportedClients
 from invariant.utils.packages import is_program_installed
 from pytest import approx
 
@@ -231,7 +232,7 @@ def test_moderation():
     assert res.addresses[0] == ":11-31"
 
 
-def test_llm():
+def test_llm_openai():
     """Test the llm transformer of InvariantString."""
     res = InvariantString("I am feeling great today!").llm(
         "Does the text have positive sentiment?", ["yes", "no"]
@@ -239,6 +240,24 @@ def test_llm():
     assert isinstance(res, InvariantString) and res.value == "yes"
     res = InvariantString("Heute ist ein schöner Tag").llm(
         "Which language is this text in?", ["en", "it", "de", "fr"]
+    )
+    assert isinstance(res, InvariantString) and res.value == "de"
+
+@pytest.mark.skip("Skipping because we have not setup the API key in the CI")
+def test_llm_anthropic():
+    """Test the llm transformer of InvariantString."""
+    res = InvariantString("I am feeling great today!").llm(
+        "Does the text have positive sentiment?",
+        ["yes", "no"],
+        model="claude-3-5-sonnet-20241022",
+        client=SupportedClients.ANTHROPIC,
+    )
+    assert isinstance(res, InvariantString) and res.value == "yes"
+    res = InvariantString("Heute ist ein schöner Tag").llm(
+        "Which language is this text in?",
+        ["en", "it", "de", "fr"],
+        model="claude-3-5-sonnet-20241022",
+        client=SupportedClients.ANTHROPIC,
     )
     assert isinstance(res, InvariantString) and res.value == "de"
 
