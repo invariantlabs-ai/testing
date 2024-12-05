@@ -357,10 +357,6 @@ class Trace(BaseModel):
 
         # If a single index is provided, return the message at that index
         if isinstance(selector, int):
-            if selector<0:
-                selector = len(self.trace) + selector
-            if not 0 <= selector < len(self.trace):
-                raise IndexError(f"Index {selector} out of range")    
             for i, (addresses, message) in enumerate(iterator_func(self.trace)):
                 if i == selector:
                     return_val = InvariantDict(message, f"{i}")
@@ -413,6 +409,10 @@ class Trace(BaseModel):
         Returns:
             list[InvariantDict] | InvariantDict: The filtered messages.
         """
+
+        if isinstance(selector, int):
+            return InvariantDict(self.trace[selector], [str((selector + len(self.trace)) % len(self.trace))])
+
         return self._filter_trace(
             iterate_messages,
             match_keyword_filter,
