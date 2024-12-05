@@ -1,14 +1,15 @@
-""" A custom type for an invariant image. """
+"""A custom type for an invariant image."""
 
 import base64
 import io
 from typing import Optional
 
+from PIL import Image
+
 from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_string import InvariantString
 from invariant.scorers.utils.llm import LLMClassifier
 from invariant.scorers.utils.ocr import OCRDetector
-from PIL import Image
 
 
 class InvariantImage(InvariantString):
@@ -45,10 +46,36 @@ class InvariantImage(InvariantString):
 
     def ocr_contains(
         self,
-        text: str,
+        text: str | InvariantString,
         case_sensitive: bool = False,
         bbox: Optional[dict] = None,
     ) -> InvariantBool:
         """Check if the value contains the given text using OCR."""
+        addresses = self.addresses
+        if type(text) == InvariantString:
+            addresses.extend(text.addresses)
+            text = text.value
         res = OCRDetector().contains(self.image, text, case_sensitive, bbox)
-        return InvariantBool(res, self.addresses)
+        return InvariantBool(res, addresses)
+
+    def ocr_contains_any(
+        self,
+        texts: list[str | InvariantString],
+        case_sensitive: bool = False,
+        bbox: Optional[dict] = None,
+    ) -> InvariantBool:
+        for text in texts:
+            if self.ocr_contains(text, case_sensitive, bbox).value:
+                return InvariantBool(True, self.addresses)
+        return InvariantBool(False, self.addresses)
+
+    def ocr_contains_all(
+        self,
+        texts: list[str | InvariantString],
+        case_sensitive: bool = False,
+        bbox: Optional[dict] = None,
+    ) -> InvariantBool:
+        for text in texts:
+            if not self.ocr_contains(text, case_sensitive, bbox).value:
+                return InvariantBool(False, self.addresses)
+        return InvariantBool(True, self.addresses)

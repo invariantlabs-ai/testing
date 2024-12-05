@@ -1,4 +1,4 @@
-""" Imports for invariant testing. """
+"""Imports for invariant testing."""
 
 from invariant.custom_types.assertions import (
     assert_equals,
@@ -19,6 +19,7 @@ from invariant.custom_types.matchers import (
 )
 from invariant.custom_types.trace import Trace
 from invariant.custom_types.trace_factory import TraceFactory
+from invariant.utils.utils import get_agent_param
 from invariant.wrappers.swarm_wrapper import SwarmWrapper
 
 # re-export trace and various assertion types
@@ -39,4 +40,5 @@ __all__ = [
     "IsSimilar",
     "IsFactuallyEqual",
     "SwarmWrapper",
+    "get_agent_param",
 ]

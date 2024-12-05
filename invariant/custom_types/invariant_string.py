@@ -8,6 +8,7 @@ from operator import ge, gt, le, lt, ne
 from typing import Any, Union
 
 from _pytest.python_api import ApproxBase
+
 from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_number import InvariantNumber
 from invariant.custom_types.invariant_value import InvariantValue
@@ -67,9 +68,7 @@ class InvariantString(InvariantValue):
     def __add__(self, other: Union[str, "InvariantString"]) -> "InvariantString":
         """Concatenate the string with another string."""
         if isinstance(other, InvariantString):
-            return InvariantString(
-                self.value + other.value, self.addresses + other.addresses
-            )
+            return InvariantString(self.value + other.value, self.addresses + other.addresses)
         return InvariantString(self.value + other, self.addresses)
 
     def __radd__(self, other: str) -> "InvariantString":
@@ -84,7 +83,7 @@ class InvariantString(InvariantValue):
 
     def __len__(self):
         raise NotImplementedError(
-            "InvariantString does not support len(). Please use .len() instead."
+            "InvariantString does not support len(). Please use functionals.len() instead."
         )
 
     def __getitem__(self, key: Any, default: Any = None) -> "InvariantString":
@@ -109,16 +108,12 @@ class InvariantString(InvariantValue):
     def count(self, pattern: str) -> InvariantNumber:
         """Counts the number of occurences of the given regex pattern."""
         new_addresses = []
-        for match in re.finditer(pattern, self.value):
+        for match in re.finditer(pattern, self.value, re.DOTALL):
             start, end = match.span()
             new_addresses.append(f"{start}-{end}")
         return InvariantNumber(
             len(new_addresses),
-            (
-                self.addresses
-                if len(new_addresses) == 0
-                else self._concat_addresses(new_addresses)
-            ),
+            (self.addresses if len(new_addresses) == 0 else self._concat_addresses(new_addresses)),
         )
 
     def len(self):
@@ -126,8 +121,7 @@ class InvariantString(InvariantValue):
         return InvariantNumber(len(self.value), self.addresses)
 
     def __getattr__(self, attr):
-        """
-        Delegate attribute access to the underlying string.
+        """Delegate attribute access to the underlying string.
 
         Args:
             attr (str): The attribute being accessed.
@@ -151,9 +145,7 @@ class InvariantString(InvariantValue):
             return method
         raise AttributeError(f"'InvariantString' object has no attribute '{attr}'")
 
-    def _concat_addresses(
-        self, other_addresses: list[str] | None, separator: str = ":"
-    ) -> list[str]:
+    def _concat_addresses(self, other_addresses: list[str] | None, separator: str = ":") -> list[str]:
         """Concatenate the addresses of two invariant values."""
         if other_addresses is None:
             return self.addresses
@@ -179,30 +171,50 @@ class InvariantString(InvariantValue):
 
     def moderation(self) -> InvariantBool:
         """Check if the value is moderated."""
-
         analyzer = ModerationAnalyzer()
         res = analyzer.detect_all(self.value)
         new_addresses = [str(range) for _, range in res]
         return InvariantBool(len(res) > 0, self._concat_addresses(new_addresses))
 
-    def contains(self, pattern: str | InvariantString) -> InvariantBool:
-        """Check if the value contains the given pattern."""
-        if isinstance(pattern, InvariantString):
-            pattern = pattern.value
+    def contains(self, *patterns: Union[str, InvariantString], criterion: str = "all") -> InvariantBool:
+        """Check if the value contains all of the given patterns.
+
+        Args:
+            *patterns: Variable number of patterns to check for. Each pattern can be a string
+                      or InvariantString.
+            criterion: The criterion to use for the contains check - can be "all" or "any".
+
+        Returns:
+            InvariantBool: True if all patterns are found, False otherwise. The addresses will
+                          contain the locations of all pattern matches if found.
+        """
+        if criterion not in ["all", "any"]:
+            raise ValueError("Criterion must be either 'all' or 'any'")
         new_addresses = []
+        for pattern in patterns:
+            if isinstance(pattern, InvariantString):
+                pattern = pattern.value
 
-        for match in re.finditer(pattern, self.value):
-            start, end = match.span()
-            new_addresses.append(f"{start}-{end}")
+            pattern_matches = []
+            for match in re.finditer(pattern, self.value):
+                start, end = match.span()
+                pattern_matches.append(f"{start}-{end}")
 
-        return InvariantBool(
-            len(new_addresses) > 0,
-            (
-                self.addresses
-                if len(new_addresses) == 0
-                else self._concat_addresses(new_addresses)
-            ),
-        )
+            if criterion == "all" and not pattern_matches:
+                return InvariantBool(False, self.addresses)
+            if criterion == "any" and pattern_matches:
+                return InvariantBool(True, self._concat_addresses(pattern_matches))
+            new_addresses.extend(pattern_matches)
+
+        return InvariantBool(criterion == "all", self._concat_addresses(new_addresses))
+
+    def contains_all(self, *patterns: Union[str, InvariantString]) -> InvariantBool:
+        """Check if the value contains all of the given patterns."""
+        return self.contains(*patterns, criterion="all")
+
+    def contains_any(self, *patterns: Union[str, InvariantString]) -> InvariantBool:
+        """Check if the value contains any of the given patterns."""
+        return self.contains(*patterns, criterion="any")
 
     def __contains__(self, pattern: str | InvariantString) -> InvariantBool:
         """Check if the value contains the given pattern."""
@@ -210,13 +222,19 @@ class InvariantString(InvariantValue):
 
     def match(self, pattern: str, group_id: int | str = 0) -> InvariantString:
         """Match the value against the given regex pattern and return the matched group."""
-        match = re.search(pattern, self.value)
+        match = re.search(pattern, self.value, re.DOTALL)
         if match is None:
             return None
         start, end = match.span(group_id)
-        return InvariantString(
-            match.group(group_id), self._concat_addresses([f"{start}-{end}"])
-        )
+        return InvariantString(match.group(group_id), self._concat_addresses([f"{start}-{end}"]))
+
+    def match_all(self, pattern: str, group_id: int | str = 0) -> list[InvariantString]:
+        """Match the value against the given regex pattern and return all matches."""
+        matches = []
+        for match in re.finditer(pattern, self.value, re.DOTALL):
+            start, end = match.span(group_id)
+            matches.append(InvariantString(match.group(group_id), self._concat_addresses([f"{start}-{end}"])))
+        return matches
 
     def is_similar(self, other: str, threshold: float = 0.5) -> InvariantBool:
         """Check if the value is similar to the given string using cosine similarity."""
@@ -291,5 +309,5 @@ class InvariantString(InvariantValue):
             detect_packages (bool): Whether to detect the dependencies of the code.
         """
         res = execute(self.value + "\n" + suffix_code, detect_packages)
-        has_pattern = re.search(pattern, res) is not None
+        has_pattern = re.search(pattern, res, re.DOTALL) is not None
         return InvariantBool(has_pattern, self.addresses)

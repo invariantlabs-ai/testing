@@ -1,11 +1,13 @@
 import base64
 
 import pytest
+
 from invariant.scorers.base import approx
 from invariant.scorers.strings import *
 from invariant.scorers.utils.llm import LLMClassifier, LLMDetector
 from invariant.scorers.utils.ocr import OCRDetector
 from invariant.utils.packages import is_program_installed
+
 
 def test_levenshtein():
     # Test empty strings
@@ -95,14 +97,13 @@ def test_vision_classifier():
 )
 def test_OCRDetector():
     from PIL import Image
+
     image = Image.open("sample_tests/assets/inv_labs.png")
 
     # Test case-insensitive detection
     ocr = OCRDetector()
     assert ocr.contains(image, "agents") == True
     assert (
-        ocr.contains(
-            image, "making", bbox={"x1": 50, "y1": 10, "x2": 120, "y2": 40}
-        )
+        ocr.contains(image, "making", bbox={"x1": 50, "y1": 10, "x2": 120, "y2": 40})
         == True
     )
