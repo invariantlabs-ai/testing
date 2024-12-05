@@ -185,11 +185,13 @@ def assert_order(
         1. Invariant(True, all addresses of the elements in the first window that satisfies all checks)
         2. Invariant(False, last address that matched some part of a check)
         3. Invariant(False, first address of the iterable otherwise)
+    Depending on the matches found.
 
     Args:
-        checks: The list of checks to be satisfied. If a check is a function, it should return
-                True if the element satisfies the check. If a check is a value, the element should be
-                equal to the check.
+        checks:   The list of checks to be satisfied. If a check is a function, it should return
+                  True if the element satisfies the check. If a check is a value, the element should be
+                  equal to the check.
+
         iterable: The iterable of InvariantValue objects.
 
     Returns:
@@ -204,8 +206,8 @@ def assert_order(
 
         Returns:
             tuple[bool, str]:
-                1. True if the window satisfies the checks.
-                2. The address of the last element that satisfied the checks.
+                bool: True iff the window satisfies the checks.
+                str:  The address of the last element that satisfied the checks.
         """
         for i, check in enumerate(checks):
             # If check is callable, call the function with the element

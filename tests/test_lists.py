@@ -27,6 +27,24 @@ def fixture_message_list():
     )
     return trace.messages()
 
+@pytest.fixture(name="simple_trace")
+def fixture_simple_trace():
+    """Returns a list of messages."""
+    trace = Trace(
+        trace=[
+            {"role": "user", "content": "Hello there"},
+            {"role": "assistant", "content": "Hi, how can I help you?"},
+            {"role": "user", "content": "I need help with something."},
+            {"role": "assistant", "content": "Sure, what do you need help with?"},
+            {"role": "user", "content": "I need help with my computer."},
+            {"role": "assistant", "content": "Okay, what seems to be the problem?"},
+            {"role": "user", "content": "It won't turn on."},
+            {"role": "assistant", "content": "Have you tried plugging it in?"},
+            {"role": "user", "content": "Oh, that worked. Thanks!"},
+        ]
+    )
+    return trace
+
 
 @pytest.fixture(name="invariant_number_list")
 def fixture_invariant_number_list():
@@ -339,3 +357,15 @@ def test_assert_returns_first_address_if_no_matches_found(invariant_number_list:
     assert result.value == False
     assert result.addresses == invariant_number_list[0].addresses
 
+
+def test_assert_order_works_over_trace_with_filtering(simple_trace: Trace):
+    """Test that the assert_order function works over a trace with filtering."""
+    checks = [
+        lambda m: m['content'] == "Hi, how can I help you?", 
+        lambda m: m['content'] == "Sure, what do you need help with?"
+    ]
+
+    res = F.assert_order(checks, simple_trace.messages(role="assistant"))
+    
+    assert res.value == True
+    assert res.addresses == ["1", "3"]
