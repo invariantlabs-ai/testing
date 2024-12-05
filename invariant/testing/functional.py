@@ -1,9 +1,9 @@
 """Helper functions for searching around collections that contain invariant values."""
 
 # Import built-in functions to avoid shadowing
+from builtins import len as builtin_len
 from builtins import max as builtin_max
 from builtins import min as builtin_min
-from builtins import len as builtin_len
 from collections.abc import Iterable
 from typing import Any, Callable
 
@@ -24,8 +24,7 @@ def reduce_raw(
     initial_value: Any,
     iterable: Iterable[InvariantValue],
 ) -> Any:
-    """Reduce the list instance to a single value using a function and disregarding address
-    information.
+    """Reduce the list instance to a single value using a function and disregarding address information.
 
     Use this method instead of 'reduce' when the 'func' is not compatible with 'InvariantValue'.
     """
@@ -58,11 +57,10 @@ def reduce(
 
 
 def count(
-    value: InvariantValue | Callable[[InvariantValue | Any], bool] | Any, iterable: Iterable[InvariantValue]
+    value: InvariantValue | Callable[[InvariantValue | Any], bool] | Any,
+    iterable: Iterable[InvariantValue],
 ) -> InvariantNumber:
-    """
-    Count the number of elements in the list that are equal to the given value or satisfy the
-    given condition defined by value.
+    """Count the number of elements in the list that are equal to value or satisfy the condition defined by value.
 
     Args:
         value: The value to compare against or a function that returns True for elements that
@@ -159,10 +157,9 @@ def max(  # pylint: disable=redefined-builtin
     """Return the maximum value in the list."""
     return builtin_max(iterable, key=lambda x: x.value)
 
-  
+
 def len(iterable: Iterable[InvariantValue]) -> InvariantNumber:
-    """
-    Return the length of the iterable and the addresses of all elements in the list.
+    """Return the length of the iterable and the addresses of all elements in the list.
 
     Args:
         iterable: The iterable of InvariantValue objects.
@@ -179,13 +176,12 @@ def assert_order(
     checks: list[InvariantValue] | list[Callable[[InvariantValue], bool]],
     iterable: Iterable[InvariantValue],
 ) -> InvariantBool:
-    """
-    Slides the `checks` window over `iterable` and checks if the elements in the window
-    satisfy the checks. Returns InvariantBool in one of the following ways:
+    """Assert that the elements in the iterable return True for the checks in order.
+
+    Returns InvariantBool in one of the following ways:
         1. Invariant(True, all addresses of the elements in the first window that satisfies all checks)
         2. Invariant(False, last address that matched some part of a check)
         3. Invariant(False, first address of the iterable otherwise)
-    Depending on the matches found.
 
     Args:
         checks:   The list of checks to be satisfied. If a check is a function, it should return
@@ -197,12 +193,15 @@ def assert_order(
     Returns:
         InvariantBool: True if the checks are satisfied at least once.
     """
-    def check_window(window: Iterable[InvariantValue], last_match_addr: list[str] | None) -> tuple[bool, str]:
-        """
-        Check if the window satisfies the checks.
+
+    def check_window(
+        window: Iterable[InvariantValue], last_match_addr: list[str] | None
+    ) -> tuple[bool, str]:
+        """Check if the window satisfies the checks.
 
         Args:
             window: The window of elements to check.
+            last_match_addr: The address of the last element that satisfied the checks.
 
         Returns:
             tuple[bool, str]:
@@ -214,28 +213,36 @@ def assert_order(
             if isinstance(check, Callable):
                 if not check(window[i]):
                     return False, last_match_addr
-            
+
             # If check is a value, check if the element is equal to the value
             elif window[i] != check:
                 return False, last_match_addr
-            
+
             # Update the address of the last element that satisfied the checks
             # Used for highlighting in case no match is found.
             last_match_addr = window[i].addresses
 
         # Return the addresses of all elements in the window
         return True, [message.addresses for message in window]
-        
+
     last_match_addr = None
     for i in range(builtin_len(iterable) - builtin_len(checks) + 1):
         # Check each window
-        window_satisfied, last_match_addr = check_window(iterable[i : i + builtin_len(checks)], last_match_addr)
+        window_satisfied, last_match_addr = check_window(
+            iterable[i : i + builtin_len(checks)], last_match_addr
+        )
 
         if window_satisfied:
             # Return all addresses of the elements in the window
             return InvariantBool(
-                True, [addr for item in iterable[i : i + builtin_len(checks)] for addr in item.addresses]
+                True,
+                [
+                    addr
+                    for item in iterable[i : i + builtin_len(checks)]
+                    for addr in item.addresses
+                ],
             )
-    
-    return InvariantBool(False, last_match_addr if last_match_addr else iterable[0].addresses)
-    
+
+    return InvariantBool(
+        False, last_match_addr if last_match_addr else iterable[0].addresses
+    )
