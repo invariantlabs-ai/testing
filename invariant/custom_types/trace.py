@@ -340,6 +340,10 @@ class Trace(BaseModel):
         Returns:
             list[InvariantDict] | InvariantDict: The filtered messages.
         """
+
+        if isinstance(selector, int):
+            return InvariantDict(self.trace[selector], [str((selector + len(self.trace)) % len(self.trace))])
+
         return self._filter_trace(
             iterate_messages, match_keyword_filter, selector, data_type, **filterkwargs
         )

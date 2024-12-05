@@ -368,6 +368,6 @@ def test_something():
     # make assertions about the agent's behavior
     with trace.as_context():
         assert_true(
-            trace.messages()[-1]["content"].contains("Paris"),
+            trace.messages(-1)["content"].contains("Paris"),
             "The agent should respond about Paris",
         )

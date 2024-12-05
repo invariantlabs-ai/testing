@@ -49,3 +49,9 @@ class InvariantDict:
 
     def __repr__(self) -> str:
         return str(self)
+    
+    def __eq__(self, other: "InvariantDict") -> bool:
+        """Check if the InvariantDict value is equal to the given value."""
+        if not isinstance(other, InvariantDict):
+            raise TypeError(f"Cannot compare InvariantDict with {type(other)}")
+        return self.value == other.value
