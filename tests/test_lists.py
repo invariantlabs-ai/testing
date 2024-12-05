@@ -27,6 +27,7 @@ def fixture_message_list():
     )
     return trace.messages()
 
+
 @pytest.fixture(name="simple_trace")
 def fixture_simple_trace():
     """Returns a list of messages."""
@@ -57,6 +58,7 @@ def fixture_invariant_number_list():
         InvariantNumber(2, addresses=["4"]),
         InvariantNumber(4, addresses=["5"]),
     ]
+
 
 @pytest.fixture(name="invariant_string_list")
 def fixture_invariant_string_list():
@@ -182,7 +184,7 @@ def test_count_helper_with_value(invariant_string_list: list):
 
 def test_count_helper_with_lambda(invariant_number_list: list):
     """Test that the count function works with lambda."""
-    result = F.count(lambda v: v == 1 , invariant_number_list)
+    result = F.count(lambda v: v == 1, invariant_number_list)
     assert result == InvariantNumber(1)
     assert result.addresses == [v.addresses[0] for v in invariant_number_list]
 
@@ -311,7 +313,6 @@ def test_assert_order_with_invariant_value(invariant_number_list: list):
 
 def test_assert_order_with_lambda(invariant_number_list: list):
     """Test that the assert_order function works with lambda."""
-
     checks = [lambda x: x % 2 == 0 for _ in range(3)]
 
     result = F.assert_order(checks, invariant_number_list)
@@ -330,15 +331,16 @@ def test_assert_order_returns_false(invariant_number_list: list):
 
 
 @pytest.mark.parametrize(
-    "checks, address", [
-    ([5, 8, 3], ["2"]),
-    ([5, 9, 4], ["1"]),
-])
-def test_assert_order_returns_last_match_address(invariant_number_list: list, checks, address):
-    """
-    Test that the assert_order function returns the address of the last element
-    that matched when no complete window matched the checks.
-    """
+    "checks, address",
+    [
+        ([5, 8, 3], ["2"]),
+        ([5, 9, 4], ["1"]),
+    ],
+)
+def test_assert_order_returns_last_match_address(
+    invariant_number_list: list, checks, address
+):
+    """Test that the assert_order function returns the address of the last element that matched when no complete window matched the checks."""
     result = F.assert_order(checks, invariant_number_list)
 
     assert result.value == False
@@ -346,10 +348,7 @@ def test_assert_order_returns_last_match_address(invariant_number_list: list, ch
 
 
 def test_assert_returns_first_address_if_no_matches_found(invariant_number_list: list):
-    """
-    Test that the assert_order function returns the address of the first element
-    when no (partial) matches are found in any of the windows.
-    """
+    """Test that the assert_order function returns the address of the first element when no (partial) matches are found in any of the windows."""
     checks = [-1, -2, -3]
 
     result = F.assert_order(checks, invariant_number_list)
@@ -361,11 +360,11 @@ def test_assert_returns_first_address_if_no_matches_found(invariant_number_list:
 def test_assert_order_works_over_trace_with_filtering(simple_trace: Trace):
     """Test that the assert_order function works over a trace with filtering."""
     checks = [
-        lambda m: m['content'] == "Hi, how can I help you?", 
-        lambda m: m['content'] == "Sure, what do you need help with?"
+        lambda m: m["content"] == "Hi, how can I help you?",
+        lambda m: m["content"] == "Sure, what do you need help with?",
     ]
 
     res = F.assert_order(checks, simple_trace.messages(role="assistant"))
-    
+
     assert res.value == True
     assert res.addresses == ["1", "3"]
