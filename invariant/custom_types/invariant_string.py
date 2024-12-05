@@ -222,7 +222,7 @@ class InvariantString(InvariantValue):
 
     def match(self, pattern: str, group_id: int | str = 0) -> InvariantString:
         """Match the value against the given regex pattern and return the matched group."""
-        match = re.search(pattern, self.value, re.DOTALL)
+        match = re.search(pattern, self.value)
         if match is None:
             return None
         start, end = match.span(group_id)
@@ -231,7 +231,7 @@ class InvariantString(InvariantValue):
     def match_all(self, pattern: str, group_id: int | str = 0) -> list[InvariantString]:
         """Match the value against the given regex pattern and return all matches."""
         matches = []
-        for match in re.finditer(pattern, self.value, re.DOTALL):
+        for match in re.finditer(pattern, self.value):
             start, end = match.span(group_id)
             matches.append(InvariantString(match.group(group_id), self._concat_addresses([f"{start}-{end}"])))
         return matches
@@ -309,5 +309,5 @@ class InvariantString(InvariantValue):
             detect_packages (bool): Whether to detect the dependencies of the code.
         """
         res = execute(self.value + "\n" + suffix_code, detect_packages)
-        has_pattern = re.search(pattern, res, re.DOTALL) is not None
+        has_pattern = re.search(pattern, res) is not None
         return InvariantBool(has_pattern, self.addresses)
