@@ -172,11 +172,11 @@ def len(iterable: Iterable[InvariantValue]) -> InvariantNumber:
     )
 
 
-def assert_order(
+def check_order(
     checks: list | list[Callable[[InvariantValue], bool]],
     iterable: Iterable[InvariantValue],
 ):
-    """Assert that the elements in the iterable return True for the checks in order.
+    """Check that the elements in the iterable match the checks in order.
 
     Given a list of checks, this function checks that the elements in the iterable satisfy the checks in order.
     They may have an arbitrary number of messages between them, but the order must be preserved.
@@ -230,13 +230,14 @@ def assert_order(
     )
 
 
-def assert_window(
+def check_window(
     checks: list[InvariantValue] | list[Callable[[InvariantValue], bool]],
     iterable: Iterable[InvariantValue],
 ) -> InvariantBool:
-    """Assert that the elements in the iterable return True for the checks in order.
+    """Check that the elements match the checks in a window.
 
-    Returns InvariantBool in one of the following ways:
+    This function slides the checks over the iterable and checks that the elements match.
+    Any window that satisfies the checks will make the function return True in one of the following ways:
         - InvariantBool(True, all addresses of the elements in the first window that satisfies all checks)
         - InvariantBool(False, last address that matched some part of a check)
         - InvariantBool(False, first address of the iterable otherwise)
