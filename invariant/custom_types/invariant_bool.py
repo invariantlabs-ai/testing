@@ -69,8 +69,8 @@ class InvariantBool(InvariantValue):
         """Return the truthiness of the instance."""
         logger.warning(
             "When using `and` and `or`, sometimes due to short-circuiting "
-            "the highlighting on the Invariant explorer is incorrect. To avoid this, use the `&` "
-            "and `|` operators instead."
+            "the assertions may not be attributed to the given trace correctly. To avoid this,"
+            "use the `&` and `|` operators instead."
         )
         return self.value
 
