@@ -502,3 +502,65 @@ def test_check_order_handles_check_longer_than_trace(invariant_number_list: list
     # Should return the last matched element
     assert result.value == False
     assert result.addresses == ["5"]
+
+
+def test_check_order_handles_iterable(invariant_number_list: list):
+    """Test that check_order handles an iterable of checks."""
+    # Should find full match
+    checks = [1, 5, 8]
+
+    result = F.check_order(checks, iter(invariant_number_list))
+
+    assert result.value == True
+    assert result.addresses == ["0", "1", "2"]
+
+    # Should find partial match
+    checks = [5, 8, 1]
+
+    result = F.check_order(checks, iter(invariant_number_list))
+
+    assert result.value == False
+    assert result.addresses == ["2"]
+
+    # Should find no match
+    checks = [-1, -2, -3]
+
+    result = F.check_order(checks, iter(invariant_number_list))
+
+    assert result.value == False
+    assert result.addresses == ["0"]
+
+
+def test_check_window_handles_iterable(invariant_number_list: list):
+    """Test that check_window handles an iterable of checks."""
+    # Should find full match
+    checks = [4, 2, 4]
+
+    result = F.check_window(checks, iter(invariant_number_list))
+
+    assert result.value == True
+    assert result.addresses == ["3", "4", "5"]
+
+    # Should find partial match
+    checks = [5, 8, 1]
+
+    result = F.check_window(checks, iter(invariant_number_list))
+
+    assert result.value == False
+    assert result.addresses == ["2"]
+
+    # Should find no match
+    checks = [-1, -2, -3]
+
+    result = F.check_window(checks, iter(invariant_number_list))
+
+    assert result.value == False
+    assert result.addresses == ["0"]
+
+
+def test_check_window_handles_empty_values():
+    """Test that check_window handles empty values."""
+    result = F.check_window([1, 2, 3], [])
+
+    assert result.value == False
+    assert result.addresses == []

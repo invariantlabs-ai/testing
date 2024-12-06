@@ -4,6 +4,7 @@
 from builtins import len as builtin_len
 from builtins import max as builtin_max
 from builtins import min as builtin_min
+from collections import deque
 from collections.abc import Iterable
 from typing import Any, Callable
 
@@ -199,7 +200,12 @@ def check_order(
     current_check = 0
     check_match_addresses = []
 
+    first_addresses = []
+
     for message in iterable:
+        if not first_addresses:
+            first_addresses = message.addresses
+
         # If all checks are satisfied, break loop
         if current_check >= builtin_len(checks):
             break
@@ -215,14 +221,13 @@ def check_order(
             current_check += 1
             check_match_addresses.append(message.addresses)
 
+    # If we haven't satisfied all checks, and no matches found, return the address of the first element
+    if current_check != builtin_len(checks) and not check_match_addresses:
+        return InvariantBool(False, first_addresses)
+
     # If we haven't satisfied all checks, return the address of the last match
-    if current_check != builtin_len(checks):
-        return_address = (
-            check_match_addresses[-1]
-            if check_match_addresses
-            else iterable[0].addresses
-        )
-        return InvariantBool(False, return_address)
+    if current_check != builtin_len(checks) and check_match_addresses:
+        return InvariantBool(False, check_match_addresses[-1])
 
     # Return the (flattened) addresses of the elements that satisfied the checks
     return InvariantBool(
@@ -253,55 +258,60 @@ def check_window(
         InvariantBool: True if the checks are satisfied at least once.
     """
 
-    def check_window(
-        window: Iterable[InvariantValue], last_match_addr: list[str] | None
-    ) -> tuple[bool, str]:
-        """Check if the window satisfies the checks.
+    def _check_if_window_matches(
+        window: list[InvariantValue],
+    ) -> tuple[bool, list[str]]:
+        """Check if a single window matches all the checks.
 
         Args:
-            window: The window of elements to check.
-            last_match_addr: The address of the last element that satisfied the checks.
+            window: The window of elements to check against the checks.
 
         Returns:
-            tuple[bool, str]:
-                bool: True iff the window satisfies the checks.
-                str:  The address of the last element that satisfied the checks.
+            tuple[bool, list[str]]: True if the window matches all checks, and the addresses of the elements in the window.
         """
-        for i, check in enumerate(checks):
-            # If check is callable, call the function with the element
+        # Holds the addresses of the last element that matched a check in the window.
+        last_match_addresses = []
+
+        for check, element in zip(checks, window):
             if isinstance(check, Callable):
-                if not check(window[i]):
-                    return False, last_match_addr
+                if not check(element):
+                    return False, last_match_addresses
 
-            # If check is a value, check if the element is equal to the value
-            elif window[i] != check:
-                return False, last_match_addr
+            elif check != element:
+                return False, last_match_addresses
 
-            # Update the address of the last element that satisfied the checks
-            # Used for highlighting in case no match is found.
-            last_match_addr = window[i].addresses
+            last_match_addresses = element.addresses
 
-        # Return the addresses of all elements in the window
-        return True, [message.addresses for message in window]
+        return True, [addr for item in window for addr in item.addresses]
 
-    last_match_addr = None
-    for i in range(builtin_len(iterable) - builtin_len(checks) + 1):
-        # Check each window
-        window_satisfied, last_match_addr = check_window(
-            iterable[i : i + builtin_len(checks)], last_match_addr
-        )
+    current_window = deque()
+    last_match_addresses = []
 
-        if window_satisfied:
-            # Return all addresses of the elements in the window
-            return InvariantBool(
-                True,
-                [
-                    addr
-                    for item in iterable[i : i + builtin_len(checks)]
-                    for addr in item.addresses
-                ],
-            )
+    for element in iterable:
+        if not last_match_addresses:
+            last_match_addresses = element.addresses
 
+        # Add the element to the window
+        current_window.append(element)
+
+        # If the window is larger than the checks, pop the leftmost element
+        # to keep the window size equal to the checks
+        if len(current_window) > builtin_len(checks):
+            current_window.popleft()
+
+        # If the window is the same size as the checks, check if it matches
+        if len(current_window) == builtin_len(checks):
+            if (result := _check_if_window_matches(current_window))[0]:
+                return InvariantBool(
+                    True,
+                    result[1],
+                )
+
+            last_match_addresses = result[1] if result[1] else last_match_addresses
+
+    # If no match was found, return the address of the last element that matched
+    # some part of the checks
     return InvariantBool(
-        False, last_match_addr if last_match_addr else iterable[0].addresses
+        False,
+        last_match_addresses,
     )
