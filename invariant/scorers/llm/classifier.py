@@ -64,15 +64,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class ImageType(Enum):
-    """Enumeration of image types."""
-
-    JPEG = "image/jpeg"
-    PNG = "image/png"
-    GIF = "image/gif"
-    WEBP = "image/webp"
-
-
 class Classifier:
     """Class to classify using a language model."""
 
@@ -140,7 +131,7 @@ class Classifier:
         raise ValueError("Invalid client type")
 
     def _create_vision_classification_request(
-        self, base64_image: str, image_type: ImageType
+        self, base64_image: str, image_type: str
     ) -> dict:
         if isinstance(self.client, OpenAIClient):
             return {
@@ -173,7 +164,7 @@ class Classifier:
                                 "type": "image",
                                 "source": {
                                     "type": "base64",
-                                    "media_type": image_type.value,
+                                    "media_type": image_type,
                                     "data": f"{base64_image}",
                                 },
                             },
@@ -221,7 +212,7 @@ class Classifier:
     def classify_vision(
         self,
         base64_image: str,
-        image_type: ImageType = ImageType.JPEG,
+        image_type: str = "image/jpeg",
         use_cached_result: bool = True,
         default: str = "none",
     ) -> str:
@@ -229,7 +220,9 @@ class Classifier:
 
         Args:
             base64_image (str): The base64-encoded image to classify.
+            image_type (str): The MIME type of the image.
             use_cached_result (bool): Whether to use a cached result if available.
+            default (str): The default classification if the model fails to classify.
         """
         response = self._make_completions_create_request(
             {
@@ -247,6 +240,7 @@ class Classifier:
         Args:
             text (str): The text to classify.
             use_cached_result (bool): Whether to use a cached result if available.
+            default (str): The default classification if the model fails to classify.
         """
         response = self._make_completions_create_request(
             {
