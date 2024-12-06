@@ -3,7 +3,6 @@ import base64
 import pytest
 from invariant.scorers.base import approx
 from invariant.scorers.llm.classifier import Classifier, ImageType
-from invariant.scorers.llm.clients.client import SupportedClients
 from invariant.scorers.llm.detector import Detector
 from invariant.scorers.strings import *
 from invariant.scorers.utils.ocr import OCRDetector
@@ -66,7 +65,7 @@ def test_llm_anthropic():
         model="claude-3-5-sonnet-20241022",
         prompt="Does the text have positive sentiment?",
         options=["yes", "no"],
-        client=SupportedClients.ANTHROPIC,
+        client="OpenAI",
     )
     res = llm_clf.classify(text="I am feeling great today!")
     assert res == "yes"
@@ -75,7 +74,7 @@ def test_llm_anthropic():
         model="claude-3-5-sonnet-20241022",
         prompt="Which language is this text in?",
         options=["en", "it", "de", "fr"],
-        client=SupportedClients.ANTHROPIC,
+        client="OpenAI",
     )
     res = llm_clf.classify(text="Heute ist ein schöner Tag")
     assert res == "de"
@@ -93,7 +92,7 @@ def test_llm_detector_openai():
 @pytest.mark.skip("Skipping because we have not setup the API key in the CI")
 def test_llm_detector_anthropic():
     text = """I like apples and carrots, but I don't like bananas.\nThe only thing better than apples are potatoes and pears."""
-    llm_detector = Detector(model="claude-3-5-sonnet-20241022", predicate_rule="fruits", client=SupportedClients.ANTHROPIC)
+    llm_detector = Detector(model="claude-3-5-sonnet-20241022", predicate_rule="fruits", client="Anthropic")
     detections = [value for (value, addresses) in llm_detector.detect(text)]
     assert detections[0] == "apples"
     assert detections[1] == "bananas"
@@ -132,7 +131,7 @@ def test_vision_classifier_anthropic():
         prompt="What is in the image?",
         options=["cats", "dogs", "birds", "none"],
         vision=True,
-        client=SupportedClients.ANTHROPIC,
+        client="Anthropic",
     )
     res = llm_clf.classify_vision(base64_image, image_type=ImageType.JPEG)
     assert res == "cats"
@@ -142,7 +141,7 @@ def test_vision_classifier_anthropic():
         prompt="How many cats are in the image?",
         options=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
         vision=True,
-        client=SupportedClients.ANTHROPIC,
+        client="Anthropic",
     )
     res = llm_clf.classify_vision(base64_image, image_type=ImageType.JPEG)
     assert res == "3"

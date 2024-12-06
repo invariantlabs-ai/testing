@@ -9,7 +9,7 @@ class ClientFactory:
     """Factory for creating LLM clients."""
 
     @staticmethod
-    def get(client_name: SupportedClients) -> LLMClient:
+    def get(client_name: str) -> LLMClient:
         """Get an LLM client by name."""
         if client_name == SupportedClients.OPENAI:
             return OpenAIClient()

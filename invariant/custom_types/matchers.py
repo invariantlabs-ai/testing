@@ -4,7 +4,6 @@ from enum import StrEnum
 from typing import Any
 
 from invariant.scorers.llm.classifier import Classifier
-from invariant.scorers.llm.clients.client import SupportedClients
 from invariant.scorers.strings import embedding_similarity, levenshtein
 
 
@@ -116,7 +115,7 @@ class IsFactuallyEqual(Matcher):
         self,
         actual_value: Any,
         model: str = "gpt-4o",
-        client: SupportedClients = SupportedClients.OPENAI,
+        client: str = "OpenAI",
     ) -> bool:
         if not isinstance(actual_value, str):
             raise TypeError("is factually equivalent matcher only works with strings")

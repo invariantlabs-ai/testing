@@ -83,7 +83,7 @@ class Detections(BaseModel):
 class Detector:
     """Class to detect using a language model."""
 
-    def _get_prompt(self, predicate_rule: str, client: SupportedClients) -> str:
+    def _get_prompt(self, predicate_rule: str, client: str) -> str:
         if client == SupportedClients.OPENAI:
             return OPENAI_LLM_DETECTOR_PROMPT_TEMPLATE.format(
                 predicate_rule=predicate_rule
@@ -98,16 +98,17 @@ class Detector:
         self,
         model: str,
         predicate_rule: str,
-        client: SupportedClients = SupportedClients.OPENAI,
+        client: str = "OpenAI",
     ):
         """
         Args:
             model (str): The language model to use.
-            predicate_rule (str): The predicate rule to use for detection. The predicate to use
-                                  for extraction. This is a rule that the LLM uses to extract values.
-                                  For example with a predicate "cities in Switzerland", the LLM would
-                                  extract all cities in Switzerland from the text.
-            client (LLMClient): The LLM client to use.
+            predicate_rule (str): The predicate rule to use for detection. The
+            predicate to use for extraction. This is a rule that the LLM uses
+            to extract values. For example with a predicate "cities in Switzerland",
+            the LLM would extract all cities in Switzerland from the text.
+            client (invariant.scorers.llm.clients.client.SupportedClients): The
+            client to use for the LLM.
         """
         self.model = model
         self.prompt = self._get_prompt(predicate_rule, client)
