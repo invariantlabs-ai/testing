@@ -8,7 +8,6 @@ from typing import Any
 from invariant.cache.cache_manager import CacheManager
 
 from .clients.anthropic_client import AnthropicClient
-from .clients.client import SupportedClients
 from .clients.client_factory import ClientFactory
 from .clients.open_ai_client import OpenAIClient
 
@@ -83,7 +82,7 @@ class Classifier:
         prompt: str,
         options: list[str],
         vision: bool = False,
-        client: SupportedClients = SupportedClients.OPENAI,
+        client: str = "OpenAI",
     ):
         """
         Args:
@@ -91,7 +90,8 @@ class Classifier:
             prompt (str): The prompt to use for the classification.
             options (list[str]): The options to choose from when classifying.
             vision (bool): Whether to classify images instead of text.
-            client (LLMClient): The LLM client to use.
+            client (invariant.scorers.llm.clients.client.SupportedClients): The
+            client to use for the LLM.
         """
         self.model = model
         self.prompt = (

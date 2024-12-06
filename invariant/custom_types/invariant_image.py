@@ -7,7 +7,6 @@ from typing import Optional
 from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_string import InvariantString
 from invariant.scorers.llm.classifier import Classifier
-from invariant.scorers.llm.clients.client import SupportedClients
 from invariant.scorers.utils.ocr import OCRDetector
 from PIL import Image
 
@@ -32,7 +31,7 @@ class InvariantImage(InvariantString):
         options: list[str],
         model: str = "gpt-4o",
         use_cached_result: bool = True,
-        client: SupportedClients = SupportedClients.OPENAI,
+        client: str = "OpenAI",
     ) -> InvariantString:
         """Check if the value is similar to the given string using an LLM.
 
@@ -41,7 +40,8 @@ class InvariantImage(InvariantString):
             options (list[str]): The options to use for the LLM.
             model (str): The model to use for the LLM.
             use_cached_result (bool): Whether to use a cached result if available
-            client (SupportedClients): The client to use for the LLM.
+            client (invariant.scorers.llm.clients.client.SupportedClients): The
+            client to use for the LLM.
         """
         llm_clf = Classifier(
             model=model, prompt=prompt, options=options, vision=True, client=client

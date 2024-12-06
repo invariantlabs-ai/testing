@@ -7,7 +7,6 @@ from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_number import InvariantNumber
 from invariant.custom_types.invariant_string import InvariantString
 from invariant.scorers.code import Dependencies
-from invariant.scorers.llm.clients.client import SupportedClients
 from invariant.utils.packages import is_program_installed
 from pytest import approx
 
@@ -250,14 +249,14 @@ def test_llm_anthropic():
         "Does the text have positive sentiment?",
         ["yes", "no"],
         model="claude-3-5-sonnet-20241022",
-        client=SupportedClients.ANTHROPIC,
+        client="Anthropic",
     )
     assert isinstance(res, InvariantString) and res.value == "yes"
     res = InvariantString("Heute ist ein schöner Tag").llm(
         "Which language is this text in?",
         ["en", "it", "de", "fr"],
         model="claude-3-5-sonnet-20241022",
-        client=SupportedClients.ANTHROPIC,
+        client="Anthropic",
     )
     assert isinstance(res, InvariantString) and res.value == "de"
 
