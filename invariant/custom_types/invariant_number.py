@@ -11,6 +11,7 @@ class InvariantNumber(InvariantValue):
     """Describes an invariant number in a test."""
 
     def __init__(self, value: int | float, addresses: list[str] = None):
+        """Initialize the InvariantNumber object."""
         if not isinstance(value, (int, float)):
             raise TypeError(f"value must be an int or float, got {type(value)}")
         if addresses is None:
@@ -62,8 +63,22 @@ class InvariantNumber(InvariantValue):
         """(reverse) Add two numbers together."""
         return InvariantNumber(other + self.value, self.addresses)
 
+    def __mod__(self, other):
+        """Modulo two numbers together."""
+        if isinstance(other, InvariantNumber):
+            return InvariantNumber(
+                self.value % other.value, self.addresses + other.addresses
+            )
+        return InvariantNumber(self.value % other, self.addresses)
+
+    def __rmod__(self, other):
+        """(reverse) Modulo two numbers together."""
+        return InvariantNumber(other % self.value, self.addresses)
+
     def __str__(self) -> str:
+        """Return a string representation of the InvariantNumber."""
         return f"InvariantNumber(value={self.value}, addresses={self.addresses})"
 
     def __repr__(self) -> str:
+        """Return a string representation of the InvariantNumber."""
         return str(self)

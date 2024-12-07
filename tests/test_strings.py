@@ -2,10 +2,12 @@ import base64
 
 import pytest
 from invariant.scorers.base import approx
+from invariant.scorers.llm.classifier import Classifier
+from invariant.scorers.llm.detector import Detector
 from invariant.scorers.strings import *
-from invariant.scorers.utils.llm import LLMClassifier, LLMDetector
 from invariant.scorers.utils.ocr import OCRDetector
 from invariant.utils.packages import is_program_installed
+
 
 def test_levenshtein():
     # Test empty strings
@@ -39,27 +41,57 @@ def test_contains():
     assert not contains("hello", "quantum")
 
 
-def test_llm():
-    llm_clf = LLMClassifier(
-        model="gpt-4o",
+@pytest.mark.parametrize(
+    ("model", "client"),
+    [
+        ("gpt-4o", "OpenAI"),
+        pytest.param(
+            "claude-3-5-sonnet-20241022",
+            "Anthropic",
+            marks=pytest.mark.skip(
+                "Skipping because we have not setup the API key in the CI"
+            ),
+        ),
+    ],
+)
+def test_classifier(model, client):
+    """Test the LLM classifier with OpenAI and Anthropic models"""
+    llm_clf = Classifier(
+        model=model,
         prompt="Does the text have positive sentiment?",
         options=["yes", "no"],
+        client=client,
     )
     res = llm_clf.classify(text="I am feeling great today!")
     assert res == "yes"
 
-    llm_clf = LLMClassifier(
-        model="gpt-4o",
+    llm_clf = Classifier(
+        model=model,
         prompt="Which language is this text in?",
         options=["en", "it", "de", "fr"],
+        client=client,
     )
     res = llm_clf.classify(text="Heute ist ein schöner Tag")
     assert res == "de"
 
 
-def test_llm_detector():
+@pytest.mark.parametrize(
+    ("model", "client"),
+    [
+        ("gpt-4o", "OpenAI"),
+        pytest.param(
+            "claude-3-5-sonnet-20241022",
+            "Anthropic",
+            marks=pytest.mark.skip(
+                "Skipping because we have not setup the API key in the CI"
+            ),
+        ),
+    ],
+)
+def test_detector(model, client):
+    """Test the LLM detector with OpenAI and Anthropic models"""
     text = """I like apples and carrots, but I don't like bananas.\nThe only thing better than apples are potatoes and pears."""
-    llm_detector = LLMDetector(model="gpt-4o", predicate_rule="fruits")
+    llm_detector = Detector(model=model, predicate_rule="fruits", client=client)
     detections = [value for (value, addresses) in llm_detector.detect(text)]
     assert detections[0] == "apples"
     assert detections[1] == "bananas"
@@ -67,23 +99,39 @@ def test_llm_detector():
     assert detections[3] == "pears"
 
 
-def test_vision_classifier():
+@pytest.mark.parametrize(
+    ("model", "client"),
+    [
+        ("gpt-4o", "OpenAI"),
+        pytest.param(
+            "claude-3-5-sonnet-20241022",
+            "Anthropic",
+            marks=pytest.mark.skip(
+                "Skipping because we have not setup the API key in the CI"
+            ),
+        ),
+    ],
+)
+def test_vision_classifier(model, client):
+    """Test the LLM vision classifier with OpenAI and Anthropic models"""
     with open("sample_tests/assets/Group_of_cats_resized.jpg", "rb") as image_file:
         base64_image = base64.b64encode(image_file.read()).decode("utf-8")
-    llm_clf = LLMClassifier(
-        model="gpt-4o-mini",
+    llm_clf = Classifier(
+        model=model,
         prompt="What is in the image?",
         options=["cats", "dogs", "birds", "none"],
         vision=True,
+        client=client,
     )
     res = llm_clf.classify_vision(base64_image)
     assert res == "cats"
 
-    llm_clf = LLMClassifier(
-        model="gpt-4o",
+    llm_clf = Classifier(
+        model=model,
         prompt="How many cats are in the image?",
         options=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
         vision=True,
+        client=client,
     )
     res = llm_clf.classify_vision(base64_image)
     assert res == "3"
@@ -95,14 +143,13 @@ def test_vision_classifier():
 )
 def test_OCRDetector():
     from PIL import Image
+
     image = Image.open("sample_tests/assets/inv_labs.png")
 
     # Test case-insensitive detection
     ocr = OCRDetector()
     assert ocr.contains(image, "agents") == True
     assert (
-        ocr.contains(
-            image, "making", bbox={"x1": 50, "y1": 10, "x2": 120, "y2": 40}
-        )
+        ocr.contains(image, "making", bbox={"x1": 50, "y1": 10, "x2": 120, "y2": 40})
         == True
     )

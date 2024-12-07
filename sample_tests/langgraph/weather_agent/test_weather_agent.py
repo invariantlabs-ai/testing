@@ -2,7 +2,7 @@
 
 import invariant.testing.functional as F
 import pytest
-from invariant.testing import Trace, assert_true
+from invariant.testing import TraceFactory, assert_true
 from langchain_core.messages import HumanMessage
 
 from .weather_agent import WeatherAgent
@@ -21,7 +21,7 @@ def test_weather_agent_with_only_sf(weather_agent):
         config={"configurable": {"thread_id": 42}},
     )
 
-    trace = Trace.from_langgraph(invocation_response)
+    trace = TraceFactory.from_langgraph(invocation_response)
 
     with trace.as_context():
         find_weather_tool_calls = trace.tool_calls(name="_find_weather")
@@ -44,7 +44,7 @@ def test_weather_agent_with_sf_and_nyc(weather_agent):
         config={"configurable": {"thread_id": 41}},
     )
 
-    trace = Trace.from_langgraph(invocation_response)
+    trace = TraceFactory.from_langgraph(invocation_response)
 
     with trace.as_context():
         find_weather_tool_calls = trace.tool_calls(name="_find_weather")
@@ -60,7 +60,7 @@ def test_weather_agent_with_sf_and_nyc(weather_agent):
         assert_true(len(trace.messages(role="tool")) == 2)
 
         assistant_response_messages = F.filter(
-            lambda m: m["tool_calls"] is None, trace.messages(role="assistant")
+            lambda m: m.get("tool_calls") is None, trace.messages(role="assistant")
         )
         assert_true(len(assistant_response_messages) == 2)
         assert_true(
