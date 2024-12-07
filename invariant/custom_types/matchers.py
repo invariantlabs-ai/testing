@@ -174,6 +174,8 @@ class ContainsImage(Matcher):
             if "content" not in actual_value:
                 return False
             actual_value = actual_value["content"]
+            if not isinstance(actual_value, str):
+                return False
         return actual_value.startswith("local_base64_img: ") or actual_value.startswith(
             "local_img_link: "
         )
