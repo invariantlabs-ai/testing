@@ -2,7 +2,7 @@
 
 import invariant.testing.functional as F
 import pytest
-from invariant.testing import SwarmWrapper, assert_equals, assert_true
+from invariant.testing import SwarmWrapper, assert_equals, assert_false, assert_true
 from swarm import Swarm
 
 from .capital_finder_agent import create_agent
@@ -31,7 +31,7 @@ def test_capital_finder_agent_when_capital_found(swarm_wrapper):
             "France", get_capital_tool_calls[0]["function"]["arguments"]["country_name"]
         )
 
-        assert_true("Paris" in trace.messages(-1)["content"])
+        assert_true(trace.messages(-1)["content"].contains("Paris"))
 
 
 def test_capital_finder_agent_when_capital_not_found(swarm_wrapper):
@@ -51,8 +51,8 @@ def test_capital_finder_agent_when_capital_not_found(swarm_wrapper):
             "Spain", get_capital_tool_calls[0]["function"]["arguments"]["country_name"]
         )
 
-        tool_outputs = trace.tool_outputs(tool_name='get_capital')
+        tool_outputs = trace.tool_outputs(tool_name="get_capital")
         assert_true(F.len(tool_outputs) == 1)
-        assert_true("not_found" in tool_outputs[0]["content"])
+        assert_true(tool_outputs[0]["content"].contains("not_found"))
 
-        assert_true("Madrid" not in trace.messages(-1)["content"])
+        assert_false(trace.messages(-1)["content"].contains("Madrid"))
