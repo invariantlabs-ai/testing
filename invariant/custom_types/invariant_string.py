@@ -235,13 +235,11 @@ class InvariantString(InvariantValue):
         start, end = match.span(group_id)
         return InvariantString(match.group(group_id), self._concat_addresses([f"{start}-{end}"]))
 
-    def match_all(self, pattern: str, group_id: int | str = 0) -> list[InvariantString]:
+    def match_all(self, pattern: str, group_id: int | str = 0):
         """Match the value against the given regex pattern and return all matches."""
-        matches = []
         for match in re.finditer(pattern, self.value):
             start, end = match.span(group_id)
-            matches.append(InvariantString(match.group(group_id), self._concat_addresses([f"{start}-{end}"])))
-        return matches
+            yield InvariantString(match.group(group_id), self._concat_addresses([f"{start}-{end}"]))
 
     def is_similar(self, other: str, threshold: float = 0.5) -> InvariantBool:
         """Check if the value is similar to the given string using cosine similarity."""
