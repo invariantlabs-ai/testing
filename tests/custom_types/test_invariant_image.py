@@ -43,9 +43,9 @@ def test_vision_classifier(model, client):
     assert isinstance(res, InvariantString) and res.value == "3"
 
 
-# @pytest.mark.skipif(
-#     not is_program_installed("tesseract"), reason="Skip for now, needs tesseract"
-# )
+@pytest.mark.skipif(
+    not is_program_installed("tesseract"), reason="Skip for now, needs tesseract"
+)
 def test_ocr_detector():
     """Test the OCR detector."""
     with open("sample_tests/assets/inv_labs.png", "rb") as image_file:
