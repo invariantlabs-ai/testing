@@ -3,7 +3,7 @@ expectations does not crash the test.
 """
 
 import invariant.testing.functional as F
-from invariant.testing import Trace, assert_equals, assert_true, expect_equals
+from invariant.testing import Trace, assert_equals, expect_equals
 
 from .testutils import should_fail_with
 
@@ -42,18 +42,3 @@ def test_expect_right_order():
 
     with trace.as_context():
         expect_equals("abc", trace.messages(0)["content"])
-
-
-def test_in():
-    """Test that expect_equals works fine with the right order."""
-    trace = Trace(
-        trace=[
-            {"role": "user", "content": "Hello there"},
-            {"role": "assistant", "content": "Hello to you as well"},
-        ]
-    )
-
-    with trace.as_context():
-        msgs = trace.messages(content=lambda c: c.contains("Hello"))
-        count = F.len(msgs)
-        assert_true(count == 3)

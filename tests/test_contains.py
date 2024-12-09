@@ -1,5 +1,5 @@
 import invariant.testing.functional as F
-from invariant.testing import Trace, assert_equals, assert_true, expect_equals
+from invariant.testing import Trace, assert_true
 
 from .testutils import should_fail_with
 
