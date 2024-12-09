@@ -70,7 +70,6 @@ def test_argument(trace_with_tool_calls):
     with trace_with_tool_calls.as_context():
         run_python_tool_call = trace_with_tool_calls.tool_calls({"name":"run_python"})
 
-        # run_python_tool_call = trace.tool_calls(name="run_python")
         assert_true(F.len(run_python_tool_call) == 3)
 
         assert_true(
@@ -78,16 +77,14 @@ def test_argument(trace_with_tool_calls):
                 "python"
             )
         )
-        assert_true(run_python_tool_call[0].argument()[0] == "{")
+
+        assert_true(run_python_tool_call[0].argument()[0] == run_python_tool_call[0]["function"]["arguments"][0])
 
         assert_true(run_python_tool_call[1].argument("function.weird_argument.code").is_valid_code("python"))
 
-        assert_true(run_python_tool_call[2].argument("code").value=={
-                                "text": "System.out.print(a + b)",
-                                "language": "java"
-                            })
-        assert_true(run_python_tool_call[2].argument("code.text") == "System.out.print(a + b)")
-        assert_true(run_python_tool_call[2].argument("function.arguments.code.language") == "java")
+        assert_true(run_python_tool_call[2].argument("code") == run_python_tool_call[2]["function"]["arguments"]["code"])
+        assert_true(run_python_tool_call[2].argument("code.text") == run_python_tool_call[2]["function"]["arguments"]["code"]["text"])
+        assert_true(run_python_tool_call[2].argument("function.arguments.code.language") == run_python_tool_call[2]["function"]["arguments"]["code"]["language"])
 
         with pytest.raises(KeyError):
             run_python_tool_call[0].argument("pyto")

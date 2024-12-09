@@ -55,12 +55,12 @@ class InvariantDict:
             raise TypeError(f"Cannot compare InvariantDict with {type(other)}")
         return self.value == other.value
     
-    def __contains__(self, key: str) -> bool:
+    def __contains__(self, key: str) -> InvariantBool:
         """Support the `in` operator to check for key existence."""
-        return key in self.value
+        return InvariantBool(key in self.value, self.addresses)
 
-    def argument(self, input: str = "") -> str:
-        """Get the argument at the given key."""
+    def argument(self, input: str = "") -> InvariantValue:
+        """Get the argument of the tool call at the given key, or the whole arguments if no key is provided."""
 
         if input and not isinstance(input, str):
             raise TypeError(f"input must be a string, got {type(input)}")
