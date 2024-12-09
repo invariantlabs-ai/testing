@@ -25,16 +25,24 @@ def test_weather_agent_with_only_sf(weather_agent):
 
     with trace.as_context():
         find_weather_tool_calls = trace.tool_calls(name="_find_weather")
-        assert_true(len(find_weather_tool_calls) == 1)
+        assert_true(F.len(find_weather_tool_calls) == 1)
         assert_true(
-            "San Francisco" in find_weather_tool_calls[0]["function"]["arguments"],
+            find_weather_tool_calls[0]["function"]["arguments"].contains(
+                "San francisco"
+            )
         )
 
-        assert_true("60 degrees and foggy" in trace.messages(-1)["content"])
+        find_weather_tool_outputs = trace.messages(role="tool")
+        assert_true(F.len(find_weather_tool_outputs) == 1)
+        assert_true(
+            find_weather_tool_outputs[0]["content"].contains("60 degrees and foggy")
+        )
+
+        assert_true(trace.messages(-1)["content"].contains("60 degrees and foggy"))
 
 
 def test_weather_agent_with_sf_and_nyc(weather_agent):
-    """Test the weather agent with San Francisco."""
+    """Test the weather agent with San Francisco and New York City."""
     _ = weather_agent.invoke(
         {"messages": [HumanMessage(content="what is the weather in sf")]},
         config={"configurable": {"thread_id": 41}},
@@ -57,15 +65,26 @@ def test_weather_agent_with_sf_and_nyc(weather_agent):
             and "New York City" in find_weather_tool_call_args
         )
 
-        assert_true(len(trace.messages(role="tool")) == 2)
+        find_weather_tool_outputs = trace.messages(role="tool")
+        assert_true(F.len(find_weather_tool_outputs) == 2)
+        assert_true(
+            find_weather_tool_outputs[0]["content"].contains("60 degrees and foggy")
+        )
+        assert_true(
+            find_weather_tool_outputs[1]["content"].contains("90 degrees and sunny")
+        )
 
         assistant_response_messages = F.filter(
             lambda m: m.get("tool_calls") is None, trace.messages(role="assistant")
         )
         assert_true(len(assistant_response_messages) == 2)
         assert_true(
-            "weather in San Francisco is" in assistant_response_messages[0]["content"]
+            assistant_response_messages[0]["content"].contains(
+                "weather in San Francisco is"
+            )
         )
         assert_true(
-            "weather in New York City is" in assistant_response_messages[1]["content"]
+            assistant_response_messages[1]["content"].contains(
+                "weather in New York City is"
+            )
         )

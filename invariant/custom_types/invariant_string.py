@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 from operator import ge, gt, le, lt, ne
-from typing import Any, Union
+from typing import Any, Literal, Union
 
 from _pytest.python_api import ApproxBase
 
@@ -13,9 +13,10 @@ from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_number import InvariantNumber
 from invariant.custom_types.invariant_value import InvariantValue
 from invariant.scorers.code import execute, is_valid_json, is_valid_python
+from invariant.scorers.llm.classifier import Classifier
+from invariant.scorers.llm.detector import Detector
 from invariant.scorers.moderation import ModerationAnalyzer
 from invariant.scorers.strings import embedding_similarity, levenshtein
-from invariant.scorers.utils.llm import LLMClassifier, LLMDetector
 
 
 class InvariantString(InvariantValue):
@@ -176,13 +177,19 @@ class InvariantString(InvariantValue):
         new_addresses = [str(range) for _, range in res]
         return InvariantBool(len(res) > 0, self._concat_addresses(new_addresses))
 
-    def contains(self, *patterns: Union[str, InvariantString], criterion: str = "all") -> InvariantBool:
+    def contains(
+        self,
+        *patterns: Union[str, InvariantString],
+        criterion: Literal["all", "any"] = "all",
+        flags=re.IGNORECASE,
+    ) -> InvariantBool:
         """Check if the value contains all of the given patterns.
 
         Args:
             *patterns: Variable number of patterns to check for. Each pattern can be a string
                       or InvariantString.
             criterion: The criterion to use for the contains check - can be "all" or "any".
+            flags: The flags to use for the regex search. To pass in multiple flags, use the bitwise OR operator (|). By default, this is re.IGNORECASE.
 
         Returns:
             InvariantBool: True if all patterns are found, False otherwise. The addresses will
@@ -196,7 +203,7 @@ class InvariantString(InvariantValue):
                 pattern = pattern.value
 
             pattern_matches = []
-            for match in re.finditer(pattern, self.value):
+            for match in re.finditer(pattern, self.value, flags=flags):
                 start, end = match.span()
                 pattern_matches.append(f"{start}-{end}")
 
@@ -266,6 +273,7 @@ class InvariantString(InvariantValue):
         options: list[str],
         model: str = "gpt-4o",
         use_cached_result: bool = True,
+        client: str = "OpenAI",
     ) -> InvariantString:
         """Check if the value is similar to the given string using an LLM.
 
@@ -274,24 +282,33 @@ class InvariantString(InvariantValue):
             options (list[str]): The options to use for the LLM.
             model (str): The model to use for the LLM.
             use_cached_result (bool): Whether to use a cached result if available.
+            client (invariant.scorers.llm.clients.client.SupportedClients): The
+            client to use for the LLM.
         """
-        llm_clf = LLMClassifier(model=model, prompt=prompt, options=options)
+        llm_clf = Classifier(model=model, prompt=prompt, options=options, client=client)
         res = llm_clf.classify(self.value, use_cached_result)
         return InvariantString(res, self.addresses)
 
     def extract(
-        self, predicate: str, model: str = "gpt-4o", use_cached_result: bool = True
+        self,
+        predicate: str,
+        model: str = "gpt-4o",
+        use_cached_result: bool = True,
+        client: str = "OpenAI",
     ) -> list[InvariantString]:
         """Extract values from the underlying string using an LLM.
 
         Args:
-            predicate (str): The predicate to use for extraction. This is a rule that the LLM uses to extract
-                             values. For example with a predicate "cities in Switzerland", the LLM would extract
-                             all cities in Switzerland from the text.
+            predicate (str): The predicate to use for extraction. This is a rule
+            that the LLM uses to extract values. For example with a predicate
+            "cities in Switzerland", the LLM would extract all cities in
+            Switzerland from the text.
             model (str): The model to use for extraction.
             use_cached_result (bool): Whether to use a cached result if available.
+            client (invariant.scorers.llm.clients.client.SupportedClients): The
+            client to use for the LLM.
         """
-        llm_detector = LLMDetector(model=model, predicate_rule=predicate)
+        llm_detector = Detector(model=model, predicate_rule=predicate, client=client)
         detections = llm_detector.detect(self.value, use_cached_result)
         ret = []
         for substr, r in detections:

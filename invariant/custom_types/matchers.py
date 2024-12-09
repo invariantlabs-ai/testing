@@ -3,8 +3,8 @@
 from enum import StrEnum
 from typing import Any
 
+from invariant.scorers.llm.classifier import Classifier
 from invariant.scorers.strings import embedding_similarity, levenshtein
-from invariant.scorers.utils.llm import LLMClassifier
 
 
 class Matcher:
@@ -111,7 +111,12 @@ class IsFactuallyEqual(Matcher):
         self.question = question
         self.level = level
 
-    def matches(self, actual_value: Any) -> bool:
+    def matches(
+        self,
+        actual_value: Any,
+        model: str = "gpt-4o",
+        client: str = "OpenAI",
+    ) -> bool:
         if not isinstance(actual_value, str):
             raise TypeError("is factually equivalent matcher only works with strings")
         prompt = """You are comparing a submitted answer to an expert answer on a given question.
@@ -128,8 +133,11 @@ class IsFactuallyEqual(Matcher):
                     [Expert]: {self.expected_value},
                     [Submission]: {actual_value},
                 """
-        llm_clf = LLMClassifier(
-            model="gpt-4o", prompt=prompt, options=["0", "1", "2", "3", "4"]
+        llm_clf = Classifier(
+            model=model,
+            prompt=prompt,
+            options=["0", "1", "2", "3", "4"],
+            client=client,
         )
         res_score = llm_clf.classify(text=text)
         print(f"result: {res_score}")
@@ -149,6 +157,7 @@ class ContainsImage(Matcher):
     Checks if the string starts with "local_base64_img: " or "local_img_link: ".
     Checks if dict has a content field, and if that content field starts with "local_base64_img: " or "local_img_link: ".
     """
+
     def matches(self, actual_value: str | dict) -> bool:
         """
         Args:
@@ -158,9 +167,13 @@ class ContainsImage(Matcher):
             bool: True if the value is an image, False otherwise.
         """
         if not isinstance(actual_value, dict) and not isinstance(actual_value, str):
-            raise TypeError("ContainsImage matcher only works with dictionaries and strings.")
+            raise TypeError(
+                "ContainsImage matcher only works with dictionaries and strings."
+            )
         if isinstance(actual_value, dict):
-            if 'content' not in actual_value:
+            if "content" not in actual_value:
                 return False
-            actual_value = actual_value['content']
-        return actual_value.startswith("local_base64_img: ") or actual_value.startswith("local_img_link: ")
+            actual_value = actual_value["content"]
+        return actual_value.startswith("local_base64_img: ") or actual_value.startswith(
+            "local_img_link: "
+        )

@@ -92,3 +92,18 @@ def test_invariant_number_str_and_repr():
     num = InvariantNumber(5, ["address1"])
     assert str(num) == "InvariantNumber(value=5, addresses=['address1'])"
     assert repr(num) == "InvariantNumber(value=5, addresses=['address1'])"
+
+
+def test_mod_operator():
+    """Test modulo operator with InvariantNumber."""
+    num = InvariantNumber(5, ["address1"]) % InvariantNumber(3, ["address2"])
+    assert num.value == 2
+    assert num.addresses == ["address1", "address2"]
+
+    num = InvariantNumber(5, ["address1"]) % 3
+    assert num.value == 2
+    assert num.addresses == ["address1"]
+
+    num = 5 % InvariantNumber(3, ["address2"])
+    assert num.value == 2
+    assert num.addresses == ["address2"]

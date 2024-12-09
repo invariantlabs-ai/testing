@@ -9,16 +9,36 @@ from invariant.custom_types.invariant_string import InvariantString
 from invariant.utils.packages import is_program_installed
 
 
-def test_vision_classifier():
+@pytest.mark.parametrize(
+    ("model", "client"),
+    [
+        ("gpt-4o", "OpenAI"),
+        pytest.param(
+            "claude-3-5-sonnet-20241022",
+            "Anthropic",
+            marks=pytest.mark.skip(
+                "Skipping because we have not setup the API key in the CI"
+            ),
+        ),
+    ],
+)
+def test_vision_classifier(model, client):
     """Test the vision classifier."""
     with open("sample_tests/assets/Group_of_cats_resized.jpg", "rb") as image_file:
         base64_image = base64.b64encode(image_file.read()).decode("utf-8")
     img = InvariantImage(base64_image)
-    res = img.llm_vision("What is in the image?", ["cats", "dogs", "birds", "none"])
+    res = img.llm_vision(
+        "What is in the image?",
+        ["cats", "dogs", "birds", "none"],
+        model=model,
+        client=client,
+    )
     assert isinstance(res, InvariantString) and res.value == "cats"
     res = img.llm_vision(
         "How many cats are in the image?",
         ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+        model=model,
+        client=client,
     )
     assert isinstance(res, InvariantString) and res.value == "3"
 

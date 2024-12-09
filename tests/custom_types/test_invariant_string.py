@@ -70,7 +70,7 @@ def test_invariant_string_inequality(value1, value2, expected):
     "value, substring, expected",
     [
         (InvariantString("Hello World"), "World", True),
-        (InvariantString("Hello World"), "world", False),  # Case-sensitive
+        (InvariantString("Hello World"), "world", True),  # Case-insensitive
         (InvariantString("Hello"), "Hell", True),
         (InvariantString("Hello"), "o", True),
         (InvariantString("Hello"), "Goodbye", False),
@@ -87,7 +87,7 @@ def test_invariant_string_contains(value, substring, expected):
     "value, substrings, expected",
     [
         (InvariantString("Hello World"), ["Hello", "World"], True),
-        (InvariantString("Hello World"), ["Hello", "world"], False),
+        (InvariantString("Hello World"), ["Hello", "world"], True),
         (InvariantString("Hello World"), ["Hello", "Goodbye"], False),
         (InvariantString("Hello World"), ["Hell", "o", "World"], True),
     ],
@@ -185,6 +185,12 @@ def test_contains():
     assert InvariantString("hello").contains(InvariantString("el"))
 
 
+def test_contains_ignores_case_by_default():
+    """Test that the contains method of InvariantString ignores case by default."""
+    res = InvariantString("hello", ["prefix"]).contains("EL")
+    assert len(res.addresses) == 1 and res.addresses[0] == "prefix:1-3"
+
+
 def test_match():
     """Test the match transformer of InvariantString."""
     res = InvariantString("Dataset: demo\nAuthor: demo-agent", [""]).match("Dataset: (.*)", 1)
@@ -252,14 +258,31 @@ def test_moderation():
     assert res.addresses[0] == ":11-31"
 
 
-def test_llm():
+@pytest.mark.parametrize(
+    ("model", "client"),
+    [
+        ("gpt-4o", "OpenAI"),
+        pytest.param(
+            "claude-3-5-sonnet-20241022",
+            "Anthropic",
+            marks=pytest.mark.skip("Skipping because we have not setup the API key in the CI"),
+        ),
+    ],
+)
+def test_llm(model, client):
     """Test the llm transformer of InvariantString."""
     res = InvariantString("I am feeling great today!").llm(
-        "Does the text have positive sentiment?", ["yes", "no"]
+        "Does the text have positive sentiment?",
+        ["yes", "no"],
+        model=model,
+        client=client,
     )
     assert isinstance(res, InvariantString) and res.value == "yes"
     res = InvariantString("Heute ist ein schöner Tag").llm(
-        "Which language is this text in?", ["en", "it", "de", "fr"]
+        "Which language is this text in?",
+        ["en", "it", "de", "fr"],
+        model=model,
+        client=client,
     )
     assert isinstance(res, InvariantString) and res.value == "de"
 
