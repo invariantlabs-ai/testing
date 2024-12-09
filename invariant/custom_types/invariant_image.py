@@ -6,7 +6,7 @@ from typing import Optional
 
 from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_string import InvariantString
-from invariant.scorers.utils.llm import LLMClassifier
+from invariant.scorers.llm.classifier import Classifier
 from invariant.scorers.utils.ocr import OCRDetector
 from PIL import Image
 
@@ -20,6 +20,9 @@ class InvariantImage(InvariantString):
         super().__init__(value, addresses)
         image_data = base64.b64decode(value)
         self.image = Image.open(io.BytesIO(image_data))
+        # Set the image type. For example:
+        # JPEG format becomes "image/jpeg" MIME type.
+        self.image_type = f"image/{self.image.format.lower()}"
         assert isinstance(self.image, Image.Image)
 
     def llm_vision(
@@ -28,6 +31,7 @@ class InvariantImage(InvariantString):
         options: list[str],
         model: str = "gpt-4o",
         use_cached_result: bool = True,
+        client: str = "OpenAI",
     ) -> InvariantString:
         """Check if the value is similar to the given string using an LLM.
 
@@ -36,11 +40,15 @@ class InvariantImage(InvariantString):
             options (list[str]): The options to use for the LLM.
             model (str): The model to use for the LLM.
             use_cached_result (bool): Whether to use a cached result if available
+            client (invariant.scorers.llm.clients.client.SupportedClients): The
+            client to use for the LLM.
         """
-        llm_clf = LLMClassifier(
-            model=model, prompt=prompt, options=options, vision=True
+        llm_clf = Classifier(
+            model=model, prompt=prompt, options=options, vision=True, client=client
         )
-        res = llm_clf.classify_vision(self.value, use_cached_result)
+        res = llm_clf.classify_vision(
+            self.value, image_type=self.image_type, use_cached_result=use_cached_result
+        )
         return InvariantString(res, self.addresses)
 
     def ocr_contains(

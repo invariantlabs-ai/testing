@@ -1,8 +1,14 @@
 """Describes an invariant boolean in a test."""
 
+import logging
 from typing import Union
 
 from invariant.custom_types.invariant_value import InvariantValue
+from invariant.utils.logging import ProbabilityFilter
+
+logger = logging.getLogger(__name__)
+logger.addFilter(ProbabilityFilter(probability=0.05))
+logger.addHandler(logging.StreamHandler())
 
 
 class InvariantBool(InvariantValue):
@@ -61,6 +67,11 @@ class InvariantBool(InvariantValue):
 
     def __bool__(self) -> bool:
         """Return the truthiness of the instance."""
+        logger.warning(
+            "When using `and` and `or`, sometimes due to short-circuiting "
+            "the assertions may not be attributed to the given trace correctly. To avoid this,"
+            "use the `&` and `|` operators instead."
+        )
         return self.value
 
     def __str__(self) -> str:
