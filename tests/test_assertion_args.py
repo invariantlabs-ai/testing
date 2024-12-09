@@ -2,7 +2,6 @@
 expectations does not crash the test.
 """
 
-import invariant.testing.functional as F
 from invariant.testing import Trace, assert_equals, expect_equals
 
 from .testutils import should_fail_with

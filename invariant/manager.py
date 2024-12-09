@@ -282,10 +282,16 @@ class Manager:
         if address == "<root>":
             address_to_push = "<root>"
         elif address.isdigit():
+            # Case where the address points to a message, but not a portion of the content
             msg = self.trace.trace[int(address)]
-            address_to_push = (
-                "messages." + address + f".content:0-{len(msg["content"])}]"
-            )
+            if msg.get("content", False):
+                address_to_push_inner = f".content:0-{len(msg['content'])}"
+            elif msg.get("tool_call", False):
+                address_to_push_inner = f".tool_call:0-{len(msg['tool_call'])}"
+            else:
+                address_to_push_inner = ""
+
+            address_to_push = "messages." + address + address_to_push_inner
         else:
             address_to_push = "messages." + address
 
