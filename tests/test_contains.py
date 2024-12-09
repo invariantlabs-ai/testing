@@ -21,7 +21,7 @@ def test_in():
 
 
 @should_fail_with(num_assertion=1)
-def test_in2():
+def test_in_word_level():
     """Test that expect_equals works fine with the right order."""
     trace = Trace(
         trace=[
@@ -33,21 +33,13 @@ def test_in2():
 
     with trace.as_context():
         trace.messages(content=lambda c: "Hello" in c)
+        hellos = [msg["content"].contains("Hello") for msg in trace.messages()]
+        theres = [msg["content"].contains("there") for msg in trace.messages()]
         assert_true(
-            F.len(
-                F.filter(
-                    lambda x: x,
-                    F.map(lambda c: c["content"].contains("Hello"), trace.messages()),
-                )
-            )
-            == 3
+            F.len([x for x in hellos if x]) == 3,
+            "Expected 3 messages to contain 'Hello'",
         )
         assert_true(
-            F.len(
-                F.filter(
-                    lambda x: x,
-                    F.map(lambda c: c["content"].contains("there"), trace.messages()),
-                )
-            )
-            == 2
+            F.len([x for x in theres if x]) == 2,
+            "Expected 2 messages to contain 'there'",
         )
