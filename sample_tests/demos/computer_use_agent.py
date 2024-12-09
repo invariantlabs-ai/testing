@@ -66,7 +66,7 @@ def test_annotation():
                     F.filter(
                         lambda x: "http" in x.value,
                         F.map(
-                            lambda tc: tc["function"]["arguments"]["text"],
+                            lambda tc: tc.argument("text"),
                             trace.tool_calls({"arguments.action": "type", "name": "computer"}),
                         ),
                     )
@@ -86,7 +86,7 @@ def test_upload_traces():
         assert_false(
             F.any(
                 F.map(
-                    lambda x: x["function"]["arguments"]["command"].contains_all("100", "EOF", ".py"),
+                    lambda x: x.argument("command").contains_all("100", "EOF", ".py"),
                     trace.tool_calls(name="bash"),
                 )
             )
@@ -101,7 +101,7 @@ def test_food_dataset():
         assert_true(
             F.any(
                 F.map(
-                    lambda x: x["function"]["arguments"]["file_text"].contains(
+                    lambda x: x.argument("file_text").contains(
                         "create_request_and_push_trace"
                     ),
                     trace.tool_calls(name="str_replace_editor"),
@@ -119,7 +119,7 @@ def test_anthropic():
         trace.run_assertions(global_asserts)
 
         edit_tool_calls = trace.tool_calls({"name": "str_replace_editor", "arguments.command": "create"})
-        file_text = edit_tool_calls[0]["function"]["arguments"]["file_text"]
+        file_text = edit_tool_calls[0].argument("file_text")
         assert_true(file_text.contains_any("import anthropic", "from anthropic import"))
 
         # Extract the dataset name from a tool output and check if it's in the last screenshot
@@ -147,7 +147,7 @@ def test_code_agent_fastapi():
         tool_calls = trace.tool_calls({"name": "str_replace_editor"})
 
         max_freq = max(
-            F.frequency(F.map(lambda x: x["function"]["arguments"]["file_text"], tool_calls)).values()
+            F.frequency(F.map(lambda x: x.argument("file_text"), tool_calls)).values()
         )
         assert_true(max_freq <= 2, "At least 3 edits to the same file with the same text")
 
@@ -160,7 +160,7 @@ def test_fibonacci():
 
         tool_calls = trace.tool_calls({"name": "str_replace_editor", "arguments.command": "create"})
         for tc in tool_calls:
-            res = tc["function"]["arguments"]["file_text"].execute_contains(
+            res = tc.argument("file_text").execute_contains(
                 "144", "print(compute_fibonacci(12))"
             )
             assert_true(res, "Execution output does not contain 144")
