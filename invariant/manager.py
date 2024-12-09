@@ -278,10 +278,21 @@ class Manager:
             # truncate it smartly
             content = "\n".join(remainder)
             content = utils.ast_truncate(content.lstrip(">"))
+        logger.info(f"address:{address}")
+        if address == "<root>":
+            address_to_push = "<root>"
+        elif address.isdigit():
+            msg = self.trace.trace[int(address)]
+            address_to_push = (
+                "messages." + address + f".content:0-{len(msg["content"])}]"
+            )
+        else:
+            address_to_push = "messages." + address
 
+        logger.info(f"address:{address_to_push}")
         return {
             # non-localized assertions are top-level
-            "address": "messages." + address if address != "<root>" else address,
+            "address": address_to_push,
             # the assertion message
             "content": content,
             # metadata as expected by Explorer
@@ -304,7 +315,6 @@ class Manager:
         annotations = []
         for assertion in self.assertions:
             assertion_id = id(assertion)
-
             for address in assertion.addresses:
                 source = (
                     "test-assertion" if assertion.type == "HARD" else "test-expectation"
