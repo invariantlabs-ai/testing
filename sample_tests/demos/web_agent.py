@@ -168,7 +168,7 @@ def test_code_agent_fastapi():
 
         # edit_cmds = trace.tool_calls({"name": "str_replace_editor", "arguments.command": "create"})
         # for cmd in edit_cmds:
-        #     assert_false(cmd.["function"]["arguments"]["file_text"].value, "FastAPI is not installed")
+        #     assert_false(cmd["function"]["arguments"]["file_text"].value, "FastAPI is not installed")
 
 
 def test_fibonacci():
