@@ -5,7 +5,6 @@ from typing import Any
 from invariant.custom_types.invariant_bool import InvariantBool
 from invariant.custom_types.invariant_value import InvariantValue
 
-
 class InvariantDict:
     """Invariant implementation of a dict type"""
 
@@ -55,3 +54,50 @@ class InvariantDict:
         if not isinstance(other, InvariantDict):
             raise TypeError(f"Cannot compare InvariantDict with {type(other)}")
         return self.value == other.value
+    
+    def __contains__(self, key: str) -> bool:
+        """Support the `in` operator to check for key existence."""
+        return key in self.value
+
+    def argument(self, input: str = "") -> str:
+        """Get the argument at the given key."""
+
+        if input and not isinstance(input, str):
+            raise TypeError(f"input must be a string, got {type(input)}")
+
+        default_path: str = "function.arguments"
+        input = input.split(".")
+        input_path = ".".join(input[:-1])
+
+        # check if the input includes a path, if so, create 2 paths with and without the default path
+        if input_path:
+            paths = [f"{default_path}.{input_path}", input_path]
+        else:
+            paths = [default_path]
+
+        # the last element in the input is the key
+        key = input[-1]
+        arguments = None
+
+        from invariant.custom_types.trace import traverse_dot_path           
+
+        for path in paths:
+            res, add_function_prefix = traverse_dot_path(self.value, path)
+            if res:
+                if add_function_prefix:
+                    path = f"function.{path}"
+                value = self
+                for path_key in path.split("."):
+                    value = value[path_key]
+                arguments = value
+
+        if arguments:
+            # when there is no key, return the whole arguments
+            if not key:
+                return arguments
+            if key not in arguments:
+                raise KeyError(f"Key {key} not found in {arguments}")
+            return arguments[key]
+        else:
+            raise ValueError("Can only use .argument(...) on tool-call-like objects or provide a path to the arguments")
+            
