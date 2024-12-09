@@ -43,7 +43,6 @@ def run(system_prompt, user_query, filename):
             trace = json.load(f)
     else:
         client = Swarm()
-        trace = [{"role": "user", "content": user_query}]
         agent = Agent(
             name="Agent A",
             instructions=system_prompt,
@@ -51,8 +50,10 @@ def run(system_prompt, user_query, filename):
         )
         response = client.run(
             agent=agent,
-            messages=trace,
+            messages=[{"role": "user", "content": user_query}],
         )
+        trace = [{"role": "system", "content": system_prompt},
+                 {"role": "user", "content": user_query}]
         trace.extend(response.messages)
         with open(trace_path, 'w') as f:
             json.dump(trace, f)
@@ -82,26 +83,11 @@ def run_fixed():
     user_query = "How much time do I have to go to my lunch with Sarah on 2024-05-15? Give me the result in the format 'HH:MM'."
     return run(system_prompt, user_query, 'trace_fixed.json')
 
-
-def print_trace(trace):
-    for t in trace:
-        text = f"{t['role']}: {t['content']}"
-        if 'tool_calls' in t and t['tool_calls']:
-            calls = []
-            for call in t['tool_calls']:
-                function = call['function']
-                args = ', '.join([f"{k}={v}" for k,v in json.loads(function['arguments']).items()])
-                calls.append(f"{function['name']}({args})")
-            text += f" -> {', '.join(calls)}"
-        print(text)
-
 if __name__ == "__main__":
     print("Buggy trace:")
     Path(__file__).parent.joinpath('trace_buggy.json').unlink(missing_ok=True)
     trace = run_buggy()
-    print_trace(trace)
    
     print("\n\nFixed trace:") 
     Path(__file__).parent.joinpath('trace_fixed.json').unlink(missing_ok=True)
     trace = run_fixed()
-    print_trace(trace)

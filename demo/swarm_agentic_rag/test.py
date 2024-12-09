@@ -2,8 +2,8 @@ from run import run_buggy, run_fixed
 import invariant.testing as it
 import invariant.testing.functional as F
 
-trace = run_fixed()
-#trace = run_buggy()
+#trace = run_fixed()
+trace = run_buggy()
 trace = it.TraceFactory.from_swarm(trace)
 
 def test_used_tool():
