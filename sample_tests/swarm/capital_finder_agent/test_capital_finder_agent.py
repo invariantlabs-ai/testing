@@ -31,7 +31,7 @@ def test_capital_finder_agent_when_capital_found(swarm_wrapper):
             "France", get_capital_tool_calls[0]["function"]["arguments"]["country_name"]
         )
 
-        assert_true(trace.messages(-1)["content"].contains("Paris"))
+        assert_true(trace.messages(-1)["content"].contains("paris"))
 
 
 def test_capital_finder_agent_when_capital_not_found(swarm_wrapper):

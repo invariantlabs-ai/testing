@@ -186,13 +186,22 @@ class InvariantString(InvariantValue):
         new_addresses = [str(range) for _, range in res]
         return InvariantBool(len(res) > 0, self._concat_addresses(new_addresses))
 
-    def contains(self, pattern: str | InvariantString) -> InvariantBool:
-        """Check if the value contains the given pattern."""
+    def contains(
+        self, pattern: str | InvariantString, flags=re.IGNORECASE
+    ) -> InvariantBool:
+        """Check if the value contains the given pattern. This ignores case by default.
+
+        Args:
+            pattern (str | InvariantString): The pattern to check for.
+            flags (int): The flags to use for the regex search. To pass in multiple flags,
+            use the bitwise OR operator (|). By default, this is re.IGNORECASE.
+
+        """
         if isinstance(pattern, InvariantString):
             pattern = pattern.value
         new_addresses = []
 
-        for match in re.finditer(pattern, self.value):
+        for match in re.finditer(pattern, self.value, flags=flags):
             start, end = match.span()
             new_addresses.append(f"{start}-{end}")
 

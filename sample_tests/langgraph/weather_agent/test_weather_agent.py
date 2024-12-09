@@ -28,7 +28,7 @@ def test_weather_agent_with_only_sf(weather_agent):
         assert_true(F.len(find_weather_tool_calls) == 1)
         assert_true(
             find_weather_tool_calls[0]["function"]["arguments"].contains(
-                "San Francisco"
+                "San francisco"
             )
         )
 

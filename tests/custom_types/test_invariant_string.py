@@ -69,7 +69,7 @@ def test_invariant_string_inequality(value1, value2, expected):
     "value, substring, expected",
     [
         (InvariantString("Hello World"), "World", True),
-        (InvariantString("Hello World"), "world", False),  # Case-sensitive
+        (InvariantString("Hello World"), "world", True),  # Case-insensitive
         (InvariantString("Hello"), "Hell", True),
         (InvariantString("Hello"), "o", True),
         (InvariantString("Hello"), "Goodbye", False),
@@ -152,6 +152,12 @@ def test_contains():
     # assert len(res.addresses) == 1 and res.addresses[0] == "prefix:1-3"
     assert not InvariantString("hello", [""]).contains("\\d")
     assert InvariantString("hello").contains(InvariantString("el"))
+
+
+def test_contains_ignores_case_by_default():
+    """Test that the contains method of InvariantString ignores case by default."""
+    res = InvariantString("hello", ["prefix"]).contains("EL")
+    assert len(res.addresses) == 1 and res.addresses[0] == "prefix:1-3"
 
 
 def test_match():
