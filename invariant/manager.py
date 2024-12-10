@@ -318,11 +318,15 @@ class Manager:
 
         elif len(address.split(".")) > 1 and address.split(".")[1] == "tool_calls":
             msg = self.trace.trace[int(address.split(".")[0])]
-            tool_call = msg["tool_calls"][int(address.split(".")[2])]
+            if len(address.split(".")) > 2:
+                tool_calls = [msg["tool_calls"][int(address.split(".")[2])]]
+            else:
+                tool_calls = msg["tool_calls"]
             address_to_push = [
                 "messages."
                 + address
                 + f".function.name:0-{len(tool_call['function']['name'])}"
+                for tool_call in tool_calls
             ]
         else:
             address_to_push = ["messages." + address]
