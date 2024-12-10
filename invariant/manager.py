@@ -319,6 +319,10 @@ class Manager:
         elif len(address.split(".")) > 1 and address.split(".")[1] == "tool_calls":
             msg = self.trace.trace[int(address.split(".")[0])]
             if len(address.split(".")) > 2:
+                if not address.split(".")[2].isdigit():
+                    raise ValueError(
+                        f"Tool call index must be an integer, got {address.split('.')[2]}"
+                    )
                 tool_calls = [msg["tool_calls"][int(address.split(".")[2])]]
             else:
                 tool_calls = msg["tool_calls"]
