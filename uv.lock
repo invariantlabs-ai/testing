@@ -857,8 +857,9 @@ wheels = [
 [[package]]
 name = "invariant-testing"
 version = "0.2.1"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
+    { name = "aiohttp" },
     { name = "beautifulsoup4" },
     { name = "diskcache" },
     { name = "invariant-sdk" },
@@ -896,6 +897,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aiohttp", specifier = ">=3.11.11" },
     { name = "beautifulsoup4", specifier = ">=4.12.3,<5" },
     { name = "diskcache", specifier = ">=5.6.3,<6" },
     { name = "invariant-sdk", specifier = ">=0.0.11,<0.0.12" },
