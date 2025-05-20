@@ -38,6 +38,7 @@ pip install git+https://github.com/invariantlabs-ai/testing.git
 
 ```python
 # content of tests/test_weather.py
+import invariant_testing.testing.functional as F
 from invariant_testing.testing import Trace, assert_equals
 
 def test_weather():
@@ -55,11 +56,10 @@ def test_weather():
         locations = trace.messages()[-1]["content"].extract("locations")
 
         # assert that the agent responded about Paris and only Paris
-        assert_equals(1, locations.len(), 
+        assert_equals(1, F.len(locations),
             "The agent should respond about one location only")
 
         assert_equals("Paris", locations[0], "The agent should respond about Paris")
-
 ```
 
 **Execute it on the command line**:
