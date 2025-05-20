@@ -1,6 +1,6 @@
-import invariant.testing.functional as F
-from invariant.testing import Trace, assert_true
-from invariant.tests.testing.testutils import should_fail_with
+import invariant_testing.testing.functional as F
+from invariant_testing.testing import Trace, assert_true
+from invariant_testing.tests.testing.testutils import should_fail_with
 
 
 @should_fail_with(num_assertion=1)

@@ -156,7 +156,7 @@ class TraceSet:
         return max_items
 
     def prepare_policy(self, invariant_condition: str, prefix: str = None):
-        from invariant.analyzer import Policy
+        from invariant_testing.analyzer import Policy
 
         # construct makeshift policy
         policy_str = f"""raise "found result" if:
@@ -208,7 +208,7 @@ class OpenDevinLoader(TraceSet):
     def parse_trace(trajectory):
         import re
 
-        from invariant.analyzer.traces import assistant, tool, tool_call, user
+        from invariant_testing.analyzer.traces import assistant, tool, tool_call, user
 
         regex = {
             "bash": r"<execute_bash>(.*?)</execute_bash>",
@@ -255,7 +255,7 @@ class OpenDevinLoader(TraceSet):
 class SWEAgentTraceSet(TraceSet):
     @staticmethod
     def parse_trace(trajectory):
-        from invariant.analyzer.traces import assistant, tool, tool_call
+        from invariant_testing.analyzer.traces import assistant, tool, tool_call
 
         inv_traj = []
         for idx, el in enumerate(trajectory):

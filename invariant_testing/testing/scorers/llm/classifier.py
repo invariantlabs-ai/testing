@@ -4,7 +4,7 @@ import json
 import logging
 from typing import Any
 
-from invariant.testing.cache import CacheManager
+from invariant_testing.testing.cache import CacheManager
 
 from .clients.anthropic_client import AnthropicClient
 from .clients.client_factory import ClientFactory
@@ -77,6 +77,7 @@ class Classifier:
         """Instantiate a Classifier object.
 
         Args:
+        ----
             prompt (str): The prompt to use for the classification.
             options (list[str]): The options to choose from when classifying.
             model (str): The language model to use.
@@ -220,6 +221,7 @@ class Classifier:
         """Classify an image using the language model.
 
         Args:
+        ----
             base64_image (str): The base64-encoded image to classify.
             image_type (str): The MIME type of the image.
             use_cached_result (bool): Whether to use a cached result if available.
@@ -240,6 +242,7 @@ class Classifier:
         """Classify a text using the language model.
 
         Args:
+        ----
             text (str): The text to classify.
             use_cached_result (bool): Whether to use a cached result if available.
             default (str): The default classification if the model fails to classify.

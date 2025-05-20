@@ -8,8 +8,8 @@ from typing import Literal
 from pydantic import BaseModel
 from pydantic.dataclasses import Field
 
-from invariant.analyzer.runtime.runtime_errors import InvariantAttributeError
-from invariant.analyzer.runtime.utils.base import BaseDetector, DetectorResult
+from invariant_testing.analyzer.runtime.runtime_errors import InvariantAttributeError
+from invariant_testing.analyzer.runtime.utils.base import BaseDetector, DetectorResult
 
 CodeSeverity = Literal["info", "warning", "error"]
 
@@ -33,7 +33,7 @@ class PythonDetectorResult(BaseModel):
     Usage in IPL:
 
     ```
-    from invariant.analyzer.detectors.code import python_code
+    from invariant_testing.analyzer.detectors.code import python_code
 
     raise ... if:
         program := python_code(...)

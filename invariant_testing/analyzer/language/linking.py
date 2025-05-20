@@ -7,8 +7,8 @@ import os
 from importlib import util
 from typing import Optional
 
-from invariant.analyzer.language.scope import ExternalReference
-from invariant.analyzer.runtime.symbol_table import SymbolTable
+from invariant_testing.analyzer.language.scope import ExternalReference
+from invariant_testing.analyzer.runtime.symbol_table import SymbolTable
 
 STDLIB_PATH = os.path.join(os.path.dirname(__file__), "../stdlib")
 

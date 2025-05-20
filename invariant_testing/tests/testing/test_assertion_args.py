@@ -2,8 +2,8 @@
 expectations does not crash the test.
 """
 
-from invariant.testing import Trace, assert_equals, expect_equals
-from invariant.tests.testing.testutils import should_fail_with
+from invariant_testing.testing import Trace, assert_equals, expect_equals
+from invariant_testing.tests.testing.testutils import should_fail_with
 
 
 @should_fail_with(num_assertion=1)

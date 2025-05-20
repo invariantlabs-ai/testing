@@ -1,5 +1,5 @@
-from invariant.analyzer.runtime.utils.base import BaseDetector, DetectorResult
-from invariant.analyzer.runtime.utils.copyright.software_licenses import *
+from invariant_testing.analyzer.runtime.utils.base import BaseDetector, DetectorResult
+from invariant_testing.analyzer.runtime.utils.copyright.software_licenses import *
 
 # TODO: Maybe want to use more sophisticated approach like https://github.com/licensee/licensee at some point
 
@@ -18,14 +18,14 @@ COPYRIGHT_PATTERNS = [
     "Copyright ©",
 ]
 
-class CopyrightAnalyzer(BaseDetector):
 
+class CopyrightAnalyzer(BaseDetector):
     def detect_software_licenses(self, text: str, threshold: int = 0.5) -> list[DetectorResult]:
         # First check if text starts with the license string
         for license_name, license_text in SOFTWARE_LICENSES.items():
             if text.strip().startswith(license_text.strip()):
                 return [DetectorResult(license_name, 0, len(license_text))]
-        
+
         # Next, use heuristics that checks how many tokens of the license text are in the given text
         res = []
         text_tokens = set(text.strip().split(" "))
@@ -36,13 +36,13 @@ class CopyrightAnalyzer(BaseDetector):
             if in_ratio >= threshold:
                 res += [DetectorResult(license_name, 0, len(license_text))]
         return res
-    
+
     def detect_copyright_patterns(self, text: str, threshold: int = 0.5) -> list[DetectorResult]:
         res = []
         for pattern in COPYRIGHT_PATTERNS:
             pos = text.find(pattern)
             if pos != -1:
-                res += [DetectorResult("COPYRIGHT", pos, pos+len(pattern))]
+                res += [DetectorResult("COPYRIGHT", pos, pos + len(pattern))]
         return res
 
     def detect_all(self, text: str, threshold: int = 0.5) -> list[DetectorResult]:
@@ -50,4 +50,3 @@ class CopyrightAnalyzer(BaseDetector):
         res.extend(self.detect_software_licenses(text, threshold))
         res.extend(self.detect_copyright_patterns(text, threshold))
         return res
-

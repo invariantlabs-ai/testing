@@ -3,7 +3,7 @@
 import logging
 from typing import Union
 
-from invariant.testing.utils.logging import ProbabilityFilter
+from invariant_testing.testing.utils.logging import ProbabilityFilter
 
 from .invariant_value import InvariantValue
 

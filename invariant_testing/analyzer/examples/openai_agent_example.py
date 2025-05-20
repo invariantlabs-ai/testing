@@ -12,7 +12,7 @@ import unittest
 
 from openai import OpenAI
 
-from invariant.analyzer import Monitor
+from invariant_testing.analyzer import Monitor
 
 # define the policy to monitor the trace for security violations
 monitor = Monitor.from_string(
@@ -137,10 +137,10 @@ def openai_agent():
             break
 
     last_message = messages[-1]
-    assert "10" in last_message["content"] or "ten" in last_message["content"], (
-        "Expected the final message to contain '10' or 'ten' but got: {}".format(
-            last_message["content"]
-        )
+    assert (
+        "10" in last_message["content"] or "ten" in last_message["content"]
+    ), "Expected the final message to contain '10' or 'ten' but got: {}".format(
+        last_message["content"]
     )
 
 

@@ -1,6 +1,6 @@
-from invariant.analyzer.runtime.functions import cached
-from invariant.analyzer.runtime.utils.base import DetectorResult
-from invariant.analyzer.runtime.utils.moderation import ModerationAnalyzer
+from invariant_testing.analyzer.runtime.functions import cached
+from invariant_testing.analyzer.runtime.utils.base import DetectorResult
+from invariant_testing.analyzer.runtime.utils.moderation import ModerationAnalyzer
 
 MODERATION_ANALYZER = None
 
@@ -26,8 +26,8 @@ async def moderated(data: str | list | dict, **config: dict) -> bool:
     if MODERATION_ANALYZER is None:
         MODERATION_ANALYZER = ModerationAnalyzer()
 
-    from invariant.analyzer.runtime.evaluation import Interpreter
-    from invariant.analyzer.stdlib.invariant.builtins import text
+    from invariant_testing.analyzer.runtime.evaluation import Interpreter
+    from invariant_testing.analyzer.stdlib.invariant.builtins import text
 
     interpreter = Interpreter.current()
 

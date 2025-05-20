@@ -64,7 +64,7 @@ for conv_idx, conv in enumerate(input_data):
         else:
             assert False
 
-    from invariant.analyzer import Policy
+    from invariant_testing.analyzer import Policy
 
     policy = Policy.from_string(
         r"""

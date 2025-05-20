@@ -1,4 +1,4 @@
-from invariant.analyzer.runtime.functions import cached
+from invariant_testing.analyzer.runtime.functions import cached
 
 COPYRIGHT_ANALYZER = None
 
@@ -12,11 +12,11 @@ def copyright(data: str | list, **config) -> list[str]:
     Supported data types:
     - str: A single message
     """
-    from invariant.analyzer.stdlib.invariant.builtins import text
+    from invariant_testing.analyzer.stdlib.invariant.builtins import text
 
     global COPYRIGHT_ANALYZER
     if COPYRIGHT_ANALYZER is None:
-        from invariant.analyzer.runtime.utils.copyright.copyright import CopyrightAnalyzer
+        from invariant_testing.analyzer.runtime.utils.copyright.copyright import CopyrightAnalyzer
 
         COPYRIGHT_ANALYZER = CopyrightAnalyzer()
 

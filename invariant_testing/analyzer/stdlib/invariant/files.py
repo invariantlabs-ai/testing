@@ -3,8 +3,8 @@ from typing import Callable, Optional
 
 from pydantic.dataclasses import dataclass
 
-from invariant.analyzer.runtime.evaluation import Interpreter
-from invariant.analyzer.runtime.runtime_errors import InvariantAttributeError
+from invariant_testing.analyzer.runtime.evaluation import Interpreter
+from invariant_testing.analyzer.runtime.runtime_errors import InvariantAttributeError
 
 
 @dataclass

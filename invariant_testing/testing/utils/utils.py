@@ -5,7 +5,7 @@ import json
 import os
 import shutil
 
-from invariant.testing.constants import (
+from invariant_testing.testing.constants import (
     INVARIANT_AGENT_PARAMS_ENV_VAR,
     INVARIANT_RUNNER_TEST_RESULTS_DIR,
     INVARIANT_TEST_RUNNER_TERMINAL_WIDTH_ENV_VAR,
@@ -51,6 +51,7 @@ def ast_truncate(s: str, n: int = 256) -> str:
     truncated to the maximum length of `n` on a character level.
 
     Example:
+    -------
     ```
     expect_equals(
         "123",

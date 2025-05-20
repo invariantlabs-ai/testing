@@ -1,14 +1,14 @@
 import re
 
 import urllib3
-from invariant.testing import (
+from invariant_testing.testing import (
     Trace,
     TraceFactory,
     assert_false,
     assert_true,
     expect_true,
 )
-from invariant.testing.custom_types.invariant_image import InvariantImage
+from invariant_testing.testing.custom_types.invariant_image import InvariantImage
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 

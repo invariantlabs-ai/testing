@@ -1,5 +1,5 @@
-from invariant.analyzer.runtime.functions import cached
-from invariant.analyzer.runtime.utils.code import *
+from invariant_testing.analyzer.runtime.functions import cached
+from invariant_testing.analyzer.runtime.utils.code import *
 
 PYTHON_ANALYZER = None
 SEMGREP_DETECTOR = None

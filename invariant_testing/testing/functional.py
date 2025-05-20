@@ -8,10 +8,10 @@ from collections import deque
 from collections.abc import Iterable
 from typing import Any, Callable
 
-from invariant.testing.custom_types.invariant_bool import InvariantBool
-from invariant.testing.custom_types.invariant_number import InvariantNumber
-from invariant.testing.custom_types.invariant_string import InvariantString
-from invariant.testing.custom_types.invariant_value import InvariantValue
+from invariant_testing.testing.custom_types.invariant_bool import InvariantBool
+from invariant_testing.testing.custom_types.invariant_number import InvariantNumber
+from invariant_testing.testing.custom_types.invariant_string import InvariantString
+from invariant_testing.testing.custom_types.invariant_value import InvariantValue
 
 
 def map(  # pylint: disable=redefined-builtin
@@ -65,11 +65,13 @@ def count(
     """Count the number of elements in the list that are equal to value or satisfy the condition defined by value.
 
     Args:
+    ----
         value: The value to compare against or a function that returns True for elements that
             should be counted.
         iterable: The iterable of InvariantValue objects
 
     Returns:
+    -------
         InvariantNumber: The number of elements that match the given value or condition
 
     """
@@ -106,6 +108,7 @@ def match(
     The function calls .match() on each element of the iterable that has .match() function.
 
     Args:
+    ----
         pattern: The regex pattern to match against.
         iterable: The iterable of InvariantValue objects to match against.
         group_id: The group ID to return during the match.
@@ -180,9 +183,11 @@ def len(iterable: Iterable[InvariantValue]) -> InvariantNumber:
     """Return the length of the iterable and the addresses of all elements in the list.
 
     Args:
+    ----
         iterable: The iterable of InvariantValue objects.
 
     Returns:
+    -------
         InvariantNumber: The length of the iterable with addresses.
 
     """
@@ -206,6 +211,7 @@ def check_order(
         - InvariantBool(False, first address of the iterable otherwise)
 
     Args:
+    ----
         checks:   The list of checks to be satisfied. If a check is a function, it should return
                   True if the element satisfies the check. If a check is a value, the element should be
                   equal to the check.
@@ -213,6 +219,7 @@ def check_order(
         iterable: An iterable of InvariantValue objects to check against.
 
     Returns:
+    -------
         InvariantBool: True if the checks are satisfied in order
 
     """
@@ -267,6 +274,7 @@ def check_window(
         - InvariantBool(False, first address of the iterable otherwise)
 
     Args:
+    ----
         checks:   The list of checks to be satisfied. If a check is a function, it should return
                   True if the element satisfies the check. If a check is a value, the element should be
                   equal to the check.
@@ -274,6 +282,7 @@ def check_window(
         iterable: An iterable of InvariantValue objects to check against.
 
     Returns:
+    -------
         InvariantBool: True if the checks are satisfied at least once.
 
     """
@@ -284,9 +293,11 @@ def check_window(
         """Check if a single window matches all the checks.
 
         Args:
+        ----
             window: The window of elements to check against the checks.
 
         Returns:
+        -------
             tuple[bool, list[str]]: True if the window matches all checks, and the addresses of the elements in the window.
 
         """

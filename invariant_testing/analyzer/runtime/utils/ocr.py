@@ -5,8 +5,8 @@ from enum import Enum
 import pytesseract
 from PIL import Image, UnidentifiedImageError
 
-from invariant.analyzer.runtime.nodes import Image as ImageNode
-from invariant.analyzer.runtime.utils.base import BaseDetector
+from invariant_testing.analyzer.runtime.nodes import Image as ImageNode
+from invariant_testing.analyzer.runtime.utils.base import BaseDetector
 
 
 class ImageFormat(str, Enum):

@@ -16,8 +16,8 @@ from typing import Callable
 from pydantic import BaseModel
 from rich.pretty import pprint as rich_print
 
-import invariant.analyzer.language.types as types
-from invariant.analyzer.runtime.nodes import (
+import invariant_testing.analyzer.language.types as types
+from invariant_testing.analyzer.runtime.nodes import (
     Contents,
     Event,
     Image,

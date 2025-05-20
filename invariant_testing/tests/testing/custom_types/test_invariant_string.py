@@ -6,11 +6,11 @@ from unittest.mock import patch
 import pytest
 from pytest import approx
 
-from invariant.testing.custom_types.invariant_bool import InvariantBool
-from invariant.testing.custom_types.invariant_number import InvariantNumber
-from invariant.testing.custom_types.invariant_string import InvariantString
-from invariant.testing.scorers.code import Dependencies
-from invariant.testing.utils.packages import is_program_installed
+from invariant_testing.testing.custom_types.invariant_bool import InvariantBool
+from invariant_testing.testing.custom_types.invariant_number import InvariantNumber
+from invariant_testing.testing.custom_types.invariant_string import InvariantString
+from invariant_testing.testing.scorers.code import Dependencies
+from invariant_testing.testing.utils.packages import is_program_installed
 
 
 def test_invariant_string_initialization():
@@ -339,7 +339,7 @@ def test_execute_without_detect_packages():
 @pytest.mark.skipif(not is_program_installed("docker"), reason="Skip for now, needs docker")
 def test_execute_with_detect_packages():
     """Test the code execution transformer of InvariantString with detect_packages."""
-    with patch("invariant.testing.scorers.code._get_dependencies") as mock_get_dependencies:
+    with patch("invariant_testing.testing.scorers.code._get_dependencies") as mock_get_dependencies:
         mock_get_dependencies.return_value = Dependencies(dependencies=["numpy"])
 
         code = InvariantString(

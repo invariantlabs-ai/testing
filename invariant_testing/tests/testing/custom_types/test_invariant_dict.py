@@ -2,11 +2,11 @@
 
 import pytest
 
-from invariant.testing import LambdaMatcher
-from invariant.testing.custom_types.invariant_bool import InvariantBool
-from invariant.testing.custom_types.invariant_dict import InvariantDict
-from invariant.testing.custom_types.invariant_number import InvariantNumber
-from invariant.testing.custom_types.invariant_string import InvariantString
+from invariant_testing.testing import LambdaMatcher
+from invariant_testing.testing.custom_types.invariant_bool import InvariantBool
+from invariant_testing.testing.custom_types.invariant_dict import InvariantDict
+from invariant_testing.testing.custom_types.invariant_number import InvariantNumber
+from invariant_testing.testing.custom_types.invariant_string import InvariantString
 
 
 def test_invariant_dict_initialization():

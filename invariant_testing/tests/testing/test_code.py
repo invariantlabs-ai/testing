@@ -1,6 +1,6 @@
 """Tests for the code module."""
 
-from invariant.testing.scorers.code import is_valid_json, is_valid_python
+from invariant_testing.testing.scorers.code import is_valid_json, is_valid_python
 
 
 def test_is_valid_json():

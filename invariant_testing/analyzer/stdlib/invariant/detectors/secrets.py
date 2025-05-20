@@ -1,5 +1,5 @@
-from invariant.analyzer.runtime.functions import cached
-from invariant.analyzer.runtime.utils.secrets import SecretsAnalyzer
+from invariant_testing.analyzer.runtime.functions import cached
+from invariant_testing.analyzer.runtime.utils.secrets import SecretsAnalyzer
 
 SECRETS_ANALYZER = None
 
@@ -14,7 +14,7 @@ def secrets(data: str | list | dict, **config: dict) -> list[str]:
         default_threshold: The threshold for the model score above which text is considered to be moderated.
         cat_thresholds: A dictionary of category-specific thresholds.
     """
-    from invariant.analyzer.stdlib.invariant.builtins import text
+    from invariant_testing.analyzer.stdlib.invariant.builtins import text
 
     global SECRETS_ANALYZER
     if SECRETS_ANALYZER is None:

@@ -73,7 +73,7 @@ pip install git+https://github.com/invariantlabs-ai/invariant.git
 You can then import and use the analyzer in your Python code ([Open example in Playground](https://playground.invariantlabs.ai/#1)):
 
 ```python
-from invariant.analyzer import Policy
+from invariant_testing.analyzer import Policy
 
 # given some message trace (simple chat format)
 messages = [
@@ -177,7 +177,7 @@ For example, this policy rule detects if an agent made a request to an untrusted
 
 ```python
 # in Policy.from_string:
-from invariant.analyzer.detectors.code import python_code
+from invariant_testing.analyzer.detectors.code import python_code
 
 raise "tried to execute unsafe code, after visiting an untrusted URL" if:
     # check all flows of 'get_url' to 'run_python'
@@ -206,7 +206,7 @@ To detect and prevent this the analyzer supports the definition of, for instance
 
 ```python
 # in Policy.from_string:
-from invariant.analyzer.access_control import should_allow_rbac, AccessControlViolation
+from invariant_testing.analyzer.access_control import should_allow_rbac, AccessControlViolation
 
 user_roles := {"alice": ["user"], "bob": ["admin", "user"]}
 
@@ -385,7 +385,7 @@ messages = [
 To print a trace input and inspect it with respect to how the analyzer will interpret it, you can use the `input.print()` method (or `input.print(expand_all=True)` for the view with expanded indentation):
 
 ```python
-from invariant.analyzer import Input
+from invariant_testing.analyzer import Input
 
 messages = [
     { "role": "user", "content": "What's in my inbox?" },
@@ -559,8 +559,8 @@ The simplest way to use the analyzer is to analyze a pre-recorded agent trace. T
 To get started, make sure your traces are in [the expected format](#trace-format) and define a policy that specifies the security properties you want to check for. Then, you can use the `Policy` class to analyze the trace ([Open example in Playground](https://playground.invariantlabs.ai/#10)):
 
 ```python
-from invariant.analyzer import Policy
-from invariant.analyzer.traces import * # for message trace helpers
+from invariant_testing.analyzer import Policy
+from invariant_testing.analyzer.traces import * # for message trace helpers
 
 policy = Policy.from_string(
 """
@@ -625,7 +625,7 @@ The analyzer can also be used to monitor AI agents in real-time. This allows you
 For instance, consider the following example of an OpenAI agent based on OpenAI tool calling:
 
 ```python
-from invariant.analyzer import Monitor
+from invariant_testing.analyzer import Monitor
 from openai import OpenAI
 
 # create an Invariant Monitor initialized with a policy
@@ -671,8 +671,8 @@ This way, all tool interactions of the agent are monitored in real-time. As soon
 To monitor a `langchain`-based agent, you can use a `MonitoringAgentExecutor`, which will automatically intercept tool calls and check them against the policy for you, just like in the OpenAI agent example above.
 
 ```python
-from invariant.analyzer import Monitor
-from invariant.analyzer.integrations.langchain_integration import MonitoringAgentExecutor
+from invariant_testing.analyzer import Monitor
+from invariant_testing.analyzer.integrations.langchain_integration import MonitoringAgentExecutor
 
 from langchain_openai import ChatOpenAI
 from langchain.agents import tool, create_openai_functions_agent

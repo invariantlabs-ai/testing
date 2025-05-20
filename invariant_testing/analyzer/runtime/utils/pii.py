@@ -1,5 +1,5 @@
-from invariant.analyzer.extras import presidio_extra
-from invariant.analyzer.runtime.utils.base import BaseDetector
+from invariant_testing.analyzer.extras import presidio_extra
+from invariant_testing.analyzer.runtime.utils.base import BaseDetector
 
 
 class PII_Analyzer(BaseDetector):

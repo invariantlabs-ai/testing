@@ -51,6 +51,6 @@ class CachedFunctionWrapper:
         self.func.__invariant_cache__ = True
 
     def __call__(self, *args, **kwargs):
-        from invariant.analyzer.runtime.evaluation import Interpreter
+        from invariant_testing.analyzer.runtime.evaluation import Interpreter
 
         return Interpreter.current().acall_function(self.func, *args, **kwargs)

@@ -5,14 +5,14 @@ from typing import Literal
 
 import aiohttp
 
-from invariant.analyzer.base_policy import BasePolicy
-from invariant.analyzer.runtime.runtime_errors import (
+from invariant_testing.analyzer.base_policy import BasePolicy
+from invariant_testing.analyzer.runtime.runtime_errors import (
     ExcessivePolicyError,
     InvariantAttributeError,
     MissingPolicyParameter,
     PolicyExecutionError,
 )
-from invariant.analyzer.stdlib.invariant.errors import (
+from invariant_testing.analyzer.stdlib.invariant.errors import (
     AnalysisResult,
     ErrorInformation,
     PolicyLoadingError,

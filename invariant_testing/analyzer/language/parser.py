@@ -6,10 +6,15 @@ import textwrap
 
 import lark
 
-from invariant.analyzer.language.ast import *
-from invariant.analyzer.language.ast import BinaryExpr, FunctionCall, Identifier, ValueReference
-from invariant.analyzer.language.optimizer import optimize
-from invariant.analyzer.language.typing import typing
+from invariant_testing.analyzer.language.ast import *
+from invariant_testing.analyzer.language.ast import (
+    BinaryExpr,
+    FunctionCall,
+    Identifier,
+    ValueReference,
+)
+from invariant_testing.analyzer.language.optimizer import optimize
+from invariant_testing.analyzer.language.typing import typing
 
 """
 Lark EBNF grammar for the Invariant Policy Language.

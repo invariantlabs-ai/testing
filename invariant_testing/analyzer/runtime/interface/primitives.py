@@ -10,7 +10,7 @@ the analysis.
 
 """
 
-from invariant.analyzer.runtime.runtime_errors import (
+from invariant_testing.analyzer.runtime.runtime_errors import (
     ExcessivePolicyError,
 )
 

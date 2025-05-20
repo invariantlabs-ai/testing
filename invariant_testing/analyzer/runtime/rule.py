@@ -2,18 +2,18 @@ import os
 import textwrap
 from typing import Optional
 
-import invariant.analyzer.language.ast as ast
-from invariant.analyzer.language.linking import link
-from invariant.analyzer.runtime.evaluation import (
+import invariant_testing.analyzer.language.ast as ast
+from invariant_testing.analyzer.language.linking import link
+from invariant_testing.analyzer.runtime.evaluation import (
     EvaluationContext,
     EvaluationResult,
     Interpreter,
     Unknown,
 )
-from invariant.analyzer.runtime.function_cache import FunctionCache
-from invariant.analyzer.runtime.input import Input
-from invariant.analyzer.runtime.symbol_table import SymbolTable
-from invariant.analyzer.stdlib.invariant.errors import ErrorInformation
+from invariant_testing.analyzer.runtime.function_cache import FunctionCache
+from invariant_testing.analyzer.runtime.input import Input
+from invariant_testing.analyzer.runtime.symbol_table import SymbolTable
+from invariant_testing.analyzer.stdlib.invariant.errors import ErrorInformation
 
 
 class PolicyAction:
@@ -37,7 +37,7 @@ class RaiseAction(PolicyAction):
         return res is not Unknown
 
     async def __call__(self, model: EvaluationResult, evaluation_context=None):
-        from invariant.analyzer.stdlib.invariant.errors import PolicyViolation
+        from invariant_testing.analyzer.stdlib.invariant.errors import PolicyViolation
 
         if type(self.exception_or_constructor) is ast.StringLiteral:
             return PolicyViolation(self.exception_or_constructor.value, ranges=model.ranges)

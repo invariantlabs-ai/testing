@@ -1,6 +1,6 @@
-from invariant.analyzer.runtime.evaluation_context import EvaluationContext
-from invariant.analyzer.runtime.input import Input
-from invariant.analyzer.runtime.quantifier import Quantifier
+from invariant_testing.analyzer.runtime.evaluation_context import EvaluationContext
+from invariant_testing.analyzer.runtime.input import Input
+from invariant_testing.analyzer.runtime.quantifier import Quantifier
 
 
 class forall(Quantifier):
@@ -22,7 +22,7 @@ class forall(Quantifier):
     async def eval(
         self, input_data: Input, body, globals: dict, evaluation_context: EvaluationContext
     ):
-        from invariant.analyzer.runtime.evaluation import Interpreter
+        from invariant_testing.analyzer.runtime.evaluation import Interpreter
 
         async for m in Interpreter.assignments(
             body, input_data, globals, evaluation_context=evaluation_context
@@ -66,7 +66,7 @@ class count(Quantifier):
     async def eval(
         self, input_data: Input, body, globals: dict, evaluation_context: EvaluationContext
     ):
-        from invariant.analyzer.runtime.evaluation import Interpreter
+        from invariant_testing.analyzer.runtime.evaluation import Interpreter
 
         n_matches = 0
         bad_models = 0

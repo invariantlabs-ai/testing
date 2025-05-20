@@ -6,9 +6,10 @@ import tempfile
 from typing import Tuple
 
 import openai
-from invariant.testing.custom_types.addresses import Range
-from invariant.testing.utils.packages import is_program_installed
 from pydantic import BaseModel
+
+from invariant_testing.testing.custom_types.addresses import Range
+from invariant_testing.testing.utils.packages import is_program_installed
 
 
 def is_valid_json(text: str) -> Tuple[bool, int | None]:
@@ -58,6 +59,7 @@ def execute(text: str, detect_packages: bool = False) -> str:
     The code runs inside of a docker container and uses uv package manager to quickly install the dependencies.
 
     Args:
+    ----
         text (str): The Python code to execute.
         detect_packages (bool): Whether to detect the dependencies of the code.
 

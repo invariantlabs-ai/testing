@@ -3,8 +3,8 @@
 from enum import Enum
 from typing import Any
 
-from invariant.testing.scorers.llm.classifier import Classifier
-from invariant.testing.scorers.strings import embedding_similarity, levenshtein
+from invariant_testing.testing.scorers.llm.classifier import Classifier
+from invariant_testing.testing.scorers.strings import embedding_similarity, levenshtein
 
 
 class Matcher:
@@ -105,9 +105,9 @@ class IsFactuallyEqual(Matcher):
         question: str,
         level: Agreement = Agreement.STRICT_AGREEMENT,
     ):
-        assert level in self.levels_to_score_mapping.keys(), (
-            f"Invalid scoring level {level}. Must be one of {self.levels_to_score_mapping.keys()}"
-        )
+        assert (
+            level in self.levels_to_score_mapping.keys()
+        ), f"Invalid scoring level {level}. Must be one of {self.levels_to_score_mapping.keys()}"
 
         self.expected_value = expected_value
         self.question = question
@@ -163,9 +163,11 @@ class ContainsImage(Matcher):
         """Run the matching logic.
 
         Args:
+        ----
             actual_value: str | dict - The value to check if it is an image.
 
         Returns:
+        -------
             bool: True if the value is an image, False otherwise.
 
         """

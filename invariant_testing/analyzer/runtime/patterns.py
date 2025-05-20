@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from invariant.analyzer.language.ast import (
+from invariant_testing.analyzer.language.ast import (
     ArrayLiteral,
     Node,
     NumberLiteral,
@@ -20,10 +20,10 @@ from invariant.analyzer.language.ast import (
     ValueReference,
     Wildcard,
 )
-from invariant.analyzer.runtime.nodes import text
-from invariant.analyzer.stdlib.invariant.detectors import pii
-from invariant.analyzer.stdlib.invariant.detectors.moderation import moderated
-from invariant.analyzer.stdlib.invariant.nodes import ToolCall, ToolOutput
+from invariant_testing.analyzer.runtime.nodes import text
+from invariant_testing.analyzer.stdlib.invariant.detectors import pii
+from invariant_testing.analyzer.stdlib.invariant.detectors.moderation import moderated
+from invariant_testing.analyzer.stdlib.invariant.nodes import ToolCall, ToolOutput
 
 
 class SemanticPatternMatcher(ABC):
@@ -223,7 +223,7 @@ class PIIMatcher(SemanticPatternMatcher):
         return f"PIIMatcher({self.entity})"
 
     async def match(self, value) -> bool:
-        from invariant.analyzer.runtime.evaluation import Interpreter
+        from invariant_testing.analyzer.runtime.evaluation import Interpreter
 
         result = await Interpreter.current().acall_function(pii, value)
         return self.entity in result
@@ -243,7 +243,7 @@ class ModerationMatcher(SemanticPatternMatcher):
         return f"ModerationMatcher({self.category})"
 
     async def match(self, value) -> bool:
-        from invariant.analyzer.runtime.evaluation import Interpreter
+        from invariant_testing.analyzer.runtime.evaluation import Interpreter
 
         return await Interpreter.current().acall_function(moderated, value)
 

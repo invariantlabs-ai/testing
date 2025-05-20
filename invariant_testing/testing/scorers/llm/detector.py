@@ -4,10 +4,11 @@ import json
 import logging
 from typing import Any, Tuple
 
-from invariant.testing.cache import CacheManager
-from invariant.testing.custom_types.addresses import Range
 from openai.types.chat.parsed_chat_completion import ParsedChatCompletion
 from pydantic import BaseModel
+
+from invariant_testing.testing.cache import CacheManager
+from invariant_testing.testing.custom_types.addresses import Range
 
 from .clients.anthropic_client import AnthropicClient
 from .clients.client import SupportedClients
@@ -103,6 +104,7 @@ class Detector:
         """Instantiate Detector object.
 
         Args:
+        ----
             predicate_rule (str): The predicate rule to use for detection. The
                 predicate to use for extraction. This is a rule that the LLM uses
                 to extract values. For example with a predicate "cities in Switzerland",
@@ -202,6 +204,7 @@ class Detector:
         """Detect parts of the text that match the predicate rule.
 
         Args:
+        ----
             text (str): The text to detect on.
             use_cached_result (bool): Whether to use a cached result if available.
 

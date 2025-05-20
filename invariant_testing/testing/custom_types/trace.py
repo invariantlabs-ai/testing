@@ -5,10 +5,11 @@ from __future__ import annotations
 import json
 from typing import Any, Callable, Dict, Generator, List
 
-from invariant.testing.utils.utils import ssl_verification_enabled
 from invariant_sdk.client import Client as InvariantClient
 from invariant_sdk.types.push_traces import PushTracesResponse
 from pydantic import BaseModel
+
+from invariant_testing.testing.utils.utils import ssl_verification_enabled
 
 from .invariant_dict import InvariantDict, InvariantValue
 from .matchers import ContainsImage, Matcher
@@ -20,9 +21,11 @@ def iterate_tool_calls(
     """Return generator to iterate over tool calls in a list of messages.
 
     Args:
+    ----
         messages (list[dict]): A list of messages without address information.
 
     Yields:
+    ------
         tuple[list[str], dict]: A tuple containing:
             - A list of strings representing the hierarchical address of the tool call
               in the message. For example, `["1.tool_calls.0"]` indicates the first tool
@@ -30,6 +33,7 @@ def iterate_tool_calls(
             - The tool call data (a dictionary or object representing the tool call).
 
     Example:
+    -------
         messages = [
             {"role": "user", "content": "What's the weather?"},
             {
@@ -69,9 +73,11 @@ def iterate_tool_outputs(
     """Return generator to iterate over tool outputs in a list of messages.
 
     Args:
+    ----
         messages (list[dict]): A list of messages without address information.
 
     Yields:
+    ------
         tuple[list[str], dict]: A tuple containing:
             - A list of strings representing the hierarchical address of the tool output
               in the message. For example, `["2"]` indicates the third message in the list.
@@ -89,9 +95,11 @@ def iterate_messages(
     """Return generator to iterate over messages in a list of messages.
 
     Args:
+    ----
         messages (list[dict]): A list of messages without address information.
 
     Yields:
+    ------
         tuple[list[str], dict]: A tuple containing:
             - A list of strings representing the hierarchical address of the message
               in the list. For example, `["1"]` indicates the second message in the list.
@@ -150,10 +158,12 @@ def traverse_dot_path(message: dict, path: str) -> Any | None:
     function fields for tool calls.
 
     Args:
+    ----
         message (dict): The message dict to traverse.
         path (str): The dot-separated path to traverse.
 
     Returns:
+    -------
         Any: The value at the end of the path, or None if the path does not exist;
              If the "function." prefix is added, the second return value will be True,
              otherwise False.
@@ -204,7 +214,7 @@ class Trace(BaseModel):
             yield InvariantDict(msg, [str(i)])
 
     def as_context(self):
-        from invariant.testing.manager import (
+        from invariant_testing.testing.manager import (
             Manager,  # pylint: disable=import-outside-toplevelå
         )
 
@@ -216,6 +226,7 @@ class Trace(BaseModel):
         """Run a list of assertions on the trace. Assertions are run by providing a list of functions, each taking Trace object as a single argument.
 
         Args:
+        ----
             assertions: A list of functions taking Trace as a single argument
 
         """
@@ -227,7 +238,8 @@ class Trace(BaseModel):
     def content_checkers(self) -> Dict[str, Matcher]:
         """Register content checkers for data_types. When implementing a new content checker, add the new content checker to the dictionary below.
 
-        Returns:
+        Returns
+        -------
             Dict[str, Matcher]: The content checkers for the trace.
 
         """
@@ -246,13 +258,16 @@ class Trace(BaseModel):
         (i.e., no filtering is performed).
 
         Args:
+        ----
             message: The message to check.
             data_type: The data_type to check against.
 
         Returns:
+        -------
             bool: True if the message matches the data_type, False otherwise.
 
         Raises:
+        ------
             ValueError: If the data_type is not supported.
 
         """
@@ -279,6 +294,7 @@ class Trace(BaseModel):
         """Filter the trace based on the provided selector, keyword arguments and data_type. Use this method as a helper for custom filters such as messages(), tool_calls(), and tool_outputs().
 
         Args:
+        ----
             iterator_func: The iterator function to use to iterate over the trace.
                            It should take a list of messages and return a generator
                            that yields tuples of addresses and messages.
@@ -288,6 +304,7 @@ class Trace(BaseModel):
             **filterkwargs: The keyword arguments to use to filter the trace.
 
         Returns:
+        -------
             list[InvariantDict] | InvariantDict: The filtered trace.
 
         """
@@ -344,11 +361,13 @@ class Trace(BaseModel):
         """Get all messages from the trace that match the provided selector, data_type, and keyword filters.
 
         Args:
+        ----
             selector: The selector to use to filter the trace.
             data_type: The data_type to filter on. Uses the content_checkers to check the data_type.
             **filterkwargs: The keyword arguments to use to filter the trace.
 
         Returns:
+        -------
             list[InvariantDict] | InvariantDict: The filtered messages.
 
         """
@@ -371,11 +390,13 @@ class Trace(BaseModel):
         """Get all tool calls from the trace that match the provided selector, data_type, and keyword filters.
 
         Args:
+        ----
             selector: The selector to use to filter the trace.
             data_type: The data_type to filter on. Uses the content_checkers to check the data_type.
             **filterkwargs: The keyword arguments to use to filter the trace.
 
         Returns:
+        -------
             list[InvariantDict] | InvariantDict: The filtered tool calls.
 
         """
@@ -396,11 +417,13 @@ class Trace(BaseModel):
         """Get all tool outputs from the trace that match the provided selector, data_type, and keyword filters.
 
         Args:
+        ----
             selector: The selector to use to filter the trace.
             data_type: The data_type to filter on. Uses the content_checkers to check the data_type.
             **filterkwargs: The keyword arguments to use to filter the trace.
 
         Returns:
+        -------
             list[InvariantDict] | InvariantDict: The filtered tool outputs.
 
         """
@@ -454,7 +477,8 @@ class Trace(BaseModel):
     def to_python(self) -> str:
         """Return a snippet of Python code construct that can be used to recreate the trace in a Python script.
 
-        Returns:
+        Returns
+        -------
             str: The Python string representing the trace.
 
         """
@@ -472,10 +496,12 @@ class Trace(BaseModel):
         """Pushes the trace to the explorer.
 
         Args:
+        ----
             client: The client used to push. If None a standard invariant_sdk client is initialized.
             dataset_name: The name of the dataset to witch the trace would be approved.
 
         Returns:
+        -------
             PushTracesResponse: response of push trace request.
 
         """

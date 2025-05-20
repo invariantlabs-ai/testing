@@ -6,8 +6,8 @@ In a separate file, for better separation of dependencies.
 
 from typing import Optional
 
-from invariant.analyzer.runtime.input import Input
-from invariant.analyzer.runtime.symbol_table import SymbolTable
+from invariant_testing.analyzer.runtime.input import Input
+from invariant_testing.analyzer.runtime.symbol_table import SymbolTable
 
 
 class EvaluationContext:

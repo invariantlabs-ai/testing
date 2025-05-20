@@ -4,7 +4,7 @@ Invariant Policy Language scoping.
 
 import inspect
 
-from invariant.analyzer.language.types import FunctionType, UnknownType
+from invariant_testing.analyzer.language.types import FunctionType, UnknownType
 
 IPL_BUILTINS = [
     "LLM",
@@ -73,7 +73,7 @@ class VariableDeclaration:
 
     @classmethod
     def from_signature(cls, signature: "FunctionSignature | Identifier", value=None):
-        from invariant.analyzer.language.ast import FunctionSignature, Identifier
+        from invariant_testing.analyzer.language.ast import FunctionSignature, Identifier
 
         if isinstance(signature, FunctionSignature):  # predicate declaration
             return cls(signature.name.name, value=value)

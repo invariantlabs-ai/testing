@@ -1,6 +1,6 @@
 import importlib
 
-from invariant.analyzer.language.scope import ExternalReference
+from invariant_testing.analyzer.language.scope import ExternalReference
 
 
 class SymbolTable:

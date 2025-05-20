@@ -5,7 +5,7 @@ Batched detectors.
 import asyncio
 from typing import Awaitable, Callable, Generic, List, Optional, TypeVar
 
-from invariant.analyzer.runtime.utils.base import BaseDetector
+from invariant_testing.analyzer.runtime.utils.base import BaseDetector
 
 T = TypeVar("T")
 R = TypeVar("R")

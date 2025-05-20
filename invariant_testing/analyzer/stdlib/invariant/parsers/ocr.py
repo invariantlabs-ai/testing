@@ -1,6 +1,6 @@
-from invariant.analyzer.runtime.functions import cached
-from invariant.analyzer.runtime.nodes import Image as ImageNode
-from invariant.analyzer.stdlib.invariant.builtins import image
+from invariant_testing.analyzer.runtime.functions import cached
+from invariant_testing.analyzer.runtime.nodes import Image as ImageNode
+from invariant_testing.analyzer.stdlib.invariant.builtins import image
 
 OCR_ANALYZER = None
 
@@ -12,7 +12,7 @@ async def _ocr_detect(image_data: str | list[ImageNode | str] | ImageNode) -> st
     """
     global OCR_ANALYZER
     if OCR_ANALYZER is None:
-        from invariant.analyzer.runtime.utils.ocr import OCRAnalyzer
+        from invariant_testing.analyzer.runtime.utils.ocr import OCRAnalyzer
 
         OCR_ANALYZER = OCRAnalyzer()
 

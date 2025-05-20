@@ -2,11 +2,11 @@
 
 import pytest
 
-import invariant.testing.functional as F
-from invariant.testing import Trace
-from invariant.testing.custom_types.invariant_bool import InvariantBool
-from invariant.testing.custom_types.invariant_number import InvariantNumber
-from invariant.testing.custom_types.invariant_string import InvariantString
+import invariant_testing.testing.functional as F
+from invariant_testing.testing import Trace
+from invariant_testing.testing.custom_types.invariant_bool import InvariantBool
+from invariant_testing.testing.custom_types.invariant_number import InvariantNumber
+from invariant_testing.testing.custom_types.invariant_string import InvariantString
 
 
 @pytest.fixture(name="message_list")
@@ -487,9 +487,9 @@ def test_check_order_handles_empty_checks(invariant_number_list: list):
 def test_check_order_handles_check_longer_than_trace(invariant_number_list: list):
     """Test that check_order handles checks that are longer than the trace."""
     checks = [1, 5, 8, 4, 2, 4, 1]
-    assert len(checks) > F.len(invariant_number_list), (
-        "Invalid test, checks should be longer than the trace."
-    )
+    assert len(checks) > F.len(
+        invariant_number_list
+    ), "Invalid test, checks should be longer than the trace."
 
     result = F.check_order(checks, invariant_number_list)
 

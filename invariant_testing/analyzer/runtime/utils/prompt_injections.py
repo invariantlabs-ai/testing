@@ -1,8 +1,8 @@
 import unicodedata
 
-from invariant.analyzer.extras import transformers_extra
-from invariant.analyzer.runtime.utils.base import BaseDetector, DetectorResult
-from invariant.analyzer.runtime.utils.batching import BatchedDetector
+from invariant_testing.analyzer.extras import transformers_extra
+from invariant_testing.analyzer.runtime.utils.base import BaseDetector, DetectorResult
+from invariant_testing.analyzer.runtime.utils.batching import BatchedDetector
 
 DEFAULT_PI_MODEL = "protectai/deberta-v3-base-prompt-injection-v2"
 

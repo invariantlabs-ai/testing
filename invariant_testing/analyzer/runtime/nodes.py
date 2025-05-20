@@ -3,7 +3,7 @@ from typing import Dict, Optional, Union
 from pydantic import BaseModel, Field, RootModel
 from pydantic.dataclasses import dataclass
 
-from invariant.analyzer.runtime.runtime_errors import InvariantAttributeError
+from invariant_testing.analyzer.runtime.runtime_errors import InvariantAttributeError
 
 
 @dataclass
@@ -241,7 +241,7 @@ def text(*args):
 
     Also supports nested lists of that structure.
     """
-    from invariant.analyzer.stdlib.invariant.nodes import Contents, Message
+    from invariant_testing.analyzer.stdlib.invariant.nodes import Contents, Message
 
     result = []
     for arg in args:
@@ -275,7 +275,7 @@ def image(*args) -> list[str]:
     Returns:
         A list of base64 encoded image strings.
     """
-    from invariant.analyzer.stdlib.invariant.nodes import Contents, Message
+    from invariant_testing.analyzer.stdlib.invariant.nodes import Contents, Message
 
     result = []
     for arg in args:

@@ -1,7 +1,7 @@
 import asyncio
 
-from invariant.analyzer.extras import transformers_extra
-from invariant.analyzer.runtime.utils.base import BaseDetector, DetectorResult
+from invariant_testing.analyzer.extras import transformers_extra
+from invariant_testing.analyzer.runtime.utils.base import BaseDetector, DetectorResult
 
 DEFAULT_MODERATION_MODEL = "KoalaAI/Text-Moderation"
 

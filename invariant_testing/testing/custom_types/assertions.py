@@ -2,7 +2,7 @@
 
 from typing import Any, Literal, Tuple
 
-from invariant.testing.manager import Manager
+from invariant_testing.testing.manager import Manager
 
 from .assertion_result import AssertionResult
 from .invariant_bool import InvariantBool

@@ -3,12 +3,12 @@ import os
 
 import pytest
 
-from invariant.testing.scorers.base import approx
-from invariant.testing.scorers.llm.classifier import Classifier
-from invariant.testing.scorers.llm.detector import Detector
-from invariant.testing.scorers.strings import contains, levenshtein
-from invariant.testing.scorers.utils.ocr import OCRDetector
-from invariant.testing.utils.packages import is_program_installed
+from invariant_testing.testing.scorers.base import approx
+from invariant_testing.testing.scorers.llm.classifier import Classifier
+from invariant_testing.testing.scorers.llm.detector import Detector
+from invariant_testing.testing.scorers.strings import contains, levenshtein
+from invariant_testing.testing.scorers.utils.ocr import OCRDetector
+from invariant_testing.testing.utils.packages import is_program_installed
 
 
 def test_levenshtein():
@@ -120,7 +120,7 @@ def test_detector(model, client):
 def test_vision_classifier(model, client):
     """Test the LLM vision classifier with OpenAI and Anthropic models"""
     with open(
-        "invariant/testing/sample_tests/assets/Group_of_cats_resized.jpg", "rb"
+        "invariant_testing/testing/sample_tests/assets/Group_of_cats_resized.jpg", "rb"
     ) as image_file:
         base64_image = base64.b64encode(image_file.read()).decode("utf-8")
     llm_clf = Classifier(
@@ -151,7 +151,7 @@ def test_vision_classifier(model, client):
 def test_OCRDetector():
     from PIL import Image
 
-    image = Image.open("invariant/testing/sample_tests/assets/inv_labs.png")
+    image = Image.open("invariant_testing/testing/sample_tests/assets/inv_labs.png")
 
     # Test case-insensitive detection
     ocr = OCRDetector()

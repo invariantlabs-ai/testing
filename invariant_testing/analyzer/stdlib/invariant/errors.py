@@ -4,10 +4,10 @@ from typing import Optional, Union
 
 from pydantic import BaseModel, Field
 
-from invariant.analyzer.language.ast import PolicyError
-from invariant.analyzer.runtime.nodes import Contents, Message, ToolCall, ToolOutput
-from invariant.analyzer.runtime.range import Range
-from invariant.analyzer.stdlib.invariant.nodes import Event
+from invariant_testing.analyzer.language.ast import PolicyError
+from invariant_testing.analyzer.runtime.nodes import Contents, Message, ToolCall, ToolOutput
+from invariant_testing.analyzer.runtime.range import Range
+from invariant_testing.analyzer.stdlib.invariant.nodes import Event
 
 
 class AccessDenied:

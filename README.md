@@ -38,7 +38,7 @@ pip install invariant
 
 ```python
 # content of tests/test_weather.py
-from invariant.testing import Trace, assert_equals
+from invariant_testing.testing import Trace, assert_equals
 
 def test_weather():
     # create a Trace object from your agent trajectory

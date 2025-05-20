@@ -12,16 +12,20 @@ from contextvars import ContextVar
 from json import JSONEncoder
 
 import pytest
-from invariant.testing.config import Config
-from invariant.testing.constants import INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR
-from invariant.testing.custom_types.invariant_dict import InvariantDict
-from invariant.testing.custom_types.invariant_string import InvariantString
-from invariant.testing.custom_types.test_result import AssertionResult, TestResult
-from invariant.testing.formatter import format_trace
-from invariant.testing.utils import utils
 from invariant_sdk.client import Client as InvariantClient
 from invariant_sdk.types.push_traces import PushTracesResponse
 from pydantic import ValidationError
+
+from invariant_testing.testing.config import Config
+from invariant_testing.testing.constants import INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR
+from invariant_testing.testing.custom_types.invariant_dict import InvariantDict
+from invariant_testing.testing.custom_types.invariant_string import InvariantString
+from invariant_testing.testing.custom_types.test_result import (
+    AssertionResult,
+    TestResult,
+)
+from invariant_testing.testing.formatter import format_trace
+from invariant_testing.testing.utils import utils
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

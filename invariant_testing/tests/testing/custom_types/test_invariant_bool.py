@@ -2,7 +2,7 @@
 
 import pytest
 
-from invariant.testing.custom_types.invariant_bool import InvariantBool
+from invariant_testing.testing.custom_types.invariant_bool import InvariantBool
 
 
 @pytest.mark.parametrize(

@@ -2,7 +2,7 @@
 
 from typing import Optional, Tuple
 
-from invariant.testing.custom_types.addresses import Range
+from invariant_testing.testing.custom_types.addresses import Range
 
 from .utils.base import BaseDetector
 
@@ -34,6 +34,7 @@ class ModerationAnalyzer(BaseDetector):
     are configurable for different providers.
 
     Example:
+    -------
         analyzer = ModerationAnalyzer()
         results = analyzer.detect_all(
             text="Some potentially harmful text.",
@@ -105,6 +106,7 @@ class ModerationAnalyzer(BaseDetector):
         """Provides tools to detect text content that may violate moderation guidelines.
 
         Args:
+        ----
             text: The text to analyze.
             split: The delimiter to split the text into chunks.
             model: The model to use for moderation detection.
@@ -113,6 +115,7 @@ class ModerationAnalyzer(BaseDetector):
             category_thresholds: A dictionary of category-specific thresholds.
 
         Returns:
+        -------
             A list of (category, range) objects, each representing a substring that should be
             moderated.
 

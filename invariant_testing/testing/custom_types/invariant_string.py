@@ -8,11 +8,16 @@ from operator import ge, gt, le, lt, ne
 from typing import Any, Literal, Union
 
 from _pytest.python_api import ApproxBase
-from invariant.testing.scorers.code import execute, is_valid_json, is_valid_python
-from invariant.testing.scorers.llm.classifier import Classifier
-from invariant.testing.scorers.llm.detector import Detector
-from invariant.testing.scorers.moderation import ModerationAnalyzer
-from invariant.testing.scorers.strings import embedding_similarity, levenshtein
+
+from invariant_testing.testing.scorers.code import (
+    execute,
+    is_valid_json,
+    is_valid_python,
+)
+from invariant_testing.testing.scorers.llm.classifier import Classifier
+from invariant_testing.testing.scorers.llm.detector import Detector
+from invariant_testing.testing.scorers.moderation import ModerationAnalyzer
+from invariant_testing.testing.scorers.strings import embedding_similarity, levenshtein
 
 from .invariant_bool import InvariantBool
 from .invariant_number import InvariantNumber
@@ -131,9 +136,11 @@ class InvariantString(InvariantValue):
         """Delegate attribute access to the underlying string.
 
         Args:
+        ----
             attr (str): The attribute being accessed.
 
         Returns:
+        -------
             Any: Uses InvariantValue.of to return the result.
                  If the result is a string, then an InvariantString is returned with that
                  the result string as the value. If the result is a number, then an InvariantNumber.
@@ -195,12 +202,14 @@ class InvariantString(InvariantValue):
         """Check if the value contains all of the given patterns.
 
         Args:
+        ----
             *patterns: Variable number of patterns to check for. Each pattern can be a string
                       or InvariantString.
             criterion: The criterion to use for the contains check - can be "all" or "any".
             flags: The flags to use for the regex search. To pass in multiple flags, use the bitwise OR operator (|). By default, this is re.IGNORECASE.
 
         Returns:
+        -------
             InvariantBool: True if all patterns are found, False otherwise. The addresses will
                           contain the locations of all pattern matches if found.
 
@@ -290,6 +299,7 @@ class InvariantString(InvariantValue):
         """Check if the value is similar to the given string using an LLM.
 
         Args:
+        ----
             prompt (str): The prompt to use for the LLM.
             options (list[str]): The options to use for the LLM.
             model (str): The model to use for the LLM.
@@ -312,6 +322,7 @@ class InvariantString(InvariantValue):
         """Extract values from the underlying string using an LLM.
 
         Args:
+        ----
             predicate (str): The predicate to use for extraction. This is a rule
                 that the LLM uses to extract values. For example with a predicate
                 "cities in Switzerland", the LLM would extract all cities in
@@ -335,6 +346,7 @@ class InvariantString(InvariantValue):
         """Execute the value as Python code and return the standard output as InvariantString.
 
         Args:
+        ----
             pattern (str): The pattern to check for in the output.
             suffix_code (str): The Python code to append to the value before execution.
             detect_packages (bool): Whether to detect the dependencies of the code.

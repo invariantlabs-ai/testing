@@ -1,7 +1,7 @@
 # get Failed exception from pytest
 
-from invariant.testing import IsSimilar, Trace, assert_that
-from invariant.tests.testing.testutils import should_fail_with
+from invariant_testing.testing import IsSimilar, Trace, assert_that
+from invariant_testing.tests.testing.testutils import should_fail_with
 
 
 @should_fail_with(num_assertion=0)

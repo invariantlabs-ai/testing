@@ -1,6 +1,7 @@
 """Tests different modes of using the library."""
 
 import io
+import os
 import subprocess
 import tempfile
 
@@ -31,6 +32,10 @@ class WorkspaceHelper:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
+            env={  # extend PYTHONPATH to include the current directory
+                **os.environ,
+                "PYTHONPATH": f"{os.getcwd()}{os.pathsep}{os.getenv('PYTHONPATH', '')}",
+            },
         )
         stdout, stderr = p.communicate()
 
@@ -49,7 +54,7 @@ class WorkspaceHelper:
         import os
 
         p = subprocess.Popen(
-            ["invariant", "test", self.workspace.name],
+            ["invariant-testing", "test", self.workspace.name],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -73,7 +78,7 @@ def test_pytest_no_context():
     with WorkspaceHelper(
         {
             "test_file1.py": """
-from invariant.testing import assert_true
+from invariant_testing.testing import assert_true
 
 def test_true():
     assert_true(True)
@@ -141,7 +146,7 @@ def test_pytest_with_context():
     with WorkspaceHelper(
         {
             "test_file1.py": """
-from invariant.testing import assert_false, Trace
+from invariant_testing.testing import assert_false, Trace
 
 
 def test_my_trace():
@@ -197,7 +202,7 @@ def test_pytest_with_context_regular_assertions():
     with WorkspaceHelper(
         {
             "test_file1.py": """
-from invariant.testing import assert_false, Trace
+from invariant_testing.testing import assert_false, Trace
 
 def test_my_trace():
     trace = Trace(
@@ -242,7 +247,7 @@ def test_invariant_no_context():
     with WorkspaceHelper(
         {
             "test_file1.py": """
-from invariant.testing import assert_true
+from invariant_testing.testing import assert_true
 
 def test_true():
     assert_true(True)
@@ -311,7 +316,7 @@ def test_invariant_with_context():
     with WorkspaceHelper(
         {
             "test_file1.py": """
-from invariant.testing import assert_false, Trace
+from invariant_testing.testing import assert_false, Trace
 
 
 def test_my_trace():
@@ -369,7 +374,7 @@ def test_invariant_with_context_regular_assertions():
     with WorkspaceHelper(
         {
             "test_file1.py": """
-from invariant.testing import assert_false, Trace
+from invariant_testing.testing import assert_false, Trace
 
 def test_my_trace():
     trace = Trace(
@@ -394,9 +399,9 @@ def test_my_trace():
 
         assert exit_code != 0, "Exit code should not be 0"
 
-        assert "Invariant Test summary" in result, (
-            "'Invariant test summary' should be included in output when running with 'invariant test'"
-        )
+        assert (
+            "Invariant Test summary" in result
+        ), "'Invariant test summary' should be included in output when running with 'invariant test'"
 
         # check that normal pytest assertions fail correctly
         assert (

@@ -2,8 +2,8 @@
 
 import pytest
 
-from invariant.testing.custom_types.invariant_bool import InvariantBool
-from invariant.testing.custom_types.invariant_number import InvariantNumber
+from invariant_testing.testing.custom_types.invariant_bool import InvariantBool
+from invariant_testing.testing.custom_types.invariant_number import InvariantNumber
 
 
 def test_invariant_number_initialization():

@@ -1,11 +1,11 @@
 import builtins as py_builtins
 import re
 
-from invariant.analyzer.runtime.evaluation import Interpreter
-from invariant.analyzer.runtime.input import Input  # noqa
-from invariant.analyzer.stdlib.invariant.errors import *
-from invariant.analyzer.stdlib.invariant.message import *
-from invariant.analyzer.stdlib.invariant.nodes import *
+from invariant_testing.analyzer.runtime.evaluation import Interpreter
+from invariant_testing.analyzer.runtime.input import Input  # noqa
+from invariant_testing.analyzer.stdlib.invariant.errors import *
+from invariant_testing.analyzer.stdlib.invariant.message import *
+from invariant_testing.analyzer.stdlib.invariant.nodes import *
 
 # Utilities
 
@@ -39,7 +39,7 @@ def match(pattern: str, s: str) -> bool:
 
 
 def find(pattern: str, s: str) -> list[str]:
-    from invariant.analyzer.runtime.evaluation import Interpreter
+    from invariant_testing.analyzer.runtime.evaluation import Interpreter
 
     interpreter = Interpreter.current()
 

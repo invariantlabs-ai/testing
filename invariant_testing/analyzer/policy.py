@@ -2,20 +2,20 @@ import asyncio
 import os
 from typing import List, Optional, Tuple
 
-from invariant.analyzer.base_policy import BasePolicy
-from invariant.analyzer.language.ast import PolicyError, PolicyRoot
-from invariant.analyzer.language.parser import parse, parse_file
-from invariant.analyzer.runtime.evaluation import EvaluationResult
-from invariant.analyzer.runtime.function_cache import FunctionCache
-from invariant.analyzer.runtime.rule import Input, RuleSet
-from invariant.analyzer.runtime.symbol_table import SymbolTable
-from invariant.analyzer.stdlib.invariant.errors import (
+from invariant_testing.analyzer.base_policy import BasePolicy
+from invariant_testing.analyzer.language.ast import PolicyError, PolicyRoot
+from invariant_testing.analyzer.language.parser import parse, parse_file
+from invariant_testing.analyzer.runtime.evaluation import EvaluationResult
+from invariant_testing.analyzer.runtime.function_cache import FunctionCache
+from invariant_testing.analyzer.runtime.rule import Input, RuleSet
+from invariant_testing.analyzer.runtime.symbol_table import SymbolTable
+from invariant_testing.analyzer.stdlib.invariant.errors import (
     AnalysisResult,
     ErrorInformation,
     PolicyLoadingError,
     UnhandledError,
 )
-from invariant.analyzer.stdlib.invariant.nodes import Event
+from invariant_testing.analyzer.stdlib.invariant.nodes import Event
 
 from .remote_policy import RemotePolicy
 

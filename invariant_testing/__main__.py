@@ -15,17 +15,17 @@ import pytest
 import termcolor
 from invariant_sdk.client import Client as InvariantClient
 
-from invariant.analyzer.extras import Extra
-from invariant.testing.config import Config
-from invariant.testing.constants import (
+from invariant_testing.analyzer.extras import Extra
+from invariant_testing.testing.config import Config
+from invariant_testing.testing.constants import (
     INVARIANT_AGENT_PARAMS_ENV_VAR,
     INVARIANT_AP_KEY_ENV_VAR,
     INVARIANT_RUNNER_TEST_RESULTS_DIR,
     INVARIANT_TEST_RUNNER_CONFIG_ENV_VAR,
     INVARIANT_TEST_RUNNER_TERMINAL_WIDTH_ENV_VAR,
 )
-from invariant.testing.explorer import launch_explorer
-from invariant.testing.utils import utils
+from invariant_testing.testing.explorer import launch_explorer
+from invariant_testing.testing.utils import utils
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

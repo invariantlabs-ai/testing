@@ -9,7 +9,7 @@ from typing import AsyncGenerator
 
 import termcolor
 
-from invariant.analyzer.language.ast import (
+from invariant_testing.analyzer.language.ast import (
     ArrayLiteral,
     BinaryExpr,
     BooleanLiteral,
@@ -23,6 +23,7 @@ from invariant.analyzer.language.ast import (
     Import,
     ImportSpecifier,
     KeyAccess,
+    ListComprehension,
     MemberAccess,
     Node,
     NoneLiteral,
@@ -36,22 +37,24 @@ from invariant.analyzer.language.ast import (
     RaisingAsyncTransformation,
     SemanticPattern,
     StringLiteral,
+    TernaryOp,
     ToolReference,
     TypedIdentifier,
     UnaryExpr,
     VariableDeclaration,
-    ListComprehension,
-    TernaryOp,
 )
-from invariant.analyzer.language.scope import InputData, VariableDeclaration
-from invariant.analyzer.runtime.evaluation_context import EvaluationContext, PolicyParameters
-from invariant.analyzer.runtime.functions import CachedFunctionWrapper
-from invariant.analyzer.runtime.input import Input, Range, Selectable
-from invariant.analyzer.runtime.interface.primitives import DictValue, StringValue
-from invariant.analyzer.runtime.nodes import Event
-from invariant.analyzer.runtime.patterns import SemanticPatternMatcher
-from invariant.analyzer.runtime.runtime_errors import MissingPolicyParameter
-from invariant.analyzer.runtime.utils.invariant_attributes import (
+from invariant_testing.analyzer.language.scope import InputData, VariableDeclaration
+from invariant_testing.analyzer.runtime.evaluation_context import (
+    EvaluationContext,
+    PolicyParameters,
+)
+from invariant_testing.analyzer.runtime.functions import CachedFunctionWrapper
+from invariant_testing.analyzer.runtime.input import Input, Range, Selectable
+from invariant_testing.analyzer.runtime.interface.primitives import DictValue, StringValue
+from invariant_testing.analyzer.runtime.nodes import Event
+from invariant_testing.analyzer.runtime.patterns import SemanticPatternMatcher
+from invariant_testing.analyzer.runtime.runtime_errors import MissingPolicyParameter
+from invariant_testing.analyzer.runtime.utils.invariant_attributes import (
     invariant_attr,
     is_safe_invariant_value,
 )
@@ -932,7 +935,7 @@ class Interpreter(RaisingAsyncTransformation):
         if iterable is None:
             return []
 
-        var_name = node.var_name.id if hasattr(node.var_name, 'id') else node.var_name
+        var_name = node.var_name.id if hasattr(node.var_name, "id") else node.var_name
         results = []
         original_vars = self.variable_store.copy()
         for item in iterable:

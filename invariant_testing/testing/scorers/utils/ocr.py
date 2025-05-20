@@ -4,7 +4,7 @@ import subprocess
 import tempfile
 from typing import Any, Dict, Optional
 
-from invariant.testing.utils.packages import is_program_installed
+from invariant_testing.testing.utils.packages import is_program_installed
 from PIL import Image
 
 
@@ -42,6 +42,7 @@ class OCRDetector:
         """Detect if the expected text appears in the image using Tesseract OCR.
 
         Args:
+        ----
             image (Image.Image): The image in which to search for the text.
             text (str): The text to search for within the image.
             case_sensitive (bool, optional): Whether the text search should be case-sensitive. Defaults to False.
@@ -136,9 +137,11 @@ class OCRDetector:
         """Convert HOCR content to JSON format.
 
         Args:
+        ----
             hocr: HOCR content string. If None, uses last detection result
 
         Returns:
+        -------
             Dict containing structured OCR data with word positions and confidence
 
         """

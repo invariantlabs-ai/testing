@@ -4,7 +4,7 @@ import pytest
 from invariant_sdk.client import Client as InvariantClient
 from invariant_sdk.types.push_traces import PushTracesRequest
 
-from invariant.testing.custom_types.trace import Trace, traverse_dot_path
+from invariant_testing.testing.custom_types.trace import Trace, traverse_dot_path
 
 
 @pytest.fixture(name="sample_trace")

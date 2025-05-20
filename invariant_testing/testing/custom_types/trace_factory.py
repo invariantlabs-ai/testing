@@ -3,7 +3,7 @@
 import copy
 from typing import Any
 
-from invariant.testing.utils.explorer import from_explorer
+from invariant_testing.testing.utils.explorer import from_explorer
 
 from .trace import Trace
 
@@ -16,9 +16,11 @@ class TraceFactory:
         """Create a Trace instance from the history of messages exchanged with the Swarm client.
 
         Args:
+        ----
             history (list[dict]): The history of messages exchanged with the Swarm client.
 
         Returns:
+        -------
             Trace: A Trace object with all the messages combined.
 
         """
@@ -58,11 +60,13 @@ class TraceFactory:
         the index of the trace to load must be provided.
 
         Args:
+        ----
             identifier_or_id: The trace ID or <username>/<dataset> pair.
             index: The index of the trace to load from the dataset.
             explorer_endpoint: The URL of the Explorer.
 
         Returns:
+        -------
             Trace: A Trace object with the loaded trace.
 
         :return: A Trace object with the loaded trace.
@@ -76,9 +80,11 @@ class TraceFactory:
         """Create a Trace instance from the history messages exchanged with the openai client.
 
         Args:
+        ----
             messages (list[dict]): The history messages exchanged with the openai client.
 
         Returns:
+        -------
             Trace: A Trace object with all the messages combined.
 
         """

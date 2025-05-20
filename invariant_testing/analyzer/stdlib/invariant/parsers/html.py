@@ -3,9 +3,9 @@ from html.parser import HTMLParser
 
 from pydantic import BaseModel, Field
 
-from invariant.analyzer.runtime.functions import cached
-from invariant.analyzer.runtime.runtime_errors import InvariantAttributeError
-from invariant.analyzer.stdlib.invariant.nodes import ToolCall
+from invariant_testing.analyzer.runtime.functions import cached
+from invariant_testing.analyzer.runtime.runtime_errors import InvariantAttributeError
+from invariant_testing.analyzer.stdlib.invariant.nodes import ToolCall
 
 
 class HiddenHTMLData(BaseModel):

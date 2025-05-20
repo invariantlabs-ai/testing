@@ -1,4 +1,4 @@
-from invariant.analyzer.stdlib.invariant.errors import AnalysisResult, ErrorInformation
+from invariant_testing.analyzer.stdlib.invariant.errors import AnalysisResult, ErrorInformation
 
 
 class BasePolicy:

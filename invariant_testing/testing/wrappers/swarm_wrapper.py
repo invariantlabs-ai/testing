@@ -1,9 +1,10 @@
 """Wrapper for the OpenAI Swarm client."""
 
-from invariant.testing.custom_types.trace import Trace
-from invariant.testing.custom_types.trace_factory import TraceFactory
 from swarm import Swarm
 from swarm.types import Response
+
+from invariant_testing.testing.custom_types.trace import Trace
+from invariant_testing.testing.custom_types.trace_factory import TraceFactory
 
 
 class InvariantSwarmResponse(Response):
@@ -45,7 +46,8 @@ class SwarmWrapper:
         messages.extend(response.messages)
         ...
 
-        Returns:
+        Returns
+        -------
             InvariantSwarmResponse: The response from the Swarm client, including the
             updated history of messages.
 

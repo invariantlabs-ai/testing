@@ -1,6 +1,6 @@
 from _pytest.outcomes import Failed
 
-from invariant.testing.utils.packages import is_package_installed, is_program_installed
+from invariant_testing.testing.utils.packages import is_package_installed, is_program_installed
 
 
 def should_fail_with(num_assertion: int | None = None):
@@ -9,14 +9,14 @@ def should_fail_with(num_assertion: int | None = None):
             try:
                 fct(*args, **kwargs)
                 if num_assertion != 0:
-                    assert False, (
-                        f"Expected test {fct.__name__} to fail, but it unexpectedly passed"
-                    )
+                    assert (
+                        False
+                    ), f"Expected test {fct.__name__} to fail, but it unexpectedly passed"
             except Failed as e:
                 first_line = str(e).split("\n")[0]
-                assert str(num_assertion) in first_line, (
-                    f"Expected test case to fail with {num_assertion} Invariant assertion(s), but got {first_line}"
-                )
+                assert (
+                    str(num_assertion) in first_line
+                ), f"Expected test case to fail with {num_assertion} Invariant assertion(s), but got {first_line}"
 
         return wrapper
 

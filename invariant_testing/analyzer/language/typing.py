@@ -2,9 +2,13 @@
 Invariant Policy Language type system.
 """
 
-from invariant.analyzer.language.ast import *
-from invariant.analyzer.language.scope import ExternalReference, GlobalScope, VariableDeclaration
-from invariant.analyzer.language.types import *
+from invariant_testing.analyzer.language.ast import *
+from invariant_testing.analyzer.language.scope import (
+    ExternalReference,
+    GlobalScope,
+    VariableDeclaration,
+)
+from invariant_testing.analyzer.language.types import *
 
 
 class CollectVariableDeclarations(RaisingTransformation):
@@ -183,7 +187,7 @@ class TypingTransformation(RaisingTransformation):
         return node
 
     def visit_ValueReference(self, node: ValueReference):
-        from invariant.analyzer.runtime.patterns import VALUE_MATCHERS
+        from invariant_testing.analyzer.runtime.patterns import VALUE_MATCHERS
 
         if not self.has_context(lambda c: isinstance(c, SemanticPattern)):
             raise PolicyError(
@@ -245,7 +249,7 @@ class TypingTransformation(RaisingTransformation):
         node.scope.parent = self.context.scope
 
         # Add the iteration variable to the scope
-        var_name = node.var_name.name if hasattr(node.var_name, 'name') else node.var_name
+        var_name = node.var_name.name if hasattr(node.var_name, "name") else node.var_name
         var_decl = VariableDeclaration(var_name, UnknownType())
         node.scope.declarations = {var_name: var_decl}
 

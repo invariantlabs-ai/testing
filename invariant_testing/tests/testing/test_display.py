@@ -1,5 +1,5 @@
-import invariant.testing.functional as F
-from invariant.testing import Trace, assert_true
+import invariant_testing.testing.functional as F
+from invariant_testing.testing import Trace, assert_true
 
 
 def test_assertion_points_to_substring():

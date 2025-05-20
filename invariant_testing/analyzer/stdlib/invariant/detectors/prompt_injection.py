@@ -1,10 +1,10 @@
 from typing import Optional
 
-from invariant.analyzer.runtime.functions import cached
-from invariant.analyzer.runtime.nodes import text
-from invariant.analyzer.runtime.utils.base import DetectorResult
-from invariant.analyzer.runtime.utils.batching import BatchedDetector
-from invariant.analyzer.runtime.utils.prompt_injections import (
+from invariant_testing.analyzer.runtime.functions import cached
+from invariant_testing.analyzer.runtime.nodes import text
+from invariant_testing.analyzer.runtime.utils.base import DetectorResult
+from invariant_testing.analyzer.runtime.utils.batching import BatchedDetector
+from invariant_testing.analyzer.runtime.utils.prompt_injections import (
     PromptInjectionAnalyzer,
     UnicodeDetector,
 )
@@ -47,7 +47,7 @@ def unicode(data: str | list | dict, categories: list[str] | None = None) -> boo
     if UNICODE_ANALYZER is None:
         UNICODE_ANALYZER = UnicodeDetector()
 
-    from invariant.analyzer.runtime.evaluation import Interpreter
+    from invariant_testing.analyzer.runtime.evaluation import Interpreter
 
     interpreter = Interpreter.current()
 

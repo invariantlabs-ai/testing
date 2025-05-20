@@ -12,8 +12,12 @@ from typing import Any
 
 import termcolor
 
-from invariant.analyzer.language.scope import GlobalScope, Scope, VariableDeclaration  # noqa
-from invariant.analyzer.language.types import NoneType, UnknownType
+from invariant_testing.analyzer.language.scope import (  # noqa
+    GlobalScope,
+    Scope,
+    VariableDeclaration,
+)
+from invariant_testing.analyzer.language.types import NoneType, UnknownType
 
 
 class PolicyError(ValueError):
@@ -542,7 +546,10 @@ class TernaryOp(Expression):
     def __str__(self):
         return (
             "TernaryOp(\n"
-            + textwrap.indent(f"  then_expr: {self.then_expr}\n  condition: {self.condition}\n  else_expr: {self.else_expr}", "  ")
+            + textwrap.indent(
+                f"  then_expr: {self.then_expr}\n  condition: {self.condition}\n  else_expr: {self.else_expr}",
+                "  ",
+            )
             + "\n)"
         )
 
@@ -789,7 +796,7 @@ class Transformation:
 
     def visit_ArrayLiteral(self, node: ArrayLiteral):
         return self.generic_visit(node)
-    
+
     def visit_ListComprehension(self, node: ListComprehension):
         return self.generic_visit(node)
 

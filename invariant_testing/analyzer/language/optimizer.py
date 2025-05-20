@@ -1,4 +1,4 @@
-from invariant.analyzer.language.ast import (
+from invariant_testing.analyzer.language.ast import (
     ArrayLiteral,
     BinaryExpr,
     BooleanLiteral,

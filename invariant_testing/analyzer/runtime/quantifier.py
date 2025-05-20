@@ -1,4 +1,4 @@
-from invariant.analyzer.runtime.input import Input
+from invariant_testing.analyzer.runtime.input import Input
 
 
 class Quantifier:

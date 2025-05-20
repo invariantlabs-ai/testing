@@ -1,5 +1,5 @@
-from invariant.analyzer import Policy
-from invariant.analyzer.traces import *  # for message trace helpers
+from invariant_testing.analyzer import Policy
+from invariant_testing.analyzer.traces import *  # for message trace helpers
 
 policy = Policy.from_string(
     """

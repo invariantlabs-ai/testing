@@ -3,14 +3,14 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import partial
 
-from invariant.analyzer.policy import (
+from invariant_testing.analyzer.policy import (
     AnalysisResult,
     Input,
     Policy,
     UnhandledError,
     parse_file,
 )
-from invariant.analyzer.runtime.rule import RuleSet
+from invariant_testing.analyzer.runtime.rule import RuleSet
 
 
 class HandledError:
