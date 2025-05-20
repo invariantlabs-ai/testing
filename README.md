@@ -31,7 +31,7 @@ Using localized assertions, testing always points you to the exact part of the a
 ## Installation
 
 ```
-pip install invariant
+pip install git+https://github.com/invariantlabs-ai/testing.git
 ```
 
 ## A quick example
