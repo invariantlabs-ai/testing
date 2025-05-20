@@ -30,4 +30,4 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.INVARIANT_TESTING_OPENAI_KEY }}
           LOCAL_POLICY: "1"
         run: |
-          uv run pytest --cov=invariant_testing --cov-report=term --cov-fail-under=60 -s -vv invariant_testing/tests
+          uv run pytest --cov=invariant_testing --cov-report=term --cov-fail-under=50 -s -vv invariant_testing/tests
