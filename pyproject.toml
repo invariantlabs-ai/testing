@@ -1,7 +1,7 @@
 [project]
-name = "invariant-ai"
+name = "invariant-testing"
 version = "0.2.1"
-description = "Invariant Testing and Analyzer"
+description = "Invariant Testing"
 requires-python = ">= 3.10,<4"
 readme = "README.md"
 dependencies = [
@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [project.scripts]
-invariant = "invariant.__main__:main"
+invariant-testing = "invariant_testing.__main__:main"
 
 [dependency-groups]
 dev = [
@@ -44,13 +44,13 @@ dev = [
 ]
 
 [tool.hatch.build.targets.sdist]
-include = ["./invariant"]
+include = ["./invariant_testing"]
 
 [tool.hatch.build.targets.wheel]
-include = ["./invariant"]
+include = ["./invariant_testing"]
 
 [tool.hatch.build.targets.wheel.sources]
-"./invariant" = "invariant"
+"./invariant_testing" = "invariant_testing"
 
 [build-system]
 requires = ["hatchling"]
@@ -61,5 +61,5 @@ log_cli = true
 log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
-testpaths = ["invariant/tests"]
+testpaths = ["invariant_testing/tests"]
 pythonpath = ["."]
