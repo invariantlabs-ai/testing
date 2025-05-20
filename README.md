@@ -54,12 +54,13 @@ def test_weather():
         # extract the locations mentioned in the agent's response
         locations = trace.messages()[-1]["content"].extract("locations")
 
+        print(locations)
+
         # assert that the agent responded about Paris and only Paris
-        assert_equals(1, locations.len(), 
+        assert_equals(1, len(locations),
             "The agent should respond about one location only")
 
         assert_equals("Paris", locations[0], "The agent should respond about Paris")
-
 ```
 
 **Execute it on the command line**:
